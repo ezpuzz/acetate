@@ -1,0 +1,7 @@
+{
+  "name": "acetate",
+  "packageManager": "yarn@4.1.0",
+  "devDependencies": {
+    "dbmate": "^2.11.0"
+  }
+}
