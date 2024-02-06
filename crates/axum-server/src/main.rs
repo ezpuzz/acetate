@@ -1,7 +1,7 @@
-use anyhow::Error;
 use sqlx::{sqlite::SqlitePool, Pool, Sqlite};
 mod config;
 mod error;
+use crate::error::ResultExt;
 
 use axum::{debug_handler, extract::Extension, response::Json, routing::get, Router};
 use serde;
@@ -43,13 +43,14 @@ struct Action {
 #[debug_handler]
 async fn actions(Extension(pool): Extension<Pool<Sqlite>>) -> Result<Json<Actions>, error::Error> {
     let mut client = pool.acquire().await?;
-    sqlx::query("INSERT INTO actions VALUES ('HIDE', '1')")
+    sqlx::query!("INSERT INTO actions VALUES ('HIDE', '1')")
         .execute(&mut *client)
         .await?;
 
     let actions = sqlx::query_as::<_, Action>("SELECT * FROM actions")
         .fetch_all(&mut *client)
-        .await?;
+        .await
+        .on_constraint("asdf", |_| error::Error::Conflict)?;
 
     dbg!(actions.clone());
     Ok(Json(Actions { actions }))

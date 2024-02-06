@@ -1,6 +1,5 @@
-use axum::body::{Bytes, HttpBody};
 use axum::http::header::WWW_AUTHENTICATE;
-use axum::http::{HeaderMap, HeaderValue, Response, StatusCode};
+use axum::http::{HeaderMap, HeaderValue, StatusCode};
 use axum::response::IntoResponse;
 use axum::Json;
 use sqlx::error::DatabaseError;
@@ -42,6 +41,9 @@ pub enum Error {
     UnprocessableEntity {
         errors: HashMap<Cow<'static, str>, Vec<Cow<'static, str>>>,
     },
+
+    #[error("a conflict has occurred")]
+    Conflict,
 
     /// Automatically return `500 Internal Server Error` on a `sqlx::Error`.
     ///
@@ -105,6 +107,7 @@ impl Error {
             Self::Unauthorized => StatusCode::UNAUTHORIZED,
             Self::Forbidden => StatusCode::FORBIDDEN,
             Self::NotFound => StatusCode::NOT_FOUND,
+            Self::Conflict => StatusCode::CONFLICT,
             Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
             Self::Sqlx(_) | Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
@@ -117,7 +120,7 @@ impl Error {
 /// By default, the generated `Display` impl is used to return a plaintext error message
 /// to the client.
 impl IntoResponse for Error {
-    fn into_response(self) -> axum::response::Response {
+    fn into_response<'a>(self) -> axum::response::Response {
         match self {
             Self::UnprocessableEntity { errors } => {
                 #[derive(serde::Serialize)]
@@ -150,7 +153,24 @@ impl IntoResponse for Error {
             Self::Sqlx(ref e) => {
                 // TODO: we probably want to use `tracing` instead
                 // so that this gets linked to the HTTP request by `TraceLayer`.
-                dbg!("SQLx error: {:?}", e);
+                dbg!("{:?}", &e);
+
+                return match e {
+                    sqlx::Error::Database(d) => match d.kind() {
+                        sqlx::error::ErrorKind::UniqueViolation => {
+                            (StatusCode::CONFLICT, d.message().to_owned())
+                        }
+                        _ => (
+                            StatusCode::UNPROCESSABLE_ENTITY,
+                            String::from("Unknown Error"),
+                        ),
+                    },
+                    _ => (
+                        StatusCode::UNPROCESSABLE_ENTITY,
+                        String::from("Unknown Error"),
+                    ),
+                }
+                .into_response();
             }
 
             Self::Anyhow(ref e) => {
