@@ -1,3 +1,3 @@
-rust nightly
+rust stable
 sqlite 3.45
 node lts

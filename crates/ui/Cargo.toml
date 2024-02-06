@@ -1,0 +1,19 @@
+[package]
+name = "ui"
+version = "0.1.0"
+authors = ["Emory Petermann <emory@onlyfor.us>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+dioxus = { path = "../../../dioxus/packages/dioxus", features = ["router"] }
+dioxus-web = { path = "../../../dioxus/packages/web" }
+#dioxus-router = { path = "../../../dioxus/packages/router", features = ["web"] }
+
+# Debug
+log = "0.4.19"
+dioxus-logger = "0.4.1"
+
+console_error_panic_hook = "0.1.7"
