@@ -21,6 +21,7 @@ use axum::{
 };
 use serde;
 use std::net::SocketAddr;
+use tower_http::cors::CorsLayer;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -33,6 +34,7 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .route("/releases", get(releases))
         .route("/actions", get(actions))
+        .layer(CorsLayer::permissive())
         .layer(Extension(config))
         .layer(Extension(pool.clone()))
         .with_state(client);
@@ -112,15 +114,10 @@ async fn releases(
 
     let mut builder = Response::builder().status(200);
 
-    let headers = search.headers();
-
-    for h in headers.into_iter() {
-        builder = builder.header(h.0.as_str(), h.1.to_str().unwrap());
-    }
-
     let body = search.json::<Value>().await?;
 
     builder
+        .header("content-type", "application/json")
         .body(Body::from(body.to_string()))
         .map_err(|e| e.into())
 }

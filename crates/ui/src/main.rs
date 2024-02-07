@@ -4,6 +4,9 @@ use dioxus::prelude::*;
 use dioxus_web::Config;
 use log::LevelFilter;
 
+use serde::Deserialize;
+use serde_json::Value;
+
 fn main() {
     // Init debug
     console_error_panic_hook::set_once();
@@ -13,35 +16,44 @@ fn main() {
     dioxus_web::launch::launch(|| rsx!(Router::<Route> {}), vec![], Config::new());
 }
 
-struct Record {
-    id: String,
+#[derive(Debug, Default, Clone, PartialEq, Deserialize)]
+struct ElasticResult {
+    _id: String,
+    _source: RecordDetails,
 }
 
-async fn get_releases() -> Result<Vec<Record>, reqwest::Error> {
-    let search = elasticsearch_dsl::Search::new().size(10);
-    let resp: serde_json::Value = reqwest::Client::new()
-        .post("https://localhost:9200/releases")
-        .json(&serde_json::to_string(&search).unwrap())
+#[derive(Clone, Default, Debug, PartialEq, Deserialize)]
+struct RecordDetails {
+    title: String,
+    artists: Vec<Value>,
+    styles: Vec<String>,
+}
+
+async fn get_releases() -> Result<Vec<ElasticResult>, reqwest::Error> {
+    let resp = reqwest::Client::new()
+        .get("http://localhost:3000/releases")
         .send()
         .await?
-        .json()
+        .json::<Value>()
         .await?;
-    dbg!(search);
 
-    println!("{resp:#?}");
-    Ok(vec![Record { id: "1".into() }])
+    let hits = &resp["hits"]["hits"];
+
+    let records: Vec<ElasticResult> = serde_json::from_value(hits.clone()).unwrap();
+
+    log::info!("help");
+    log::info!("{records:#?}");
+    Ok(records)
 }
 
 #[derive(Clone, Routable, Debug, PartialEq)]
 enum Route {
     #[route("/")]
-    Home {},
-    #[route("/blog/:id")]
-    Blog { id: i32 },
+    Home { r: ElasticResult },
 }
 
 #[component]
-fn Blog(id: i32) -> Element {
+fn Home(r: ElasticResult) -> Element {
     let releases = use_resource(move || get_releases());
 
     match releases.read().as_ref() {
@@ -49,12 +61,12 @@ fn Blog(id: i32) -> Element {
             rsx! {
                 div {
                     for r in list {
-                        Record { id: r.id.clone() }
+                        RecordDisplay { r: r.clone() }
                     }
                 }
             }
         }
-        Some(Err(_)) => rsx! { "Error"},
+        Some(Err(e)) => rsx! { "{e.to_string()}" },
         None => rsx! {"Loading"},
     }
     // rsx! {
@@ -64,29 +76,23 @@ fn Blog(id: i32) -> Element {
 }
 
 #[component]
-fn Record(id: String) -> Element {
-    rsx! {
-        div {
-            id
-        }
-    }
-}
-
-#[component]
-fn Home() -> Element {
-    let mut count = use_signal(|| 0);
+fn RecordDisplay(r: ElasticResult) -> Element {
+    let artists = r._source.artists;
 
     rsx! {
-        Link {
-            to: Route::Blog {
-                id: count()
-            },
-            "Go to blog"
-        }
-        div {
-            h1 { "High-Five counter: {count}" }
-            button { onclick: move |_| count += 1, "Up high!" }
-            button { onclick: move |_| count -= 1, "Down low!" }
+        div{
+            style: "padding: 10px;",
+            div {
+                for a in artists {
+                    "{a[\"name\"].as_str().unwrap()}"
+                    " {a[\"join\"].as_str().unwrap_or(\"\")} "
+                }
+
+                " - {r._source.title}"
+            }
+            div {
+                "{r._source.styles.join(\", \")}"
+            }
         }
     }
 }
