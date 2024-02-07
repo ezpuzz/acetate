@@ -7,9 +7,29 @@ use log::LevelFilter;
 fn main() {
     // Init debug
     console_error_panic_hook::set_once();
+    dioxus_logger::init(LevelFilter::Info).expect("failed to init logger");
 
     // now rehydrate
     dioxus_web::launch::launch(|| rsx!(Router::<Route> {}), vec![], Config::new());
+}
+
+struct Record {
+    id: String,
+}
+
+async fn get_releases() -> Result<Vec<Record>, reqwest::Error> {
+    let search = elasticsearch_dsl::Search::new().size(10);
+    let resp: serde_json::Value = reqwest::Client::new()
+        .post("https://localhost:9200/releases")
+        .json(&serde_json::to_string(&search).unwrap())
+        .send()
+        .await?
+        .json()
+        .await?;
+    dbg!(search);
+
+    println!("{resp:#?}");
+    Ok(vec![Record { id: "1".into() }])
 }
 
 #[derive(Clone, Routable, Debug, PartialEq)]
@@ -22,9 +42,33 @@ enum Route {
 
 #[component]
 fn Blog(id: i32) -> Element {
-    render! {
-        Link { to: Route::Home {}, "Go to counter" }
-        "Blog post {id}"
+    let releases = use_resource(move || get_releases());
+
+    match releases.read().as_ref() {
+        Some(Ok(list)) => {
+            rsx! {
+                div {
+                    for r in list {
+                        Record { id: r.id.clone() }
+                    }
+                }
+            }
+        }
+        Some(Err(_)) => rsx! { "Error"},
+        None => rsx! {"Loading"},
+    }
+    // rsx! {
+    //     Link { to: Route::Home {}, "Go to counter" }
+    //     "Blog post {id}"
+    // }
+}
+
+#[component]
+fn Record(id: String) -> Element {
+    rsx! {
+        div {
+            id
+        }
     }
 }
 

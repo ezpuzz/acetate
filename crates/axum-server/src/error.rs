@@ -63,6 +63,12 @@ pub enum Error {
     #[error("an error occurred with the database")]
     Sqlx(#[from] sqlx::Error),
 
+    #[error("problem occurred with the elasticsearch")]
+    ES(#[from] elasticsearch::Error),
+
+    #[error("error inside axum")]
+    Axum(#[from] axum::http::Error),
+
     /// Return `500 Internal Server Error` on a `anyhow::Error`.
     ///
     /// `anyhow::Error` is used in a few places to capture context and backtraces
@@ -109,7 +115,9 @@ impl Error {
             Self::NotFound => StatusCode::NOT_FOUND,
             Self::Conflict => StatusCode::CONFLICT,
             Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
-            Self::Sqlx(_) | Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Sqlx(_) | Self::ES(_) | Self::Axum(_) | Self::Anyhow(_) => {
+                StatusCode::INTERNAL_SERVER_ERROR
+            }
         }
     }
 }
@@ -174,6 +182,18 @@ impl IntoResponse for Error {
             }
 
             Self::Anyhow(ref e) => {
+                // TODO: we probably want to use `tracing` instead
+                // so that this gets linked to the HTTP request by `TraceLayer`.
+                dbg!("Generic error: {:?}", e);
+            }
+
+            Self::ES(ref e) => {
+                // TODO: we probably want to use `tracing` instead
+                // so that this gets linked to the HTTP request by `TraceLayer`.
+                dbg!("Generic error: {:?}", e);
+            }
+
+            Self::Axum(ref e) => {
                 // TODO: we probably want to use `tracing` instead
                 // so that this gets linked to the HTTP request by `TraceLayer`.
                 dbg!("Generic error: {:?}", e);

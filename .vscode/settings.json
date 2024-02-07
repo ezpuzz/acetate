@@ -1,5 +1,6 @@
 {
     "rust-analyzer.linkedProjects": [
         "./crates/axum-server/Cargo.toml"
-    ]
+    ],
+    "rust-analyzer.checkOnSave": false
 }
