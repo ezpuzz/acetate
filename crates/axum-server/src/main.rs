@@ -33,6 +33,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::new()
         .route("/releases", get(releases))
+        .route("/filters", get(filters))
         .route("/actions", get(actions))
         .layer(CorsLayer::permissive())
         .layer(Extension(config))
@@ -61,7 +62,6 @@ struct Action {
     identifier: String,
 }
 
-#[debug_handler]
 async fn actions(Extension(pool): Extension<Pool<Sqlite>>) -> Result<Json<Actions>, error::Error> {
     let mut client = pool.acquire().await?;
     sqlx::query!("INSERT INTO actions VALUES ('HIDE', '1')")
@@ -78,6 +78,50 @@ async fn actions(Extension(pool): Extension<Pool<Sqlite>>) -> Result<Json<Action
 }
 
 #[debug_handler]
+async fn filters(
+    State(client): State<reqwest::Client>,
+) -> Result<axum::response::Response, error::Error> {
+    let credentials = Credentials::Basic("elastic".into(), "FsW*tVgYYSvVVagE03*c".into());
+    let url = Url::parse("https://localhost:9200").unwrap();
+    let conn_pool = SingleNodeConnectionPool::new(url);
+    let transport = TransportBuilder::new(conn_pool)
+        .disable_proxy()
+        .auth(credentials)
+        .build()
+        .unwrap();
+
+    let client = Elasticsearch::new(transport);
+
+    let search = client
+        .search(elasticsearch::SearchParts::None)
+        .body(json!({
+            "aggs": {
+                "styles": {
+                    "terms": { "field": "styles.keyword", "size": 1000, "min_doc_count": 50 }
+                },
+                "genres": {
+                    "terms": { "field": "genres.keyword", "size": 1000, "min_doc_count": 50 }
+                },
+                "formats": {
+                    "terms": { "field": "formats.descriptions.keyword", "size": 1000 }
+                }
+            },
+            "size": 0
+        }))
+        .allow_no_indices(true)
+        .send()
+        .await?;
+
+    let mut builder = Response::builder().status(200);
+
+    let body = search.json::<Value>().await?;
+
+    builder
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .map_err(|e| e.into())
+}
+
 async fn releases(
     State(client): State<reqwest::Client>,
 ) -> Result<axum::response::Response, error::Error> {
