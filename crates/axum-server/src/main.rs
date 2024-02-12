@@ -7,7 +7,6 @@ use reqwest::Url;
 use sqlx::{sqlite::SqlitePool, Pool, Sqlite};
 mod config;
 mod error;
-use crate::error::ResultExt;
 
 use serde_json::{json, Value};
 
@@ -15,7 +14,7 @@ use axum::{
     body::Body,
     debug_handler,
     extract::Extension,
-    response::{Json, Response},
+    response::Response,
     routing::{get, post},
     Router,
 };
@@ -142,6 +141,7 @@ struct Filters {
 }
 
 async fn releases(
+    Extension(pool): Extension<Pool<Sqlite>>,
     params: axum_extra::extract::Query<Filters>,
 ) -> Result<axum::response::Response, error::Error> {
     let credentials = Credentials::Basic("elastic".into(), "FsW*tVgYYSvVVagE03*c".into());
@@ -166,6 +166,12 @@ async fn releases(
 
     // dbg!(filters);
 
+    let mut db = pool.acquire().await?;
+
+    let actions = sqlx::query_as::<_, Action>("SELECT * FROM actions")
+        .fetch_all(&mut *db)
+        .await?;
+
     let json = json!({
         "query": {
             "bool": {
@@ -173,7 +179,7 @@ async fn releases(
                 "must_not": [
                     {
                         "ids": {
-                            "values": params.0.exclude.unwrap_or(vec![])
+                            "values": actions.iter().map(|a| &a.identifier).collect::<Vec<_>>()
                         }
                     }
                 ]

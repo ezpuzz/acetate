@@ -255,7 +255,11 @@ fn RecordDisplay(r: ElasticResult) -> Element {
             div {
                 class: "p-4 w-1/2",
                 div {
-                    "{r._source.id}"
+                    a {
+                        href: "https://discogs.com/release/{r._source.id}",
+                        target: "_blank",
+                        "{r._source.id}"
+                    }
                     button {
                         class: "ml-4 border rounded p-1 hover:bg-slate-400",
                         onclick: move |_| {
