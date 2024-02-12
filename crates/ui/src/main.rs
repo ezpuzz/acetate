@@ -26,22 +26,25 @@ struct ElasticResult {
 struct RecordDetails {
     title: String,
     artists: Vec<Value>,
-    styles: Vec<String>,
+    styles: Option<Vec<String>>,
     tracklist: Vec<Value>,
     videos: Option<Vec<String>>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 struct FilterValue {
     count: i64,
     label: String,
 }
 
+#[derive(Debug, Clone)]
 struct Filter {
     name: String,
+    field: String,
     values: Vec<FilterValue>,
 }
 
-async fn get_filters() -> Result<Vec<String>, reqwest::Error> {
+async fn get_filters() -> Result<Vec<Filter>, reqwest::Error> {
     let resp = reqwest::Client::new()
         .get("http://localhost:3000/filters")
         .send()
@@ -49,23 +52,53 @@ async fn get_filters() -> Result<Vec<String>, reqwest::Error> {
         .json::<Value>()
         .await?;
 
-    let filters = resp["aggregations"]
+    Ok(resp["aggregations"]
         .as_object()
         .unwrap()
         .iter()
-        .map(|(key, value)| log::info!("{key}"));
-
-    Ok(resp["aggregations"]
-        .as_array()
-        .unwrap_or(&vec![])
-        .iter()
-        .map(|h| h.to_string())
-        .collect::<Vec<String>>())
+        .map(|(key, value)| {
+            log::info!("{}", key);
+            Filter {
+                name: key.to_owned(),
+                field: value["meta"]["field"].as_str().unwrap().to_string(),
+                values: value["buckets"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|v| FilterValue {
+                        count: v["doc_count"].as_i64().unwrap(),
+                        label: v["key"].as_str().unwrap().to_string(),
+                    })
+                    .collect(),
+            }
+        })
+        .collect::<Vec<Filter>>())
 }
 
-async fn get_releases() -> Result<Vec<ElasticResult>, reqwest::Error> {
+async fn get_releases(
+    filters: Vec<Filter>,
+    page: i32,
+) -> Result<Vec<ElasticResult>, reqwest::Error> {
+    log::info!("{:?}", filters);
+
+    let mut query: Vec<(String, String)> = filters
+        .iter()
+        .map(|f| {
+            vec![
+                ("field".to_owned(), f.field.to_owned()),
+                ("value".to_owned(), f.values[0].label.to_owned()),
+            ]
+        })
+        .flatten()
+        .collect();
+
+    query.push(("from".to_owned(), (page * 10).to_string()));
+
+    log::info!("{:?}", query);
+
     let resp = reqwest::Client::new()
         .get("http://localhost:3000/releases")
+        .query(&query)
         .send()
         .await?
         .json::<Value>()
@@ -85,25 +118,99 @@ enum Route {
 }
 
 #[component]
+fn FilterCheckbox(v: FilterValue, field: String, selected: Signal<Vec<Filter>>) -> Element {
+    let mut checked = use_signal(|| false);
+
+    use_effect(move || log::info!("{:?}", checked));
+
+    let f = v.clone();
+
+    rsx! {
+        input {
+            r#type: "checkbox",
+            id: "{v.label}",
+            value: "{v.label}",
+            onchange: move |evt| {
+                *checked.write() = evt.data.value() == "true";
+                selected.push(Filter {
+                    values: vec![f.to_owned()],
+                    name: "".to_string(),
+                    field: field.to_owned()
+                });
+            },
+        }
+        label {
+            r#for: "{v.label}",
+            " {v.label}"
+        }
+    }
+}
+
+#[component]
+fn Filters(selected_filters: Signal<Vec<Filter>>) -> Element {
+    let mut filters = use_resource(get_filters);
+
+    match filters.read().as_ref() {
+        Some(Ok(list)) => {
+            // let fs = list.iter().map(|f| Filter {
+            //     name: f.name.clone(),
+            //     field: "asdf".to_string(),
+            //     values: vec![],
+            // });
+
+            rsx! {
+                for f in list {
+                        fieldset {
+                            class: "flex flex-none gap-2",
+                            legend { "{f.name}" }
+                            for vals in f.values.chunks(20) {
+                                div {
+                                    class: "flex-none",
+                                    for v in vals {
+                                        div {
+                                            FilterCheckbox{
+                                                v: v.to_owned(),
+                                                field: f.field.to_owned(),
+                                                selected: selected_filters
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                },
+            }
+        }
+        Some(Err(e)) => {
+            rsx! { "{e:?}"}
+        }
+        None => {
+            rsx! { "loading" }
+        }
+    }
+}
+
+#[component]
+fn Releases() -> Element {
+    rsx! {}
+}
+
+#[component]
 fn Home(r: ElasticResult) -> Element {
-    let releases = use_resource(move || get_releases());
-    let styles = use_resource(|| get_filters());
+    let mut selected_filters = use_signal(|| Vec::new() as Vec<Filter>);
+    let mut page = use_signal(|| 0);
+    let mut releases = use_resource(move || {
+        get_releases(
+            selected_filters.read().iter().cloned().collect(),
+            *page.read(),
+        )
+    });
 
     rsx! {
         div {
-            match styles.read().as_ref() {
-                Some(Ok(styles)) => {
-                    rsx!{
-                        for s in styles {
-                            "{s}"
-                        }
-                    }
-                }
-                Some(Err(e)) => rsx! { "{e.to_string()}" },
-                None => rsx! {"Loading"},
-            }
+            class: "flex gap-4",
+            Filters { selected_filters: selected_filters }
         }
-
 
         match releases.read().as_ref() {
             Some(Ok(list)) => {
@@ -117,6 +224,11 @@ fn Home(r: ElasticResult) -> Element {
             }
             Some(Err(e)) => rsx! { "{e.to_string()}" },
             None => rsx! {"Loading"},
+        }
+
+        button {
+            onclick: move |_| { *page.write() += 1 },
+            "Next Page"
         }
     }
     // rsx! {
@@ -138,7 +250,7 @@ fn RecordDisplay(r: ElasticResult) -> Element {
 
     rsx! {
         div {
-            class: "flex pb-4",
+            class: "flex py-4",
             div {
                 class: "p-4 w-1/2",
                 div {
@@ -150,14 +262,14 @@ fn RecordDisplay(r: ElasticResult) -> Element {
                     " - {r._source.title}"
                 }
                 div {
-                    "{r._source.styles.join(\", \")}"
+                    "{r._source.styles.unwrap_or(vec![]).join(\", \")}"
                 }
                 div {
                     for t in r._source.tracklist {
                         div {
-                            class: "p-4",
+                            class: "p-2",
                             onclick: move |event| log::info!("{event:?}"),
-                            "{t[\"position\"].as_str().unwrap_or(\"\")} - {t[\"title\"].as_str().unwrap()}"
+                            "{t[\"position\"].as_str().unwrap_or(\"\")} - {t[\"title\"].as_str().unwrap_or(\"\")}"
                         }
                     }
                 }

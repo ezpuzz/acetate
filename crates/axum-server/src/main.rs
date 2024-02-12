@@ -19,7 +19,7 @@ use axum::{
     routing::get,
     Router,
 };
-use serde;
+use serde::{self, Deserialize, Serialize};
 use std::net::SocketAddr;
 use tower_http::cors::CorsLayer;
 
@@ -96,14 +96,26 @@ async fn filters(
         .search(elasticsearch::SearchParts::None)
         .body(json!({
             "aggs": {
-                "styles": {
-                    "terms": { "field": "styles.keyword", "size": 1000, "min_doc_count": 50 }
+                "Styles": {
+                    "terms": { "field": "styles.keyword", "size": 1000, "min_doc_count": 50 },
+                    "meta": {
+                        "field": "styles.keyword"
+                    }
                 },
-                "genres": {
-                    "terms": { "field": "genres.keyword", "size": 1000, "min_doc_count": 50 }
+                // "genres": {
+                //     "terms": { "field": "genres.keyword", "size": 1000 }
+                // },
+                "Format": {
+                    "terms": { "field": "formats.name.keyword", "size": 20 },
+                    "meta": {
+                        "field": "formats.name.keyword"
+                    }
                 },
-                "formats": {
-                    "terms": { "field": "formats.descriptions.keyword", "size": 1000 }
+                "Format Descriptions": {
+                    "terms": { "field": "formats.descriptions.keyword", "size": 20 },
+                    "meta": {
+                        "field": "formats.descriptions.keyword"
+                    }
                 }
             },
             "size": 0
@@ -122,8 +134,16 @@ async fn filters(
         .map_err(|e| e.into())
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+struct Filters {
+    field: Option<Vec<String>>,
+    value: Option<Vec<String>>,
+    from: Option<i64>,
+}
+
 async fn releases(
     State(client): State<reqwest::Client>,
+    filters: axum_extra::extract::Query<Filters>,
 ) -> Result<axum::response::Response, error::Error> {
     let credentials = Credentials::Basic("elastic".into(), "FsW*tVgYYSvVVagE03*c".into());
     let url = Url::parse("https://localhost:9200").unwrap();
@@ -145,13 +165,23 @@ async fn releases(
     //     .json()
     //     .await?;
 
+    // dbg!(filters);
+
+    let json = json!({
+        "query": {
+            "bool": {
+                "must": std::iter::zip(filters.0.field.unwrap_or(vec![]), filters.0.value.unwrap_or(vec![])).map(|f| json!({ "term": { f.0: f.1 }})).collect::<Vec<Value>>()
+            }
+        }
+    });
+
+    dbg!(&json);
+
     let search = client
         .search(elasticsearch::SearchParts::None)
-        .body(json!({
-            "query": {
-                "match_all": {}
-            }
-        }))
+        .size(10)
+        .from(filters.0.from.unwrap_or(0))
+        .body(json)
         .allow_no_indices(true)
         .send()
         .await?;
