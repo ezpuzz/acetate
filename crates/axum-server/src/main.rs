@@ -1,6 +1,6 @@
 use elasticsearch::{
     auth::Credentials,
-    http::transport::{SingleNodeConnectionPool, Transport, TransportBuilder},
+    http::transport::{SingleNodeConnectionPool, TransportBuilder},
     Elasticsearch,
 };
 use reqwest::Url;
@@ -14,9 +14,9 @@ use serde_json::{json, Value};
 use axum::{
     body::Body,
     debug_handler,
-    extract::{Extension, State},
+    extract::Extension,
     response::{Json, Response},
-    routing::get,
+    routing::{get, post},
     Router,
 };
 use serde::{self, Deserialize, Serialize};
@@ -29,16 +29,13 @@ async fn main() -> anyhow::Result<()> {
 
     let pool = SqlitePool::connect(&config.database_url).await?;
 
-    let client = reqwest::Client::new();
-
     let app = Router::new()
         .route("/releases", get(releases))
         .route("/filters", get(filters))
-        .route("/actions", get(actions))
+        .route("/actions", post(actions))
         .layer(CorsLayer::permissive())
         .layer(Extension(config))
-        .layer(Extension(pool.clone()))
-        .with_state(client);
+        .layer(Extension(pool.clone()));
 
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
@@ -62,25 +59,27 @@ struct Action {
     identifier: String,
 }
 
-async fn actions(Extension(pool): Extension<Pool<Sqlite>>) -> Result<Json<Actions>, error::Error> {
+async fn actions(
+    Extension(pool): Extension<Pool<Sqlite>>,
+    params: axum_extra::extract::Query<Action>,
+) -> Result<(), error::Error> {
     let mut client = pool.acquire().await?;
-    sqlx::query!("INSERT INTO actions VALUES ('HIDE', '1')")
-        .execute(&mut *client)
-        .await?;
 
-    let actions = sqlx::query_as::<_, Action>("SELECT * FROM actions")
-        .fetch_all(&mut *client)
-        .await
-        .on_constraint("asdf", |_| error::Error::Conflict)?;
+    let action = params.0.action.to_uppercase();
 
-    dbg!(actions.clone());
-    Ok(Json(Actions { actions }))
+    sqlx::query!(
+        "INSERT INTO actions VALUES (?, ?)",
+        action,
+        params.0.identifier
+    )
+    .execute(&mut *client)
+    .await?;
+
+    Ok(())
 }
 
 #[debug_handler]
-async fn filters(
-    State(client): State<reqwest::Client>,
-) -> Result<axum::response::Response, error::Error> {
+async fn filters() -> Result<axum::response::Response, error::Error> {
     let credentials = Credentials::Basic("elastic".into(), "FsW*tVgYYSvVVagE03*c".into());
     let url = Url::parse("https://localhost:9200").unwrap();
     let conn_pool = SingleNodeConnectionPool::new(url);
@@ -124,7 +123,7 @@ async fn filters(
         .send()
         .await?;
 
-    let mut builder = Response::builder().status(200);
+    let builder = Response::builder().status(200);
 
     let body = search.json::<Value>().await?;
 
@@ -139,11 +138,11 @@ struct Filters {
     field: Option<Vec<String>>,
     value: Option<Vec<String>>,
     from: Option<i64>,
+    exclude: Option<Vec<i64>>,
 }
 
 async fn releases(
-    State(client): State<reqwest::Client>,
-    filters: axum_extra::extract::Query<Filters>,
+    params: axum_extra::extract::Query<Filters>,
 ) -> Result<axum::response::Response, error::Error> {
     let credentials = Credentials::Basic("elastic".into(), "FsW*tVgYYSvVVagE03*c".into());
     let url = Url::parse("https://localhost:9200").unwrap();
@@ -170,7 +169,14 @@ async fn releases(
     let json = json!({
         "query": {
             "bool": {
-                "must": std::iter::zip(filters.0.field.unwrap_or(vec![]), filters.0.value.unwrap_or(vec![])).map(|f| json!({ "term": { f.0: f.1 }})).collect::<Vec<Value>>()
+                "must": std::iter::zip(params.0.field.unwrap_or(vec![]), params.0.value.unwrap_or(vec![])).map(|f| json!({ "term": { f.0: f.1 }})).collect::<Vec<Value>>(),
+                "must_not": [
+                    {
+                        "ids": {
+                            "values": params.0.exclude.unwrap_or(vec![])
+                        }
+                    }
+                ]
             }
         }
     });
@@ -180,13 +186,13 @@ async fn releases(
     let search = client
         .search(elasticsearch::SearchParts::None)
         .size(10)
-        .from(filters.0.from.unwrap_or(0))
+        .from(params.0.from.unwrap_or(0))
         .body(json)
         .allow_no_indices(true)
         .send()
         .await?;
 
-    let mut builder = Response::builder().status(200);
+    let builder = Response::builder().status(200);
 
     let body = search.json::<Value>().await?;
 

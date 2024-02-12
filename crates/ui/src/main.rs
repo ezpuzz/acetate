@@ -24,6 +24,7 @@ struct ElasticResult {
 
 #[derive(Clone, Default, Debug, PartialEq, Deserialize)]
 struct RecordDetails {
+    id: i64,
     title: String,
     artists: Vec<Value>,
     styles: Option<Vec<String>>,
@@ -163,13 +164,13 @@ fn Filters(selected_filters: Signal<Vec<Filter>>) -> Element {
                         fieldset {
                             class: "flex flex-none gap-2",
                             legend { "{f.name}" }
-                            for vals in f.values.chunks(20) {
+                            for vals in f.values.iter().take(200).collect::<Vec<_>>().chunks(20) {
                                 div {
                                     class: "flex-none",
                                     for v in vals {
                                         div {
                                             FilterCheckbox{
-                                                v: v.to_owned(),
+                                                v: v.to_owned().clone(),
                                                 field: f.field.to_owned(),
                                                 selected: selected_filters
                                             }
@@ -253,6 +254,23 @@ fn RecordDisplay(r: ElasticResult) -> Element {
             class: "flex py-4",
             div {
                 class: "p-4 w-1/2",
+                div {
+                    "{r._source.id}"
+                    button {
+                        class: "ml-4 border rounded p-1 hover:bg-slate-400",
+                        onclick: move |_| {
+                            async move {
+                                reqwest::Client::new()
+                                    .post("http://localhost:3000/actions")
+                                    .query(&[("action", "hide"), ("identifier", &r._source.id.to_string())])
+                                    .send()
+                                    .await
+                                    .unwrap();
+                            }
+                        },
+                        "X"
+                    }
+                }
                 div {
                     for a in r._source.artists {
                         "{a[\"name\"].as_str().unwrap()}"
