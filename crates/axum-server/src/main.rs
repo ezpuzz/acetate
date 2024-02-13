@@ -181,8 +181,11 @@ async fn releases(
                         {json!({"nested": {
                             "path": f.0[7..f.0.chars().position(|c| c == '.').unwrap()],
                             "query": {
-                                "match_phrase": {
-                                    f.0[7..]: f.1
+                                "match_bool_prefix": {
+                                    f.0[7..]: {
+                                        "query": f.1,
+                                        "fuzziness": "AUTO"
+                                    }
                                 }
                             }
                         }})}
@@ -203,7 +206,7 @@ async fn releases(
     println!("{}", to_string_pretty(&json).unwrap());
 
     let search = client
-        .search(elasticsearch::SearchParts::None)
+        .search(elasticsearch::SearchParts::Index(&["releases_test"]))
         .size(10)
         .from(params.0.from.unwrap_or(0))
         .body(json)
