@@ -181,10 +181,10 @@ async fn releases(
                         {json!({"nested": {
                             "path": f.0[7..f.0.chars().position(|c| c == '.').unwrap()],
                             "query": {
-                                "match_bool_prefix": {
+                                "match_phrase_prefix": {
                                     f.0[7..]: {
                                         "query": f.1,
-                                        "fuzziness": "AUTO"
+                                        // "fuzziness": "AUTO"
                                     }
                                 }
                             }

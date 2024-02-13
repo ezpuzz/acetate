@@ -223,11 +223,10 @@ fn Home(r: ElasticResult) -> Element {
     let release_list = releases().unwrap_or(rsx! {"loading"});
 
     let label_handler = move |evt: Event<FormData>| async move {
-        async_std::task::sleep(std::time::Duration::from_millis(1000)).await;
         let label = evt.data.value();
         let filter = Filter {
             name: "label".to_string(),
-            field: "nested:labels.name.keyword".to_string(),
+            field: "nested:labels.name".to_string(),
             values: vec![FilterValue {
                 count: 0,
                 label: evt.data.value(),
@@ -237,7 +236,11 @@ fn Home(r: ElasticResult) -> Element {
             .iter()
             .position(|f| f.field == filter.field)
         {
-            *selected_filters.get_mut(index).unwrap() = filter;
+            if let Some(mut w) = selected_filters.get_mut(index) {
+                *w = filter;
+            } else {
+                log::info!("Too Fast?");
+            }
         } else {
             selected_filters.push(filter);
         }
@@ -343,7 +346,7 @@ fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
             }
             if embed != "" {
                 iframe {
-                    src: "https://www.youtube.com/embed/?playlist={embed}&version=3&fs=0&modestbranding=1&enablejsapi=0",
+                    src: "https://www.youtube.com/embed/?playlist={embed}&version=3&fs=0&modestbranding=1&enablejsapi=0&rel=0",
                     height: "1920px",
                     width: "1080px",
                     class: "w-full h-full aspect-video"
