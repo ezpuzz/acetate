@@ -8,7 +8,7 @@ use sqlx::{sqlite::SqlitePool, Pool, Sqlite};
 mod config;
 mod error;
 
-use serde_json::{json, Value};
+use serde_json::{json, to_string_pretty, Value};
 
 use axum::{
     body::Body,
@@ -175,7 +175,20 @@ async fn releases(
     let json = json!({
         "query": {
             "bool": {
-                "must": std::iter::zip(params.0.field.unwrap_or(vec![]), params.0.value.unwrap_or(vec![])).map(|f| json!({ "term": { f.0: f.1 }})).collect::<Vec<Value>>(),
+                "must": std::iter::zip(params.0.field.unwrap_or(vec![]), params.0.value.unwrap_or(vec![]))
+                    .map(|f| {
+                        if(f.0.contains("nested:"))
+                        {json!({"nested": {
+                            "path": f.0[7..f.0.chars().position(|c| c == '.').unwrap()],
+                            "query": {
+                                "match_phrase": {
+                                    f.0[7..]: f.1
+                                }
+                            }
+                        }})}
+                        else
+                        {json!({ "match_phrase": { f.0: f.1 }})}
+                    }).collect::<Vec<Value>>(),
                 "must_not": [
                     {
                         "ids": {
@@ -187,7 +200,7 @@ async fn releases(
         }
     });
 
-    dbg!(&json);
+    println!("{}", to_string_pretty(&json).unwrap());
 
     let search = client
         .search(elasticsearch::SearchParts::None)

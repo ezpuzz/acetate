@@ -222,6 +222,29 @@ fn Home(r: ElasticResult) -> Element {
 
     let release_list = releases().unwrap_or(rsx! {"loading"});
 
+    let label_handler = move |evt: Event<FormData>| async move {
+        async_std::task::sleep(std::time::Duration::from_millis(1000)).await;
+        let label = evt.data.value();
+        let filter = Filter {
+            name: "label".to_string(),
+            field: "nested:labels.name.keyword".to_string(),
+            values: vec![FilterValue {
+                count: 0,
+                label: evt.data.value(),
+            }],
+        };
+        if let Some(index) = selected_filters
+            .iter()
+            .position(|f| f.field == filter.field)
+        {
+            *selected_filters.get_mut(index).unwrap() = filter;
+        } else {
+            selected_filters.push(filter);
+        }
+
+        log::info!("{}", label);
+    };
+
     rsx! {
         button {
             onclick: move |_| { releases.restart(); },
@@ -241,11 +264,7 @@ fn Home(r: ElasticResult) -> Element {
             input {
                 name: "label",
                 class: "p-2 border",
-                oninput: move |evt| async move {
-                    tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
-                    let label = evt.data.value();
-                    log::info!("{}", label);
-                }
+                oninput: label_handler
             }
         }
 
