@@ -57,21 +57,18 @@ async fn get_filters() -> Result<Vec<Filter>, reqwest::Error> {
         .as_object()
         .unwrap()
         .iter()
-        .map(|(key, value)| {
-            log::info!("{}", key);
-            Filter {
-                name: key.to_owned(),
-                field: value["meta"]["field"].as_str().unwrap().to_string(),
-                values: value["buckets"]
-                    .as_array()
-                    .unwrap()
-                    .iter()
-                    .map(|v| FilterValue {
-                        count: v["doc_count"].as_i64().unwrap(),
-                        label: v["key"].as_str().unwrap().to_string(),
-                    })
-                    .collect(),
-            }
+        .map(|(key, value)| Filter {
+            name: key.to_owned(),
+            field: value["meta"]["field"].as_str().unwrap().to_string(),
+            values: value["buckets"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|v| FilterValue {
+                    count: v["doc_count"].as_i64().unwrap(),
+                    label: v["key"].as_str().unwrap().to_string(),
+                })
+                .collect(),
         })
         .collect::<Vec<Filter>>())
 }
@@ -80,8 +77,6 @@ async fn get_releases(
     filters: Vec<Filter>,
     page: i32,
 ) -> Result<Vec<ElasticResult>, reqwest::Error> {
-    log::info!("{:?}", filters);
-
     let mut query: Vec<(String, String)> = filters
         .iter()
         .map(|f| {
@@ -94,8 +89,6 @@ async fn get_releases(
         .collect();
 
     query.push(("from".to_owned(), (page * 10).to_string()));
-
-    log::info!("{:?}", query);
 
     let resp = reqwest::Client::new()
         .get("http://localhost:3000/releases")
@@ -120,10 +113,6 @@ enum Route {
 
 #[component]
 fn FilterCheckbox(v: FilterValue, field: String, selected: Signal<Vec<Filter>>) -> Element {
-    let mut checked = use_signal(|| false);
-
-    use_effect(move || log::info!("{:?}", checked));
-
     let f = v.clone();
 
     rsx! {
@@ -132,12 +121,15 @@ fn FilterCheckbox(v: FilterValue, field: String, selected: Signal<Vec<Filter>>) 
             id: "{v.label}",
             value: "{v.label}",
             onchange: move |evt| {
-                *checked.write() = evt.data.value() == "true";
-                selected.push(Filter {
-                    values: vec![f.to_owned()],
-                    name: "".to_string(),
-                    field: field.to_owned()
-                });
+                if(evt.data.value() == "true") {
+                    selected.push(Filter {
+                        values: vec![f.to_owned()],
+                        name: "".to_string(),
+                        field: field.to_owned()
+                    });
+                } else {
+                    selected.remove(selected.iter().position(|filter| *filter.values == vec![f.to_owned()]  && *filter.field == field).unwrap());
+                }
             },
         }
         label {
@@ -200,32 +192,64 @@ fn Releases() -> Element {
 fn Home(r: ElasticResult) -> Element {
     let mut selected_filters = use_signal(|| Vec::new() as Vec<Filter>);
     let mut page = use_signal(|| 0);
-    let mut releases = use_resource(move || {
-        get_releases(
-            selected_filters.read().iter().cloned().collect(),
-            *page.read(),
-        )
+    let mut refresh = use_signal(|| true);
+
+    let mut releases = use_resource(move || async move {
+        if (*refresh.read()) {
+            let resp = get_releases(
+                selected_filters.read().iter().cloned().collect(),
+                *page.read(),
+            )
+            .await;
+
+            return match resp {
+                Ok(list) => {
+                    rsx! {
+                        div {
+                            for r in list {
+                                RecordDisplay { r: r.clone(), refresh }
+                            }
+                        }
+                    }
+                }
+                Err(e) => rsx! { "{e.to_string()}" },
+            };
+            *refresh.write() = false;
+        }
+
+        rsx! { "Unknown" }
     });
 
+    let release_list = releases().unwrap_or(rsx! {"loading"});
+
     rsx! {
+        button {
+            onclick: move |_| { releases.restart(); },
+            "refresh"
+        }
         div {
             class: "flex gap-4",
             Filters { selected_filters: selected_filters }
         }
 
-        match releases.read().as_ref() {
-            Some(Ok(list)) => {
-                rsx! {
-                    div {
-                        for r in list {
-                            RecordDisplay { r: r.clone() }
-                        }
-                    }
+        div {
+            class: "p-2",
+            label {
+                r#for: "label",
+                "Label: "
+            }
+            input {
+                name: "label",
+                class: "p-2 border",
+                oninput: move |evt| async move {
+                    tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+                    let label = evt.data.value();
+                    log::info!("{}", label);
                 }
             }
-            Some(Err(e)) => rsx! { "{e.to_string()}" },
-            None => rsx! {"Loading"},
         }
+
+        {release_list}
 
         button {
             onclick: move |_| { *page.write() += 1 },
@@ -239,7 +263,7 @@ fn Home(r: ElasticResult) -> Element {
 }
 
 #[component]
-fn RecordDisplay(r: ElasticResult) -> Element {
+fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
     let embed = r
         ._source
         .videos
@@ -264,12 +288,15 @@ fn RecordDisplay(r: ElasticResult) -> Element {
                         class: "ml-4 border rounded p-1 hover:bg-slate-400",
                         onclick: move |_| {
                             async move {
-                                reqwest::Client::new()
+                                // TODO: check if was a 200?
+                                let req = reqwest::Client::new()
                                     .post("http://localhost:3000/actions")
                                     .query(&[("action", "hide"), ("identifier", &r._source.id.to_string())])
                                     .send()
                                     .await
                                     .unwrap();
+
+                                *refresh.write() = true;
                             }
                         },
                         "X"
@@ -290,7 +317,6 @@ fn RecordDisplay(r: ElasticResult) -> Element {
                     for t in r._source.tracklist {
                         div {
                             class: "p-2",
-                            onclick: move |event| log::info!("{event:?}"),
                             "{t[\"position\"].as_str().unwrap_or(\"\")} - {t[\"title\"].as_str().unwrap_or(\"\")}"
                         }
                     }
@@ -299,6 +325,8 @@ fn RecordDisplay(r: ElasticResult) -> Element {
             if embed != "" {
                 iframe {
                     src: "https://www.youtube.com/embed/?playlist={embed}&version=3&fs=0&modestbranding=1&enablejsapi=0",
+                    height: "1920px",
+                    width: "1080px",
                     class: "w-full h-full aspect-video"
                 }
             }
