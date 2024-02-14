@@ -186,11 +186,6 @@ fn Filters(selected_filters: Signal<Vec<Filter>>) -> Element {
 }
 
 #[component]
-fn Releases() -> Element {
-    rsx! {}
-}
-
-#[component]
 fn Home(r: ElasticResult) -> Element {
     let mut selected_filters = use_signal(|| Vec::new() as Vec<Filter>);
     let mut page = use_signal(|| 0);
@@ -204,17 +199,20 @@ fn Home(r: ElasticResult) -> Element {
             )
             .await;
 
-            return match resp {
+            let rsx = match resp {
                 Ok(list) => {
+                    log::info!("rendering releases");
+
                     rsx! {
-                        for r in list.into_iter().map(|r| r.clone()) {
-                            RecordDisplay { r, refresh }
+                        for r in list {
+                            RecordDisplay { key: "{r._id}", r, refresh }
                         }
                     }
                 }
                 Err(e) => rsx! { "{e.to_string()}" },
             };
-            *refresh.write() = false;
+            // *refresh.write() = false;
+            return rsx;
         }
 
         rsx! { "Unknown" }
@@ -224,6 +222,7 @@ fn Home(r: ElasticResult) -> Element {
 
     let label_handler = move |evt: Event<FormData>| async move {
         let label = evt.data.value();
+
         let filter = Filter {
             name: "label".to_string(),
             field: "nested:labels.name".to_string(),
@@ -232,6 +231,7 @@ fn Home(r: ElasticResult) -> Element {
                 label: evt.data.value(),
             }],
         };
+
         if let Some(index) = selected_filters
             .iter()
             .position(|f| f.field == filter.field)
@@ -285,10 +285,13 @@ fn Home(r: ElasticResult) -> Element {
 }
 
 #[component]
-fn RecordDisplay(r: ReadOnlySignal<ElasticResult>, refresh: Signal<bool>) -> Element {
+fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
+    let mut fix_yt = use_signal(|| false);
+
     let embed = use_memo(move || {
-        r()._source
+        r._source
             .videos
+            .clone()
             .unwrap_or(vec![])
             .iter()
             .map(|url| &url[32..])
@@ -299,13 +302,32 @@ fn RecordDisplay(r: ReadOnlySignal<ElasticResult>, refresh: Signal<bool>) -> Ele
             .join(",")
     });
 
-    let source = use_memo(move || r()._source);
-
     let yt_api_url = use_memo(move || {
         format!(
-            "https://youtube.googleapis.com/youtube/v3/videos?id={}",
+            "https://youtube.googleapis.com/youtube/v3/videos?id={}&key=",
             embed
         )
+    });
+
+    let fixed_yts = use_resource(move || async move {
+        if (*fix_yt.read()) {
+            let data = reqwest::Client::new()
+                .get(yt_api_url())
+                .send()
+                .await
+                .unwrap();
+            let valid = data.json::<Value>().await.unwrap()["items"]
+                .as_array()
+                .unwrap_or(&vec![])
+                .to_owned();
+            valid
+                .iter()
+                .map(|v| v["id"].as_str().unwrap())
+                .collect::<Vec<_>>()
+                .join(",")
+        } else {
+            embed()
+        }
     });
 
     rsx! {
@@ -315,9 +337,9 @@ fn RecordDisplay(r: ReadOnlySignal<ElasticResult>, refresh: Signal<bool>) -> Ele
                 class: "p-4 w-1/2",
                 div {
                     a {
-                        href: "https://discogs.com/release/{source().id}",
+                        href: "https://discogs.com/release/{r._source.id}",
                         target: "_blank",
-                        "{source().id}"
+                        "{r._source.id}"
                     }
                     button {
                         class: "ml-4 border rounded p-1 hover:bg-slate-400",
@@ -326,7 +348,7 @@ fn RecordDisplay(r: ReadOnlySignal<ElasticResult>, refresh: Signal<bool>) -> Ele
                                 // TODO: check if was a 200?
                                 let req = reqwest::Client::new()
                                     .post("http://localhost:3000/actions")
-                                    .query(&[("action", "hide"), ("identifier", &source().id.to_string())])
+                                    .query(&[("action", "hide"), ("identifier", &r._source.id.to_string())])
                                     .send()
                                     .await
                                     .unwrap();
@@ -338,18 +360,18 @@ fn RecordDisplay(r: ReadOnlySignal<ElasticResult>, refresh: Signal<bool>) -> Ele
                     }
                 }
                 div {
-                    for a in source().artists {
+                    for a in r._source.artists.iter() {
                         "{a[\"name\"].as_str().unwrap()}"
                         " {a[\"join\"].as_str().unwrap_or(\"\")} "
                     }
 
-                    " - {source().title}"
+                    " - {r._source.title}"
                 }
                 div {
-                    "{source().styles.unwrap_or(vec![]).join(\", \")}"
+                    "{r._source.styles.clone().unwrap_or(vec![]).join(\", \")}"
                 }
                 div {
-                    for t in source().tracklist {
+                    for t in r._source.tracklist.iter() {
                         div {
                             class: "p-2",
                             "{t[\"position\"].as_str().unwrap_or(\"\")} - {t[\"title\"].as_str().unwrap_or(\"\")}"
@@ -357,23 +379,22 @@ fn RecordDisplay(r: ReadOnlySignal<ElasticResult>, refresh: Signal<bool>) -> Ele
                     }
                 }
             }
-            if embed() != "" {
-                button {
-                    class: "border rounded p-2",
-                    onclick: move |_| async move {
-                        log::info!("fixing youtubes");
-                        reqwest::Client::new()
-                        .get(yt_api_url())
-                        .send()
-                        .await.unwrap();
-                    },
-                    "fix"
-                }
-                iframe {
-                    src: "https://www.youtube.com/embed/?playlist={embed}&version=3&fs=0&modestbranding=1&enablejsapi=0&rel=0",
-                    height: "1920px",
-                    width: "1080px",
-                    class: "w-full h-full aspect-video"
+            if let Some(videos) = fixed_yts.read().as_ref() {
+                if videos != "" {
+                    button {
+                        class: "border rounded p-2",
+                        onclick: move |_| async move {
+                            log::info!("fixing youtubes");
+                            *fix_yt.write() = true;
+                        },
+                        "fix"
+                    }
+                    iframe {
+                        src: "https://www.youtube.com/embed/?playlist={videos}&version=3&fs=0&modestbranding=1&enablejsapi=0&rel=0",
+                        height: "1920px",
+                        width: "1080px",
+                        class: "w-full h-full aspect-video"
+                    }
                 }
             }
         }
