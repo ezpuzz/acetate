@@ -3173,6 +3173,7 @@ dependencies = [
  "dioxus",
  "dioxus-logger",
  "dioxus-web",
+ "js-sys",
  "log",
  "reqwest",
  "serde",

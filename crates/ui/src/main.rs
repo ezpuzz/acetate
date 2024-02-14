@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::collections::HashSet;
+use std::{collections::HashSet, time::Duration};
 
 use dioxus::prelude::*;
 use dioxus_web::Config;
@@ -194,7 +194,7 @@ fn Home(r: ElasticResult) -> Element {
     let mut releases = use_resource(move || async move {
         if (*refresh.read()) {
             let resp = get_releases(
-                selected_filters.read().iter().cloned().collect(),
+                selected_filters.read().clone().into_iter().collect(),
                 *page.read(),
             )
             .await;
@@ -220,33 +220,52 @@ fn Home(r: ElasticResult) -> Element {
 
     let release_list = releases().unwrap_or(rsx! {"loading"});
 
-    let label_handler = move |evt: Event<FormData>| async move {
-        let label = evt.data.value();
+    let mut label_input = use_signal(|| String::new());
+    let mut last_keypress = use_signal(|| 0.);
+    let mut run_handler = use_signal(|| false);
 
-        let filter = Filter {
-            name: "label".to_string(),
-            field: "nested:labels.name".to_string(),
-            values: vec![FilterValue {
-                count: 0,
-                label: evt.data.value(),
-            }],
-        };
-
-        if let Some(index) = selected_filters
-            .iter()
-            .position(|f| f.field == filter.field)
-        {
-            if let Some(mut w) = selected_filters.get_mut(index) {
-                *w = filter;
-            } else {
-                log::info!("Too Fast?");
-            }
-        } else {
-            selected_filters.push(filter);
-        }
-
-        log::info!("{}", label);
+    let input_handler = move |evt: Event<FormData>| async move {
+        log::info!("input");
+        *last_keypress.write() = js_sys::Date::now();
+        *label_input.write() = evt.data.value();
     };
+
+    use_resource(move || async move {
+        if (run_handler() && last_keypress() > 0. && js_sys::Date::now() - last_keypress() > 100.) {
+            *run_handler.write() = false;
+            *last_keypress.write() = 0.;
+
+            let label = label_input();
+
+            let filter = Filter {
+                name: "label".to_string(),
+                field: "nested:labels.name".to_string(),
+                values: vec![FilterValue {
+                    count: 0,
+                    label: label.clone(),
+                }],
+            };
+
+            if let Some(index) = selected_filters
+                .iter()
+                .position(|f| f.field == filter.field)
+            {
+                selected_filters.swap_remove(index);
+            }
+            if (label_input() != "") {
+                selected_filters.push(filter);
+            }
+
+            log::info!("value: {}", label);
+        } else {
+            async_std::task::sleep(Duration::from_millis(500)).await;
+            if (!run_handler() && last_keypress() > 0.) {
+                log::info!("slept");
+
+                *run_handler.write() = true;
+            }
+        }
+    });
 
     rsx! {
         button {
@@ -267,7 +286,7 @@ fn Home(r: ElasticResult) -> Element {
             input {
                 name: "label",
                 class: "p-2 border",
-                oninput: label_handler
+                oninput: input_handler
             }
         }
 
