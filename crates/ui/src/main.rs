@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 
+use std::collections::HashSet;
+
 use dioxus::prelude::*;
 use dioxus_web::Config;
 use log::LevelFilter;
@@ -205,10 +207,8 @@ fn Home(r: ElasticResult) -> Element {
             return match resp {
                 Ok(list) => {
                     rsx! {
-                        div {
-                            for r in list {
-                                RecordDisplay { r: r.clone(), refresh }
-                            }
+                        for r in list.into_iter().map(|r| r.clone()) {
+                            RecordDisplay { r, refresh }
                         }
                     }
                 }
@@ -285,15 +285,28 @@ fn Home(r: ElasticResult) -> Element {
 }
 
 #[component]
-fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
-    let embed = r
-        ._source
-        .videos
-        .unwrap_or(vec![])
-        .iter()
-        .map(|url| &url[32..])
-        .collect::<Vec<&str>>()
-        .join(",");
+fn RecordDisplay(r: ReadOnlySignal<ElasticResult>, refresh: Signal<bool>) -> Element {
+    let embed = use_memo(move || {
+        r()._source
+            .videos
+            .unwrap_or(vec![])
+            .iter()
+            .map(|url| &url[32..])
+            // HashSet makes it unique values only
+            .collect::<HashSet<&str>>()
+            .into_iter()
+            .collect::<Vec<_>>()
+            .join(",")
+    });
+
+    let source = use_memo(move || r()._source);
+
+    let yt_api_url = use_memo(move || {
+        format!(
+            "https://youtube.googleapis.com/youtube/v3/videos?id={}",
+            embed
+        )
+    });
 
     rsx! {
         div {
@@ -302,9 +315,9 @@ fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
                 class: "p-4 w-1/2",
                 div {
                     a {
-                        href: "https://discogs.com/release/{r._source.id}",
+                        href: "https://discogs.com/release/{source().id}",
                         target: "_blank",
-                        "{r._source.id}"
+                        "{source().id}"
                     }
                     button {
                         class: "ml-4 border rounded p-1 hover:bg-slate-400",
@@ -313,7 +326,7 @@ fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
                                 // TODO: check if was a 200?
                                 let req = reqwest::Client::new()
                                     .post("http://localhost:3000/actions")
-                                    .query(&[("action", "hide"), ("identifier", &r._source.id.to_string())])
+                                    .query(&[("action", "hide"), ("identifier", &source().id.to_string())])
                                     .send()
                                     .await
                                     .unwrap();
@@ -325,18 +338,18 @@ fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
                     }
                 }
                 div {
-                    for a in r._source.artists {
+                    for a in source().artists {
                         "{a[\"name\"].as_str().unwrap()}"
                         " {a[\"join\"].as_str().unwrap_or(\"\")} "
                     }
 
-                    " - {r._source.title}"
+                    " - {source().title}"
                 }
                 div {
-                    "{r._source.styles.unwrap_or(vec![]).join(\", \")}"
+                    "{source().styles.unwrap_or(vec![]).join(\", \")}"
                 }
                 div {
-                    for t in r._source.tracklist {
+                    for t in source().tracklist {
                         div {
                             class: "p-2",
                             "{t[\"position\"].as_str().unwrap_or(\"\")} - {t[\"title\"].as_str().unwrap_or(\"\")}"
@@ -344,7 +357,18 @@ fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
                     }
                 }
             }
-            if embed != "" {
+            if embed() != "" {
+                button {
+                    class: "border rounded p-2",
+                    onclick: move |_| async move {
+                        log::info!("fixing youtubes");
+                        reqwest::Client::new()
+                        .get(yt_api_url())
+                        .send()
+                        .await.unwrap();
+                    },
+                    "fix"
+                }
                 iframe {
                     src: "https://www.youtube.com/embed/?playlist={embed}&version=3&fs=0&modestbranding=1&enablejsapi=0&rel=0",
                     height: "1920px",
