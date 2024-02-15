@@ -6,6 +6,7 @@ use dioxus::prelude::*;
 use dioxus_web::Config;
 use log::LevelFilter;
 
+use reqwest::StatusCode;
 use serde::Deserialize;
 use serde_json::Value;
 
@@ -30,6 +31,7 @@ struct RecordDetails {
     title: String,
     artists: Vec<Value>,
     styles: Option<Vec<String>>,
+    labels: Option<Vec<Value>>,
     tracklist: Vec<Value>,
     videos: Option<Vec<String>>,
 }
@@ -81,13 +83,12 @@ async fn get_releases(
 ) -> Result<Vec<ElasticResult>, reqwest::Error> {
     let mut query: Vec<(String, String)> = filters
         .iter()
-        .map(|f| {
+        .flat_map(|f| {
             vec![
                 ("field".to_owned(), f.field.to_owned()),
                 ("value".to_owned(), f.values[0].label.to_owned()),
             ]
         })
-        .flatten()
         .collect();
 
     query.push(("from".to_owned(), (page * 10).to_string()));
@@ -107,10 +108,10 @@ async fn get_releases(
     Ok(records)
 }
 
-#[derive(Clone, Routable, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Routable)]
 enum Route {
     #[route("/")]
-    Home { r: ElasticResult },
+    Home,
 }
 
 #[component]
@@ -123,14 +124,15 @@ fn FilterCheckbox(v: FilterValue, field: String, selected: Signal<Vec<Filter>>) 
             id: "{v.label}",
             value: "{v.label}",
             onchange: move |evt| {
-                if(evt.data.value() == "true") {
+                if evt.data.value() == "true" {
+                    log::info!("Adding filter on {}", field);
                     selected.push(Filter {
                         values: vec![f.to_owned()],
                         name: "".to_string(),
                         field: field.to_owned()
                     });
                 } else {
-                    selected.remove(selected.iter().position(|filter| *filter.values == vec![f.to_owned()]  && *filter.field == field).unwrap());
+                    selected.remove(selected.iter().position(|filter| *filter.values == [f.to_owned()]  && *filter.field == field).unwrap());
                 }
             },
         }
@@ -143,7 +145,7 @@ fn FilterCheckbox(v: FilterValue, field: String, selected: Signal<Vec<Filter>>) 
 
 #[component]
 fn Filters(selected_filters: Signal<Vec<Filter>>) -> Element {
-    let mut filters = use_resource(get_filters);
+    let filters = use_resource(get_filters);
 
     match filters.read().as_ref() {
         Some(Ok(list)) => {
@@ -186,13 +188,13 @@ fn Filters(selected_filters: Signal<Vec<Filter>>) -> Element {
 }
 
 #[component]
-fn Home(r: ElasticResult) -> Element {
+fn Home() -> Element {
     let mut selected_filters = use_signal(|| Vec::new() as Vec<Filter>);
     let mut page = use_signal(|| 0);
-    let mut refresh = use_signal(|| true);
+    let refresh = use_signal(|| true);
 
     let mut releases = use_resource(move || async move {
-        if (*refresh.read()) {
+        if *refresh.read() {
             let resp = get_releases(
                 selected_filters.read().clone().into_iter().collect(),
                 *page.read(),
@@ -211,7 +213,6 @@ fn Home(r: ElasticResult) -> Element {
                 }
                 Err(e) => rsx! { "{e.to_string()}" },
             };
-            // *refresh.write() = false;
             return rsx;
         }
 
@@ -220,7 +221,7 @@ fn Home(r: ElasticResult) -> Element {
 
     let release_list = releases().unwrap_or(rsx! {"loading"});
 
-    let mut label_input = use_signal(|| String::new());
+    let mut label_input = use_signal(String::new);
     let mut last_keypress = use_signal(|| 0.);
     let mut run_handler = use_signal(|| false);
 
@@ -230,8 +231,8 @@ fn Home(r: ElasticResult) -> Element {
         *label_input.write() = evt.data.value();
     };
 
-    use_resource(move || async move {
-        if (run_handler() && last_keypress() > 0. && js_sys::Date::now() - last_keypress() > 100.) {
+    let _ = use_resource(move || async move {
+        if run_handler() && last_keypress() > 0. && js_sys::Date::now() - last_keypress() > 100. {
             *run_handler.write() = false;
             *last_keypress.write() = 0.;
 
@@ -252,14 +253,14 @@ fn Home(r: ElasticResult) -> Element {
             {
                 selected_filters.swap_remove(index);
             }
-            if (label_input() != "") {
+            if !label_input().is_empty() {
                 selected_filters.push(filter);
             }
 
             log::info!("value: {}", label);
         } else {
             async_std::task::sleep(Duration::from_millis(500)).await;
-            if (!run_handler() && last_keypress() > 0.) {
+            if !run_handler() && last_keypress() > 0. {
                 log::info!("slept");
 
                 *run_handler.write() = true;
@@ -329,7 +330,7 @@ fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
     });
 
     let fixed_yts = use_resource(move || async move {
-        if (*fix_yt.read()) {
+        if *fix_yt.read() {
             let data = reqwest::Client::new()
                 .get(yt_api_url())
                 .send()
@@ -372,6 +373,8 @@ fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
                                     .await
                                     .unwrap();
 
+                                assert!(req.status() == StatusCode::OK);
+
                                 *refresh.write() = true;
                             }
                         },
@@ -390,6 +393,9 @@ fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
                     "{r._source.styles.clone().unwrap_or(vec![]).join(\", \")}"
                 }
                 div {
+                    "{r._source.labels.clone().unwrap_or(vec![]).iter().map(|l| l[\"name\"].as_str().unwrap()).collect::<Vec<_>>().join(\", \")}"
+                }
+                div {
                     for t in r._source.tracklist.iter() {
                         div {
                             class: "p-2",
@@ -399,7 +405,7 @@ fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
                 }
             }
             if let Some(videos) = fixed_yts.read().as_ref() {
-                if videos != "" {
+                if !videos.is_empty() {
                     button {
                         class: "border rounded p-2",
                         onclick: move |_| async move {

@@ -175,9 +175,9 @@ async fn releases(
     let json = json!({
         "query": {
             "bool": {
-                "must": std::iter::zip(params.0.field.unwrap_or(vec![]), params.0.value.unwrap_or(vec![]))
+                "must": std::iter::zip(params.0.field.unwrap_or_default(), params.0.value.unwrap_or_default())
                     .map(|f| {
-                        if(f.0.contains("nested:"))
+                        if f.0.contains("nested:")
                         {json!({"nested": {
                             "path": f.0[7..f.0.chars().position(|c| c == '.').unwrap()],
                             "query": {
