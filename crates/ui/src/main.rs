@@ -380,6 +380,25 @@ fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
                         },
                         "X"
                     }
+                    button {
+                        class: "ml-4 border rounded p-1 hover:bg-slate-400",
+                        onclick: move |_| {
+                            async move {
+                                // TODO: check if was a 200?
+                                let req = reqwest::Client::new()
+                                    .post("http://discogs.com/api")
+                                    .query(&[("action", "wishlist"), ("identifier", &r._source.id.to_string())])
+                                    .send()
+                                    .await
+                                    .unwrap();
+
+                                assert!(req.status() == StatusCode::OK);
+
+                                // *refresh.write() = true;
+                            }
+                        },
+                        "Wishlist"
+                    }
                 }
                 div {
                     for a in r._source.artists.iter() {
