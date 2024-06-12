@@ -1,6 +1,7 @@
+use config::Config;
 use elasticsearch::{
     auth::Credentials,
-    http::transport::{SingleNodeConnectionPool, TransportBuilder},
+    http::transport::{SingleNodeConnectionPool, Transport, TransportBuilder},
     Elasticsearch,
 };
 use reqwest::Url;
@@ -78,15 +79,11 @@ async fn actions(
 }
 
 #[debug_handler]
-async fn filters() -> Result<axum::response::Response, error::Error> {
-    let credentials = Credentials::Basic("elastic".into(), "FsW*tVgYYSvVVagE03*c".into());
-    let url = Url::parse("https://localhost:9200").unwrap();
-    let conn_pool = SingleNodeConnectionPool::new(url);
-    let transport = TransportBuilder::new(conn_pool)
-        .disable_proxy()
-        .auth(credentials)
-        .build()
-        .unwrap();
+async fn filters(
+    Extension(config): Extension<Config>,
+) -> Result<axum::response::Response, error::Error> {
+    let credentials = Credentials::Basic("elastic".into(), config.es_password.clone());
+    let transport = Transport::cloud(&config.es_cloud_id.clone(), credentials)?;
 
     let client = Elasticsearch::new(transport);
 
@@ -142,16 +139,11 @@ struct Filters {
 
 async fn releases(
     Extension(pool): Extension<Pool<Sqlite>>,
+    Extension(config): Extension<Config>,
     params: axum_extra::extract::Query<Filters>,
 ) -> Result<axum::response::Response, error::Error> {
-    let credentials = Credentials::Basic("elastic".into(), "FsW*tVgYYSvVVagE03*c".into());
-    let url = Url::parse("https://localhost:9200").unwrap();
-    let conn_pool = SingleNodeConnectionPool::new(url);
-    let transport = TransportBuilder::new(conn_pool)
-        .disable_proxy()
-        .auth(credentials)
-        .build()
-        .unwrap();
+    let credentials = Credentials::Basic("elastic".into(), config.es_password.clone());
+    let transport = Transport::cloud(&config.es_cloud_id.clone(), credentials)?;
 
     let client = Elasticsearch::new(transport);
 
@@ -200,13 +192,20 @@ async fn releases(
                     }
                 ]
             }
-        }
+        },
+        "sort": [
+            {
+                "id": {
+                    "order": "desc"
+                }
+            }
+        ]
     });
 
     println!("{}", to_string_pretty(&json).unwrap());
 
     let search = client
-        .search(elasticsearch::SearchParts::Index(&["releases_test"]))
+        .search(elasticsearch::SearchParts::Index(&["releases"]))
         .size(10)
         .from(params.0.from.unwrap_or(0))
         .body(json)

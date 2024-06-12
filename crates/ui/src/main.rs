@@ -417,7 +417,7 @@ fn RecordDisplay(r: ElasticResult, refresh: Signal<bool>) -> Element {
                 div {
                     for t in r._source.tracklist.iter() {
                         div {
-                            class: "p-2",
+                            class: "py-1",
                             "{t[\"position\"].as_str().unwrap_or(\"\")} - {t[\"title\"].as_str().unwrap_or(\"\")}"
                         }
                     }
