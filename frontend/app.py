@@ -4,6 +4,7 @@ from flask_htmx import HTMX
 
 from authlib.integrations.flask_client import OAuth
 from jinja2 import StrictUndefined
+import requests
 
 app = Flask(__name__, static_url_path="/public")
 app.jinja_env.undefined = StrictUndefined
@@ -28,13 +29,58 @@ oauth.register(
 
 @app.route("/")
 def index():
+    releases = requests.get("http://localhost:3000/releases", params=request.args)
+    releases = [r["_source"] for r in releases.json()["hits"]["hits"]]
+
+    for r in releases:
+        if "videos" in r:
+            r["videos"] = [v[32:] for v in r["videos"]]
+
+    return render_template(
+        "index.jinja",
+        **{
+            "pageSize": 25,
+            "releases": releases,
+            **request.args,
+        },
+    )
+
+
+@app.route("/releases")
+def releases():
+    releases = requests.get(
+        "http://localhost:3000/releases",
+        params=request.args,
+    )
+    releases.raise_for_status()
+    print(releases.json())
+    releases = [r["_source"] for r in releases.json()["hits"]["hits"]]
+
+    for r in releases:
+        if "videos" in r:
+            r["videos"] = [v[32:] for v in r["videos"]]
+
+    if htmx and not htmx.boosted:
+        return render_template("releases.jinja", releases=releases)
+    return render_template(
+        "index.jinja",
+        **{
+            "pageSize": 25,
+            "releases": releases,
+            **request.args,
+        },
+    )
+
+
+@app.route("/wants")
+def wants():
     wants = oauth.discogs.get(
         f"https://api.discogs.com/users/{session["user"]["username"]}/wants"
     )
     wants.raise_for_status()
     wants = wants.json()
     return render_template(
-        "index.jinja", **{"pageSize": 25, "wants": wants, **request.args}
+        "wants.jinja", **{"pageSize": 25, "wants": wants, **request.args}
     )
 
 

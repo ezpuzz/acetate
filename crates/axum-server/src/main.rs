@@ -164,31 +164,47 @@ async fn releases(
         .fetch_all(&mut *db)
         .await?;
 
+    let mut filters = std::iter::zip(
+        params.0.field.unwrap_or_default(),
+        params.0.value.unwrap_or_default(),
+    )
+    .map(|f| {
+        if f.0.contains("nested:") {
+            json!({"nested": {
+                "path": f.0[7..f.0.chars().position(|c| c == '.').unwrap()],
+                "query": {
+                    "match_phrase_prefix": {
+                        f.0[7..]: {
+                            "query": f.1,
+                            // "fuzziness": "AUTO"
+                        }
+                    }
+                }
+            }})
+        } else {
+            json!({ "match_phrase": { f.0: f.1 }})
+        }
+    })
+    .collect::<Vec<Value>>();
+
+    filters.append(&mut vec![json!({ "exists": {
+        "field": "videos"
+    }})]);
+
     let json = json!({
         "query": {
             "bool": {
-                "must": std::iter::zip(params.0.field.unwrap_or_default(), params.0.value.unwrap_or_default())
-                    .map(|f| {
-                        if f.0.contains("nested:")
-                        {json!({"nested": {
-                            "path": f.0[7..f.0.chars().position(|c| c == '.').unwrap()],
-                            "query": {
-                                "match_phrase_prefix": {
-                                    f.0[7..]: {
-                                        "query": f.1,
-                                        // "fuzziness": "AUTO"
-                                    }
-                                }
-                            }
-                        }})}
-                        else
-                        {json!({ "match_phrase": { f.0: f.1 }})}
-                    }).collect::<Vec<Value>>(),
+                "must": filters,
                 "must_not": [
                     {
                         "ids": {
                             "values": actions.iter().map(|a| &a.identifier).collect::<Vec<_>>()
                         }
+                    },
+                    {
+                        "term": {
+                            "master_id.is_main_release": "false"
+                          }
                     }
                 ]
             }
@@ -206,7 +222,7 @@ async fn releases(
 
     let search = client
         .search(elasticsearch::SearchParts::Index(&["releases"]))
-        .size(10)
+        .size(5)
         .from(params.0.from.unwrap_or(0))
         .body(json)
         .allow_no_indices(true)
