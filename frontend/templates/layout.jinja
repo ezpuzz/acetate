@@ -38,7 +38,7 @@
                 EP
             </div>
             <div class="hidden md:block">
-                <div class="font-bold">Emory Petermann</div>
+                <div class="font-bold">{{session.user.username}}</div>
                 <div>ezPuzzle</div>
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -59,7 +59,7 @@
                     script.async = true;
                 }
                 script.src =
-                    "http://HOST:3000/browser-sync/browser-sync-client.js?v=3.0.2".replace(
+                    "http://HOST:3005/browser-sync/browser-sync-client.js?v=3.0.2".replace(
                         "HOST",
                         location.hostname,
                     );
