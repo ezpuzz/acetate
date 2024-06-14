@@ -173,9 +173,10 @@ async fn releases(
             json!({"nested": {
                 "path": f.0[7..f.0.chars().position(|c| c == '.').unwrap()],
                 "query": {
-                    "match_phrase_prefix": {
+                    "match_bool_prefix": {
                         f.0[7..]: {
                             "query": f.1,
+                            "minimum_should_match": "3<70%",
                             // "fuzziness": "AUTO"
                         }
                     }
