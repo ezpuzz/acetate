@@ -50,10 +50,32 @@ def index():
 def releases():
     releases = requests.get(
         "http://localhost:3000/releases",
-        params=request.args,
+        params=[
+            p
+            for p in [
+                ("field", "nested:labels.name")
+                if "label" in request.args and request.args["label"]
+                else None,
+                ("value", request.args["label"])
+                if "label" in request.args and request.args["label"]
+                else None,
+                ("field", "nested:tracklist.title")
+                if "song" in request.args and request.args["song"]
+                else None,
+                ("value", request.args["song"])
+                if "song" in request.args and request.args["song"]
+                else None,
+                ("field", "nested:artists.name")
+                if "artist" in request.args and request.args["artist"]
+                else None,
+                ("value", request.args["artist"])
+                if "artist" in request.args and request.args["artist"]
+                else None,
+            ]
+            if p is not None
+        ],
     )
     releases.raise_for_status()
-    print(releases.json())
     releases = [r["_source"] for r in releases.json()["hits"]["hits"]]
 
     for r in releases:
