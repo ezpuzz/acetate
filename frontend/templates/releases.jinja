@@ -39,7 +39,7 @@
                 <dt class="text-xs text-slate-700">Tracks</dt>
                 {% for track in release.tracklist %}
                 <dd class="text-xs flex gap-2">
-                    <div class="text-slate-400">{{track.position}}</div> {{track.title}}
+                    <div class="text-slate-400">{{track.position|d()}}</div> {{track.title}}
                     <div class="grow"></div> {{track.duration|d('')}}
                 </dd>
                 {% endfor %}
@@ -47,7 +47,9 @@
 
             <div class="w-full">
                 <dt class="text-xs text-slate-700">Notes</dt>
-                <dd>{{release.notes|d('')}}</dd>
+                <dd>
+                    <pre class="text-wrap">{{release.notes|d('')}}</pre>
+                </dd>
             </div>
 
 
@@ -59,8 +61,8 @@
     <div class="w-2/3">
         <iframe
             src="https://www.youtube.com/embed/?playlist={{release.videos|join(',')}}&version=3&fs=0&enablejsapi=0&rel=0"
-            frameborder="0" allow="autoplay; encrypted-media" allowfullscreen height="1920px" width="1080px"
-            class="w-full h-full aspect-video"></iframe>
+            frameborder="0" allow="autoplay; encrypted-media" allowfullscreen class="w-full aspect-video"></iframe>
+        <pre class="text-wrap">{{release.videos}}</pre>
     </div>
     {% endif %}
 </div>

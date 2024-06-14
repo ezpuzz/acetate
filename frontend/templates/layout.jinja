@@ -14,12 +14,12 @@
         <nav class="flex-grow">
             <ul class="flex items-stretch gap-4 h-12">
                 <li class="cursor-pointer px-2 flex items-center hover:bg-gray-200"> <a href="/"
-                        class="border-y-4 border-b-orange-500 border-t-transparent cursor-pointer px-2 flex items-center h-full w-full">Disco</a>
+                        class="border-y-4 border-b-orange-500 border-t-transparent cursor-pointer px-2 flex items-center h-full w-full">Discover</a>
                 </li>
-                <li class="relative hover:bg-gray-200">
+                {# <li class="relative hover:bg-gray-200">
                     <a href="/wanted"
                         class="border-y-4 border-b-orange-500 border-t-transparent cursor-pointer px-2 flex items-center h-full w-full">Wanted</a>
-                </li>
+                </li> #}
 
                 <div class="flex-grow"></div>
                 <li class="cursor-pointer px-2 flex items-center hover:bg-gray-200">
@@ -33,19 +33,23 @@
             </ul>
         </nav>
         <div class="w-px self-stretch my-2 bg-gray-300"></div>
+        {% if session.user is defined %}
         <div class="cursor-pointer flex px-2 self-stretch items-center gap-2 hover:bg-gray-200">
             <div class="rounded-full size-8 flex-none bg-gray-300 flex items-center justify-center">
                 EP
             </div>
             <div class="hidden md:block">
                 <div class="font-bold">{{session.user.username}}</div>
-                <div>ezPuzzle</div>
+                {# <div>ezPuzzle</div> #}
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor" class="size-4">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
             </svg>
         </div>
+        {% else %}
+        <a href="/login">Sign in with Discogs</a>
+        {% endif %}
     </div>
 
     {% block content %}{% endblock %}

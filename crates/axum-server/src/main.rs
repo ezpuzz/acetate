@@ -130,17 +130,16 @@ async fn filters(
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct Filters {
+struct QueryParameters {
     field: Option<Vec<String>>,
     value: Option<Vec<String>>,
     from: Option<i64>,
-    exclude: Option<Vec<i64>>,
 }
 
 async fn releases(
     Extension(pool): Extension<Pool<Sqlite>>,
     Extension(config): Extension<Config>,
-    params: axum_extra::extract::Query<Filters>,
+    params: axum_extra::extract::Query<QueryParameters>,
 ) -> Result<axum::response::Response, error::Error> {
     let credentials = Credentials::Basic("elastic".into(), config.es_password.clone());
     let transport = Transport::cloud(&config.es_cloud_id.clone(), credentials)?;
@@ -176,7 +175,7 @@ async fn releases(
                     "match_bool_prefix": {
                         f.0[7..]: {
                             "query": f.1,
-                            "minimum_should_match": "3<70%",
+                            "minimum_should_match": "3<80%",
                             // "fuzziness": "AUTO"
                         }
                     }
@@ -226,7 +225,6 @@ async fn releases(
         .size(5)
         .from(params.0.from.unwrap_or(0))
         .body(json)
-        .allow_no_indices(true)
         .send()
         .await?;
 
