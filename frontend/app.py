@@ -11,7 +11,7 @@ app.jinja_env.undefined = StrictUndefined
 
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "supersekrit")
 
-AXUM_API = os.environ.get("AXUM_API", "http://")
+AXUM_API = os.environ.get("AXUM_API", "https://acetate.onrender.com/")
 
 htmx = HTMX(app)
 
@@ -32,7 +32,7 @@ oauth.register(
 
 @app.route("/")
 def index():
-    releases = requests.get("http://localhost:3000/releases", params=request.args)
+    releases = requests.get(f"{AXUM_API}releases", params=request.args)
     releases = [r["_source"] for r in releases.json()["hits"]["hits"]]
 
     for r in releases:
@@ -52,7 +52,7 @@ def index():
 @app.route("/releases")
 def releases():
     releases = requests.get(
-        "http://localhost:3000/releases",
+        f"{AXUM_API}releases",
         params=[
             p
             for p in [
