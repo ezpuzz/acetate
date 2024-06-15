@@ -66,11 +66,11 @@ def releases():
                 ("value", request.args["formats.name.keyword"])
                 if "formats.name.keyword" in request.args
                 else None,
-                ("field", "formats.description.keyword")
-                if "formats.description.keyword" in request.args
+                ("field", "formats.descriptions.keyword")
+                if "formats.descriptions.keyword" in request.args
                 else None,
-                ("value", request.args["formats.description.keyword"])
-                if "formats.description.keyword" in request.args
+                ("value", request.args["formats.descriptions.keyword"])
+                if "formats.descriptions.keyword" in request.args
                 else None,
                 ("field", "styles.keyword")
                 if "styles.keyword" in request.args
