@@ -31,24 +31,6 @@ oauth.register(
 
 
 @app.route("/")
-def index():
-    releases = requests.get(f"{AXUM_API}releases", params=request.args, timeout=10)
-    releases = [r["_source"] for r in releases.json()["hits"]["hits"]]
-
-    for r in releases:
-        if "videos" in r:
-            r["videos"] = [v[32:] for v in r["videos"]]
-
-    return render_template(
-        "index.jinja",
-        **{
-            "pageSize": 25,
-            "releases": releases,
-            **request.args,
-        },
-    )
-
-
 @app.route("/releases")
 def releases():
     releases = requests.get(
@@ -74,25 +56,47 @@ def releases():
                 ("value", request.args["artist"])
                 if "artist" in request.args and request.args["artist"]
                 else None,
+                ("from", request.args.get("from", None)),
             ]
             if p is not None
         ],
         timeout=10,
     )
     releases.raise_for_status()
-    releases = [r["_source"] for r in releases.json()["hits"]["hits"]]
+    releases = releases.json()
+
+    hits = releases["hits"]["total"]["value"]
+
+    releases = [r["_source"] for r in releases["hits"]["hits"]]
 
     for r in releases:
         if "videos" in r:
             r["videos"] = [v[32:] for v in r["videos"]]
 
+    pageSize = int(request.args.get("pageSize", 5))
+    offset = int(request.args.get("from", 0))
+    page = 1 + offset // pageSize
+
     if htmx and not htmx.boosted:
-        return render_template("releases.jinja", releases=releases)
+        return render_template(
+            "releases.jinja",
+            **{
+                "pageSize": pageSize,
+                "releases": releases,
+                "hits": hits,
+                "page": page,
+                "from": offset,
+                **request.args,
+            },
+        )
     return render_template(
         "index.jinja",
         **{
-            "pageSize": 25,
+            "pageSize": pageSize,
             "releases": releases,
+            "hits": hits,
+            "page": page,
+            "from": offset,
             **request.args,
         },
     )
