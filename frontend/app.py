@@ -32,7 +32,7 @@ oauth.register(
 
 @app.route("/")
 def index():
-    releases = requests.get(f"{AXUM_API}releases", params=request.args)
+    releases = requests.get(f"{AXUM_API}releases", params=request.args, timeout=10)
     releases = [r["_source"] for r in releases.json()["hits"]["hits"]]
 
     for r in releases:
@@ -77,6 +77,7 @@ def releases():
             ]
             if p is not None
         ],
+        timeout=10,
     )
     releases.raise_for_status()
     releases = [r["_source"] for r in releases.json()["hits"]["hits"]]
