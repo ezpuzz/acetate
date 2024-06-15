@@ -22,15 +22,15 @@ use tower_http::cors::CorsLayer;
 async fn main() -> anyhow::Result<()> {
     let config = config::Config::new();
 
-    let pool = SqlitePool::connect(&config.database_url).await?;
+    // let pool = SqlitePool::connect(&config.database_url).await?;
 
     let app = Router::new()
         .route("/releases", get(releases))
         .route("/filters", get(filters))
         .route("/actions", post(actions))
         .layer(CorsLayer::permissive())
-        .layer(Extension(config))
-        .layer(Extension(pool.clone()));
+        .layer(Extension(config));
+    // .layer(Extension(pool.clone()));
 
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
