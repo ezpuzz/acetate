@@ -11,6 +11,7 @@ app.jinja_env.undefined = StrictUndefined
 
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "supersekrit")
 
+AXUM_API = os.environ.get("AXUM_API", "http://")
 
 htmx = HTMX(app)
 

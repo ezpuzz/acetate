@@ -6,7 +6,7 @@ authors = ["Emory Petermann <emory@onlyfor.us>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.11"
 Flask = "^3.0.3"
 flask-htmx = "^0.3.2"
 authlib = "^1.3.1"
