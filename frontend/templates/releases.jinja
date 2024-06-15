@@ -42,8 +42,9 @@
         <h3 class="text-lg">{{f}}</h3>
         {% for v in filters["aggregations"][f]["buckets"] %}
         <label class="block">{{v["key"]}} <input hx-get="/releases" hx-target="#content" hx-include="#search"
-                type="checkbox" name="{{f}}" value="{{v['key']}}" hx-push-url="true" {% if f in request.args and
-                request.args[f]==v["key"] %}checked{% endif %} /></label>
+                type="checkbox" name="{{filters['aggregations'][f]['meta']['field']}}" value="{{v['key']}}"
+                hx-push-url="true" {% if filters['aggregations'][f]['meta']['field'] in request.args and
+                request.args[filters['aggregations'][f]['meta']['field']]==v["key"] %}checked{% endif %} /></label>
         {% endfor %}
         {% endfor %}
     </div>

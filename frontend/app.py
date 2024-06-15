@@ -60,8 +60,24 @@ def releases():
                 if "artist" in request.args and request.args["artist"]
                 else None,
                 ("from", request.args.get("from", None)),
-                ("field", "formats.name.keyword") if "Format" in request.args else None,
-                ("value", "Vinyl") if "Format" in request.args else None,
+                ("field", "formats.name.keyword")
+                if "formats.name.keyword" in request.args
+                else None,
+                ("value", request.args["formats.name.keyword"])
+                if "formats.name.keyword" in request.args
+                else None,
+                ("field", "formats.description.keyword")
+                if "formats.description.keyword" in request.args
+                else None,
+                ("value", request.args["formats.description.keyword"])
+                if "formats.description.keyword" in request.args
+                else None,
+                ("field", "styles.keyword")
+                if "styles.keyword" in request.args
+                else None,
+                ("value", request.args["styles.keyword"])
+                if "styles.keyword" in request.args
+                else None,
             ]
             if p is not None
         ],
