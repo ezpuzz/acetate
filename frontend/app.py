@@ -99,9 +99,8 @@ def releases():
 
 @app.route("/wants")
 def wants():
-    wants = oauth.discogs.get(
-        f"https://api.discogs.com/users/{session["user"]["username"]}/wants"
-    )
+    username = session["user"]["username"]
+    wants = oauth.discogs.get(f"https://api.discogs.com/users/{username}/wants")
     wants.raise_for_status()
     wants = wants.json()
     return render_template(
