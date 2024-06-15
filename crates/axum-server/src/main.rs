@@ -67,13 +67,13 @@ async fn actions(
 
     let action = params.0.action.to_uppercase();
 
-    sqlx::query!(
-        "INSERT INTO actions VALUES (?, ?)",
-        action,
-        params.0.identifier
-    )
-    .execute(&mut *client)
-    .await?;
+    // sqlx::query!(
+    //     "INSERT INTO actions VALUES (?, ?)",
+    //     action,
+    //     params.0.identifier
+    // )
+    // .execute(&mut *client)
+    // .await?;
 
     Ok(())
 }
@@ -159,9 +159,10 @@ async fn releases(
 
     let mut db = pool.acquire().await?;
 
-    let actions = sqlx::query_as::<_, Action>("SELECT * FROM actions")
-        .fetch_all(&mut *db)
-        .await?;
+    // let actions = sqlx::query_as::<_, Action>("SELECT * FROM actions")
+    //     .fetch_all(&mut *db)
+    //     .await?;
+    let actions: Vec<Action> = vec![];
 
     let mut filters = std::iter::zip(
         params.0.field.unwrap_or_default(),
