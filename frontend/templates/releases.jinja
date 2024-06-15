@@ -1,69 +1,138 @@
-{% for release in releases %}
-<div class="rounded p-2 border flex bg-slate-200 shadow-lg">
-    <div class="w-1/3 flex flex-col gap-2 pr-4">
-        <div>
-            <h2 class="text-lg leading-none"><a href="https://discogs.com/release/{{release.id}}"
-                    class="hover:underline">{{release.title}}</a></h2>
-            <span class="text-slate-500 text-xs">by</span> {{release.artists|map(attribute="name")|join(', ')}}
+<form id="search" action="/releases" method="get" hx-boost="true" hx-push-url="true"
+    class="px-4 flex-none flex flex-wrap items-stretch gap-4">
+
+
+    <div class="flex flex-col items-start">
+        <label for="label">Label</label>
+
+        <input id="label" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#content"
+            hx-include="closest form" type="search" name="label" value="{{label|d()}}" placeholder="Defected"
+            class="rounded-md border p-2 w-1/5 min-w-64" />
+    </div>
+
+
+    <div class="flex flex-col items-start">
+        <label for="song">Song Name</label>
+
+        <input id="song" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#content"
+            hx-include="closest form" type="search" name="song" value="{{song|d()}}" placeholder="Don't Cry Tonight"
+            class="rounded-md border p-2 w-1/5 min-w-64" />
+    </div>
+
+    <div class="flex flex-col items-start">
+        <label for="artist">Artist</label>
+
+        <input id="artist" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#content"
+            hx-include="closest form" type="search" name="artist" value="{{artist|d()}}" placeholder="Acen"
+            class="rounded-md border p-2 w-1/5 min-w-64" />
+    </div>
+
+
+    <div class="flex items-center gap-2">
+        <label for="videos_only">Only Release with Videos</label><input type="checkbox" id="videos_only"
+            name="videos_only" checked hx-trigger="click" hx-get="/releases" hx-target="#content"
+            hx-include="closest form" />
+    </div>
+</form>
+
+<div class="grow overflow-auto p-4 gap-y-4 flex flex-col bg-teal-700" id="releases">
+    {% for release in releases %}
+    <div class="rounded p-2 border flex bg-slate-200 shadow-lg">
+        <div class="w-1/3 flex flex-col gap-2 pr-4">
+            <div>
+                <h2 class="text-lg leading-none"><a href="https://discogs.com/release/{{release.id}}"
+                        class="hover:underline">{{release.title}}</a></h2>
+                <span class="text-slate-500 text-xs">by</span> {{release.artists|map(attribute="name")|join(', ')}}
+            </div>
+
+            <dl class="flex flex-wrap gap-x-4 gap-y-2 justify-between">
+                <div>
+                    <dt class="text-xs text-slate-700">Label</dt>
+                    {% for label in release.labels %}
+                    <dd>
+                        <a href="https://discogs.com/label/{{label.id}}" class="hover:underline">{{label.name}}</a>
+                        <br />
+                        <span class="text-slate-400 text-xs">{{label.catno}}</span>
+                    </dd>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <dt class="text-xs text-slate-700">Released</dt>
+                    <dd>{% if release.released is defined %}{{release.released}}{% endif %}</dd>
+                </div>
+
+                <div>
+                    <dt class="text-xs text-slate-700">Genres</dt>
+                    <dd>{{release.genres|join(', ')}}</dd>
+                </div>
+
+
+                <div>
+                    <dt class="text-xs text-slate-700">Styles</dt>
+                    <dd>{{release.styles|d(['Unknown'])|join(', ')}}</dd>
+                </div>
+
+                <div class="w-full">
+                    <dt class="text-xs text-slate-700">Tracks</dt>
+                    {% for track in release.tracklist %}
+                    <dd class="text-xs flex gap-2">
+                        <div class="text-slate-400">{{track.position|d()}}</div> {{track.title}}
+                        <div class="grow"></div> {{track.duration|d('')}}
+                    </dd>
+                    {% endfor %}
+                </div>
+
+                <div class="w-full">
+                    <dt class="text-xs text-slate-700">Notes</dt>
+                    <dd>
+                        <pre class="text-wrap">{{release.notes|d('')}}</pre>
+                    </dd>
+                </div>
+
+
+            </dl>
+            {#
+            <pre class="w-full text-wrap overflow-auto h-64 text-slate-400">{{release}}</pre> #}
         </div>
-
-        <dl class="flex flex-wrap gap-x-4 gap-y-2 justify-between">
-            <div>
-                <dt class="text-xs text-slate-700">Label</dt>
-                {% for label in release.labels %}
-                <dd>
-                    <a href="https://discogs.com/label/{{label.id}}" class="hover:underline">{{label.name}}</a>
-                    <br />
-                    <span class="text-slate-400 text-xs">{{label.catno}}</span>
-                </dd>
-                {% endfor %}
-            </div>
-
-            <div>
-                <dt class="text-xs text-slate-700">Released</dt>
-                <dd>{% if release.released is defined %}{{release.released}}{% endif %}</dd>
-            </div>
-
-            <div>
-                <dt class="text-xs text-slate-700">Genres</dt>
-                <dd>{{release.genres|join(', ')}}</dd>
-            </div>
-
-
-            <div>
-                <dt class="text-xs text-slate-700">Styles</dt>
-                <dd>{{release.styles|d(['Unknown'])|join(', ')}}</dd>
-            </div>
-
-            <div class="w-full">
-                <dt class="text-xs text-slate-700">Tracks</dt>
-                {% for track in release.tracklist %}
-                <dd class="text-xs flex gap-2">
-                    <div class="text-slate-400">{{track.position|d()}}</div> {{track.title}}
-                    <div class="grow"></div> {{track.duration|d('')}}
-                </dd>
-                {% endfor %}
-            </div>
-
-            <div class="w-full">
-                <dt class="text-xs text-slate-700">Notes</dt>
-                <dd>
-                    <pre class="text-wrap">{{release.notes|d('')}}</pre>
-                </dd>
-            </div>
-
-
-        </dl>
-        {#
-        <pre class="w-full text-wrap overflow-auto h-64 text-slate-400">{{release}}</pre> #}
+        {% if release.videos is defined %}
+        <div class="w-2/3">
+            <iframe
+                src="https://www.youtube.com/embed/?playlist={{release.videos|join(',')}}&version=3&fs=0&enablejsapi=0&rel=0"
+                frameborder="0" allow="autoplay; encrypted-media" allowfullscreen class="w-full aspect-video"></iframe>
+            <pre class="text-wrap">{{release.videos}}</pre>
+        </div>
+        {% endif %}
     </div>
-    {% if release.videos is defined %}
-    <div class="w-2/3">
-        <iframe
-            src="https://www.youtube.com/embed/?playlist={{release.videos|join(',')}}&version=3&fs=0&enablejsapi=0&rel=0"
-            frameborder="0" allow="autoplay; encrypted-media" allowfullscreen class="w-full aspect-video"></iframe>
-        <pre class="text-wrap">{{release.videos}}</pre>
-    </div>
-    {% endif %}
+    {% endfor %}
 </div>
-{% endfor %}
+
+<div id="pagination" class="flex-none w-full h-16 flex items-center px-4 gap-4 border-t bg-white">
+    <div>Showing <span class="font-bold">{{from|int+1}} - {{from|int+pageSize|int+1}}</span> of <span
+            class="font-bold">{{hits}}</span> results
+    </div>
+    <div class="grow"></div>
+    <div hx-boost="true">
+        Results per page
+        <select name="pageSize" hx-get="/releases" hx-replace-url="true" hx-target="#content"
+            class="border rounded-md p-2">
+            <option value="5" {{"selected" if pageSize=="5" }}>5</option>
+            <option value="10" {{"selected" if pageSize=="10" }}>10</option>
+            <option value="25" {{"selected" if pageSize=="25" }}>25 (Pro)</option>
+        </select>
+    </div>
+    <div class="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+            class="size-6 flex-none cursor-pointer" hx-get="/releases" hx-target="#content" hx-trigger="click"
+            hx-include="#search" hx-vals='{"from": "{{from|int - pageSize|int}}"}' hx-push-url="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+        </svg>
+        Page <input name="page" type="number" class="border mx-2 p-2 w-16" value="{{page}}" /> of
+        {{hits//pageSize}}
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+            class="size-6 flex-none cursor-pointer" hx-get="/releases" hx-target="#content" hx-trigger="click"
+            hx-include="#search" hx-vals='{"from": "{{from|int + pageSize|int}}"}' hx-push-url="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+        </svg>
+    </div>
+</div>
