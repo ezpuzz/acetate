@@ -18,8 +18,10 @@ oauth = OAuth(app)
 
 oauth.register(
     name="discogs",
-    client_id="iHrDPobqsnneJtaewqfv",
-    client_secret="kUXeSihKsZVkgifXWKBXQanHdfIQBPXp",
+    client_id=os.environ.get("DISCOGS_CLIENT_ID", "iHrDPobqsnneJtaewqfv"),
+    client_secret=os.environ.get(
+        "DISCOGS_CLIENT_SECRET", "kUXeSihKsZVkgifXWKBXQanHdfIQBPXp"
+    ),
     request_token_url="https://api.discogs.com/oauth/request_token",
     access_token_url="https://api.discogs.com/oauth/access_token",
     authorize_url="https://www.discogs.com/oauth/authorize",
