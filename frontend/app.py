@@ -33,6 +33,9 @@ oauth.register(
 @app.route("/")
 @app.route("/releases")
 def releases():
+    filters = requests.get(f"{AXUM_API}filters", timeout=5)
+    filters.raise_for_status()
+
     releases = requests.get(
         f"{AXUM_API}releases",
         params=[
@@ -57,11 +60,14 @@ def releases():
                 if "artist" in request.args and request.args["artist"]
                 else None,
                 ("from", request.args.get("from", None)),
+                ("field", "formats.name.keyword") if "Format" in request.args else None,
+                ("value", "Vinyl") if "Format" in request.args else None,
             ]
             if p is not None
         ],
         timeout=10,
     )
+    print(releases.json())
     releases.raise_for_status()
     releases = releases.json()
 
@@ -86,6 +92,7 @@ def releases():
                 "hits": hits,
                 "page": page,
                 "from": offset,
+                "filters": filters.json(),
                 **request.args,
             },
         )
@@ -97,6 +104,7 @@ def releases():
             "hits": hits,
             "page": page,
             "from": offset,
+            "filters": filters.json(),
             **request.args,
         },
     )
