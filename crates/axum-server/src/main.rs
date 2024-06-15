@@ -1,11 +1,6 @@
 use config::Config;
-use elasticsearch::{
-    auth::Credentials,
-    http::transport::{SingleNodeConnectionPool, Transport, TransportBuilder},
-    Elasticsearch,
-};
-use reqwest::Url;
-use sqlx::{sqlite::SqlitePool, Pool, Sqlite};
+use elasticsearch::{auth::Credentials, http::transport::Transport, Elasticsearch};
+use sqlx::sqlite::SqlitePool;
 mod config;
 mod error;
 
@@ -60,12 +55,12 @@ struct Action {
 }
 
 async fn actions(
-    Extension(pool): Extension<Pool<Sqlite>>,
+    // Extension(pool): Extension<Pool<Sqlite>>,
     params: axum_extra::extract::Query<Action>,
 ) -> Result<(), error::Error> {
-    let mut client = pool.acquire().await?;
+    // let client = pool.acquire().await?;
 
-    let action = params.0.action.to_uppercase();
+    let _action = params.0.action.to_uppercase();
 
     // sqlx::query!(
     //     "INSERT INTO actions VALUES (?, ?)",
@@ -137,7 +132,7 @@ struct QueryParameters {
 }
 
 async fn releases(
-    Extension(pool): Extension<Pool<Sqlite>>,
+    // Extension(pool): Extension<Pool<Sqlite>>,
     Extension(config): Extension<Config>,
     params: axum_extra::extract::Query<QueryParameters>,
 ) -> Result<axum::response::Response, error::Error> {
@@ -157,7 +152,7 @@ async fn releases(
 
     // dbg!(filters);
 
-    let mut db = pool.acquire().await?;
+    // let db = pool.acquire().await?;
 
     // let actions = sqlx::query_as::<_, Action>("SELECT * FROM actions")
     //     .fetch_all(&mut *db)
