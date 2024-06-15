@@ -36,13 +36,13 @@
 </form>
 
 <div class="flex grow min-h-0">
-    <div class="w-48 p-2 shrink-0 overflow-auto">
+    <div id="filters" class="w-48 p-2 shrink-0 overflow-auto">
         <h2 class="text-xl">Filters</h2>
         {% for f in filters["aggregations"] %}
         <h3 class="text-lg">{{f}}</h3>
         {% for v in filters["aggregations"][f]["buckets"] %}
-        <label class="block">{{v["key"]}} <input hx-get="/releases" hx-target="#content" hx-include="#search"
-                type="checkbox" name="{{filters['aggregations'][f]['meta']['field']}}" value="{{v['key']}}"
+        <label class="block">{{v["key"]}} <input hx-get="/releases" hx-target="#content" hx-include="#search, #filters"
+                type="checkbox" name="{{filters['aggregations'][f]['meta']['field']}}" value='{{v["key"]}}'
                 hx-push-url="true" {% if filters['aggregations'][f]['meta']['field'] in request.args and
                 request.args[filters['aggregations'][f]['meta']['field']]==v["key"] %}checked{% endif %} /></label>
         {% endfor %}
