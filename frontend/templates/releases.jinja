@@ -5,7 +5,7 @@
     <div class="flex flex-col items-start">
         <label for="label">Label</label>
 
-        <input id="label" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#content"
+        <input id="label" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#results"
             hx-include="closest form" type="search" name="label" value="{{label|d()}}" placeholder="Defected"
             class="rounded-md border p-2 w-1/5 min-w-64" />
     </div>
@@ -14,7 +14,7 @@
     <div class="flex flex-col items-start">
         <label for="song">Song Name</label>
 
-        <input id="song" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#content"
+        <input id="song" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#results"
             hx-include="closest form" type="search" name="song" value="{{song|d()}}" placeholder="Don't Cry Tonight"
             class="rounded-md border p-2 w-1/5 min-w-64" />
     </div>
@@ -22,7 +22,7 @@
     <div class="flex flex-col items-start">
         <label for="artist">Artist</label>
 
-        <input id="artist" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#content"
+        <input id="artist" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#results"
             hx-include="closest form" type="search" name="artist" value="{{artist|d()}}" placeholder="Acen"
             class="rounded-md border p-2 w-1/5 min-w-64" />
     </div>
@@ -30,7 +30,7 @@
 
     <div class="flex items-center gap-2">
         <label for="videos_only">Only Release with Videos</label><input type="checkbox" id="videos_only"
-            name="videos_only" checked hx-trigger="click" hx-get="/releases" hx-target="#content"
+            name="videos_only" checked hx-trigger="click" hx-get="/releases" hx-target="#results"
             hx-include="closest form" />
     </div>
 </form>
@@ -54,7 +54,11 @@
         </div>
     </div>
 
-    {% include 'releases/results.jinja' %}
+    <div id="results" class="grow overflow-auto p-4 gap-y-4 flex flex-col bg-teal-700" id="releases">
+
+        {% include 'releases/results.jinja' %}
+
+    </div>
 </div>
 
 <div id="pagination" class="flex-none w-full h-16 flex items-center px-4 gap-4 border-t bg-white">
@@ -64,7 +68,7 @@
     <div class="grow"></div>
     <div hx-boost="true">
         Results per page
-        <select name="pageSize" hx-get="/releases" hx-replace-url="true" hx-target="#content"
+        <select name="pageSize" hx-get="/releases" hx-replace-url="true" hx-target="#results"
             class="border rounded-md p-2">
             <option value="5" {{"selected" if pageSize=="5" }}>5</option>
             <option value="10" {{"selected" if pageSize=="10" }}>10</option>
@@ -73,14 +77,14 @@
     </div>
     <div class="flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-            class="size-6 flex-none cursor-pointer" hx-get="/releases" hx-target="#content" hx-trigger="click"
+            class="size-6 flex-none cursor-pointer" hx-get="/releases" hx-target="#results" hx-trigger="click"
             hx-include="#search" hx-vals='{"from": "{{from|int - pageSize|int}}"}' hx-push-url="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
         </svg>
         Page <input name="page" type="number" class="border mx-2 p-2 w-16" value="{{page}}" /> of
         {{hits//pageSize}}
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-            class="size-6 flex-none cursor-pointer" hx-get="/releases" hx-target="#content" hx-trigger="click"
+            class="size-6 flex-none cursor-pointer" hx-get="/releases" hx-target="#results" hx-trigger="click"
             hx-include="#search" hx-vals='{"from": "{{from|int + pageSize|int}}"}' hx-push-url="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
         </svg>
