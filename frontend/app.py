@@ -101,7 +101,7 @@ def releases():
 
     if htmx and not htmx.boosted:
         return render_template(
-            "releases.jinja",
+            "releases/results.jinja",
             **{
                 "pageSize": pageSize,
                 "releases": releases,

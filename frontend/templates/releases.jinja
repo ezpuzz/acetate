@@ -36,102 +36,25 @@
 </form>
 
 <div class="flex grow min-h-0">
-    <div id="filters" class="w-48 p-2 shrink-0 overflow-auto">
+    <div id="filters" class="w-48 p-2 shrink-0 h-full">
         <h2 class="text-xl">Filters</h2>
-        {% for f in filters["aggregations"] %}
-        <h3 class="text-lg">{{f}}</h3>
-        {% for v in filters["aggregations"][f]["buckets"] %}
-        <label class="block">{{v["key"]}} <input hx-get="/releases" hx-target="#content" hx-include="#search, #filters"
-                type="checkbox" name="{{filters['aggregations'][f]['meta']['field']}}" value='{{v["key"]}}'
-                hx-push-url="true" {% if filters['aggregations'][f]['meta']['field'] in request.args and
-                request.args[filters['aggregations'][f]['meta']['field']]==v["key"] %}checked{% endif %} /></label>
-        {% endfor %}
-        {% endfor %}
-    </div>
-
-    <div class="grow overflow-auto p-4 gap-y-4 flex flex-col bg-teal-700" id="releases">
-        {% for release in releases %}
-        <div class="rounded p-2 border flex bg-slate-200 shadow-lg">
-            <div class="w-1/3 flex flex-col gap-2 pr-4">
-                <div>
-                    <h2 class="text-lg leading-none"><a href="https://discogs.com/release/{{release.id}}"
-                            class="hover:underline">{{release.title}}</a></h2>
-                    <span class="text-slate-500 text-xs">by</span> {{release.artists|map(attribute="name")|join(', ')}}
-                </div>
-
-                <dl class="flex flex-wrap gap-x-4 gap-y-2 justify-between">
-                    <div>
-                        <dt class="text-xs text-slate-700">Label</dt>
-                        {% for label in release.labels %}
-                        <dd>
-                            <a href="https://discogs.com/label/{{label.id}}" class="hover:underline">{{label.name}}</a>
-                            <br />
-                            <span class="text-slate-400 text-xs">{{label.catno}}</span>
-                        </dd>
-                        {% endfor %}
-                    </div>
-
-                    <div>
-                        <dt class="text-xs text-slate-700">Format</dt>{% if release.formats is defined %}
-                        {% for f in release.formats %}
-                        <dd>
-                            {{f.text|d()}}
-                            {{f.descriptions|d()|join(' ')}} {{f.name|d()}}
-                        </dd>{% endfor %} {% endif %}
-                    </div>
-
-
-
-                    <div>
-                        <dt class="text-xs text-slate-700">Released</dt>
-                        <dd>{% if release.released is defined %}{{release.released}}{% endif %}</dd>
-                    </div>
-
-                    <div>
-                        <dt class="text-xs text-slate-700">Genres</dt>
-                        <dd>{{release.genres|join(', ')}}</dd>
-                    </div>
-
-
-                    <div>
-                        <dt class="text-xs text-slate-700">Styles</dt>
-                        <dd>{{release.styles|d(['Unknown'])|join(', ')}}</dd>
-                    </div>
-
-                    <div class="w-full">
-                        <dt class="text-xs text-slate-700">Tracks</dt>
-                        {% for track in release.tracklist %}
-                        <dd class="text-xs flex gap-2">
-                            <div class="text-slate-400">{{track.position|d()}}</div> {{track.title}}
-                            <div class="grow"></div> {{track.duration|d('')}}
-                        </dd>
-                        {% endfor %}
-                    </div>
-
-                    <div class="w-full">
-                        <dt class="text-xs text-slate-700">Notes</dt>
-                        <dd>
-                            <pre class="text-wrap">{{release.notes|d('')}}</pre>
-                        </dd>
-                    </div>
-
-
-                </dl>
-                {#
-                <pre class="w-full text-wrap overflow-auto h-64 text-slate-400">{{release}}</pre> #}
-            </div>
-            {% if release.videos is defined %}
-            <div class="w-2/3">
-                <iframe
-                    src="https://www.youtube.com/embed/?playlist={{release.videos|join(',')}}&version=3&fs=0&enablejsapi=0&rel=0"
-                    frameborder="0" allow="autoplay; encrypted-media" allowfullscreen
-                    class="w-full aspect-video"></iframe>
-                <pre class="text-wrap">{{release.videos}}</pre>
-            </div>
-            {% endif %}
+        <div class="overflow-auto h-full pb-2">
+            {% for f in filters["aggregations"] %}
+            <h3 class="text-lg">{{f}}</h3>
+            {% for v in filters["aggregations"][f]["buckets"] %}
+            <label class="flex items-center leading-tight"><input class="mr-1" hx-get="/releases" hx-target="#results"
+                    hx-include="#search, #filters" type="checkbox"
+                    name="{{filters['aggregations'][f]['meta']['field']}}" value='{{v["key"]}}' hx-push-url="true" {% if
+                    filters['aggregations'][f]['meta']['field'] in request.args and
+                    request.args[filters['aggregations'][f]['meta']['field']]==v["key"] %}checked{% endif %} />
+                {{v["key"]}}
+            </label>
+            {% endfor %}
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
+
+    {% include 'releases/results.jinja' %}
 </div>
 
 <div id="pagination" class="flex-none w-full h-16 flex items-center px-4 gap-4 border-t bg-white">
