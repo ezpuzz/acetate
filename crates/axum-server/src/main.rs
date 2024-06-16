@@ -197,11 +197,13 @@ async fn releases(
                             "values": actions.iter().map(|a| &a.identifier).collect::<Vec<_>>()
                         }
                     },
-                    {
-                        "term": {
-                            "master_id.is_main_release": "false"
-                          }
-                    }
+                    // Note: the following avoids duplicates but hides remixes, needs smarter filtering to avoid lots of dupes
+                    // Workaround: allow hiding all of a particular release with some kind of confirmation?
+                    // {
+                    //     "term": {
+                    //         "master_id.is_main_release": "false"
+                    //       }
+                    // }
                 ]
             }
         },
