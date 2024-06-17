@@ -63,9 +63,11 @@ async fn actions(
     Extension(pool): Extension<Pool<Postgres>>,
     params: axum_extra::extract::Query<Action>,
 ) -> Result<(), error::Error> {
-    let client = pool.acquire().await?;
+    let mut client = pool.acquire().await?;
 
     let action = params.0.action.to_uppercase();
+
+    let user = 0;
 
     sqlx::query!(
         "INSERT INTO actions VALUES ($1, $2, $3)",
