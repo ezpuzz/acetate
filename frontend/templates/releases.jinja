@@ -36,9 +36,12 @@
 </form>
 
 <div class="flex grow min-h-0">
-    <div id="filters" class="w-48 p-2 shrink-0 h-full">
-        <h2 class="text-xl">Filters</h2>
-        <div class="overflow-auto h-full pb-2">
+    <div id="filters" class="w-48 shrink-0 h-full flex flex-col">
+        <h2 class="text-xl px-2 bg-slate-100">Filters</h2>
+        <div class="p-2">
+            <h3 class="text-lg">Selected</h3>
+        </div>
+        <div class="overflow-auto grow pl-2">
             {% for f in filters["aggregations"] %}
             <h3 class="text-lg">{{f}}</h3>
             {% for v in filters["aggregations"][f]["buckets"] %}
@@ -54,39 +57,9 @@
         </div>
     </div>
 
-    <div id="results" class="grow overflow-auto p-4 gap-y-4 flex flex-col bg-teal-700" id="releases">
+    <div id="results" class="grow flex flex-col" id="releases">
 
         {% include 'releases/results.jinja' %}
 
-    </div>
-</div>
-
-<div id="pagination" class="flex-none w-full h-16 flex items-center px-4 gap-4 border-t bg-white">
-    <div>Showing <span class="font-bold">{{from|int+1}} - {{from|int+pageSize|int+1}}</span> of <span
-            class="font-bold">{{hits}}</span> results
-    </div>
-    <div class="grow"></div>
-    <div hx-boost="true">
-        Results per page
-        <select name="pageSize" hx-get="/releases" hx-replace-url="true" hx-target="#results"
-            class="border rounded-md p-2">
-            <option value="5" {{"selected" if pageSize=="5" }}>5</option>
-            <option value="10" {{"selected" if pageSize=="10" }}>10</option>
-            <option value="25" {{"selected" if pageSize=="25" }}>25 (Pro)</option>
-        </select>
-    </div>
-    <div class="flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-            class="size-6 flex-none cursor-pointer" hx-get="/releases" hx-target="#results" hx-trigger="click"
-            hx-include="#search" hx-vals='{"from": "{{from|int - pageSize|int}}"}' hx-push-url="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-        </svg>
-        Page <input name="page" type="number" class="border mx-2 p-2 w-16" value="{{page}}" /> of
-        {{hits//pageSize}}
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-            class="size-6 flex-none cursor-pointer" hx-get="/releases" hx-target="#results" hx-trigger="click"
-            hx-include="#search" hx-vals='{"from": "{{from|int + pageSize|int}}"}' hx-push-url="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-        </svg>
     </div>
 </div>
