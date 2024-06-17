@@ -7,6 +7,10 @@ from authlib.integrations.flask_client import OAuth
 from jinja2 import StrictUndefined
 import requests
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 db = SQLAlchemy()
 
 app = Flask(__name__, static_url_path="/public")
@@ -46,7 +50,7 @@ oauth.register(
 @app.route("/")
 @app.route("/releases")
 def releases():
-    print(session["user"])
+    print(session.get("user"))
     filters = requests.get(f"{AXUM_API}filters", timeout=5)
     filters.raise_for_status()
 
