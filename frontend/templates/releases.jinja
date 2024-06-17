@@ -6,8 +6,8 @@
         <label for="label">Label</label>
 
         <input id="label" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#results"
-            hx-include="closest form" type="search" name="label" value="{{label|d()}}" placeholder="Defected"
-            class="rounded-md border p-2 w-1/5 min-w-64" />
+            hx-include="#search, #filters, #pagination" type="search" name="label" value="{{label|d()}}"
+            placeholder="Defected" class="rounded-md border p-2 w-1/5 min-w-64" />
     </div>
 
 
@@ -15,38 +15,35 @@
         <label for="song">Song Name</label>
 
         <input id="song" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#results"
-            hx-include="closest form" type="search" name="song" value="{{song|d()}}" placeholder="Don't Cry Tonight"
-            class="rounded-md border p-2 w-1/5 min-w-64" />
+            hx-include="#search, #filters, #pagination" type="search" name="song" value="{{song|d()}}"
+            placeholder="Don't Cry Tonight" class="rounded-md border p-2 w-1/5 min-w-64" />
     </div>
 
     <div class="flex flex-col items-start">
         <label for="artist">Artist</label>
 
         <input id="artist" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#results"
-            hx-include="closest form" type="search" name="artist" value="{{artist|d()}}" placeholder="Acen"
-            class="rounded-md border p-2 w-1/5 min-w-64" />
+            hx-include="#search, #filters, #pagination" type="search" name="artist" value="{{artist|d()}}"
+            placeholder="Acen" class="rounded-md border p-2 w-1/5 min-w-64" />
     </div>
 
 
     <div class="flex items-center gap-2">
         <label for="videos_only">Only Release with Videos</label><input type="checkbox" id="videos_only"
             name="videos_only" checked hx-trigger="click" hx-get="/releases" hx-target="#results"
-            hx-include="closest form" />
+            hx-include="#search, #filters, #pagination" />
     </div>
 </form>
 
 <div class="flex grow min-h-0">
     <div id="filters" class="w-48 shrink-0 h-full flex flex-col">
         <h2 class="text-xl px-2 bg-slate-100">Filters</h2>
-        <div class="p-2">
-            <h3 class="text-lg">Selected</h3>
-        </div>
         <div class="overflow-auto grow pl-2">
             {% for f in filters["aggregations"] %}
             <h3 class="text-lg">{{f}}</h3>
             {% for v in filters["aggregations"][f]["buckets"] %}
             <label class="flex items-center leading-tight"><input class="mr-1" hx-get="/releases" hx-target="#results"
-                    hx-include="#search, #filters" type="checkbox"
+                    hx-include="#search, #filters, #pagination" type="checkbox"
                     name="{{filters['aggregations'][f]['meta']['field']}}" value='{{v["key"]}}' hx-push-url="true" {% if
                     filters['aggregations'][f]['meta']['field'] in request.args and
                     request.args[filters['aggregations'][f]['meta']['field']]==v["key"] %}checked{% endif %} />
