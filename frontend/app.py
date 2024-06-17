@@ -149,18 +149,6 @@ def releases():
     )
 
 
-@app.route("/users")
-def users():
-    print(session)
-    db_user = User(discogs_access_token="asdf", discogs_refresh_token=None)
-    db.session.add(db_user)
-    db.session.commit()
-
-    u = db.session.execute(db.select(User)).scalars().all()
-    print(u)
-    return u
-
-
 @app.route("/wants")
 def wants():
     username = session["user"]["username"]
