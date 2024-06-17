@@ -103,6 +103,7 @@ def releases():
         if "videos" in r:
             r["videos"] = [v[32:] for v in r["videos"]]
 
+    print(session)
     if htmx and not htmx.boosted:
         return render_template(
             "releases/results.jinja",
