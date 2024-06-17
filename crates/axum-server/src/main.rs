@@ -1,6 +1,6 @@
 use config::Config;
 use elasticsearch::{auth::Credentials, http::transport::Transport, Elasticsearch};
-use sqlx::sqlite::SqlitePool;
+use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 mod config;
 mod error;
 
@@ -14,23 +14,28 @@ use axum::{
     routing::{get, post},
     Router,
 };
+use dotenv::dotenv;
 use serde::{self, Deserialize, Serialize};
 use std::net::SocketAddr;
 use tower_http::cors::CorsLayer;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    dotenv().ok();
     let config = config::Config::new();
 
-    // let pool = SqlitePool::connect(&config.database_url).await?;
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&config.database_url)
+        .await?;
 
     let app = Router::new()
         .route("/releases", get(releases))
         .route("/filters", get(filters))
         .route("/actions", post(actions))
         .layer(CorsLayer::permissive())
-        .layer(Extension(config));
-    // .layer(Extension(pool.clone()));
+        .layer(Extension(config))
+        .layer(Extension(pool.clone()));
 
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
@@ -55,20 +60,21 @@ struct Action {
 }
 
 async fn actions(
-    // Extension(pool): Extension<Pool<Sqlite>>,
+    Extension(pool): Extension<Pool<Postgres>>,
     params: axum_extra::extract::Query<Action>,
 ) -> Result<(), error::Error> {
-    // let client = pool.acquire().await?;
+    let client = pool.acquire().await?;
 
-    let _action = params.0.action.to_uppercase();
+    let action = params.0.action.to_uppercase();
 
-    // sqlx::query!(
-    //     "INSERT INTO actions VALUES (?, ?)",
-    //     action,
-    //     params.0.identifier
-    // )
-    // .execute(&mut *client)
-    // .await?;
+    sqlx::query!(
+        "INSERT INTO actions VALUES ($1, $2, $3)",
+        user,
+        action,
+        params.0.identifier
+    )
+    .execute(&mut *client)
+    .await?;
 
     Ok(())
 }
@@ -133,7 +139,7 @@ struct QueryParameters {
 }
 
 async fn releases(
-    // Extension(pool): Extension<Pool<Sqlite>>,
+    Extension(pool): Extension<Pool<Postgres>>,
     Extension(config): Extension<Config>,
     params: axum_extra::extract::Query<QueryParameters>,
 ) -> Result<axum::response::Response, error::Error> {
@@ -153,12 +159,11 @@ async fn releases(
 
     // dbg!(filters);
 
-    // let db = pool.acquire().await?;
+    let mut db = pool.acquire().await?;
 
-    // let actions = sqlx::query_as::<_, Action>("SELECT * FROM actions")
-    //     .fetch_all(&mut *db)
-    //     .await?;
-    let actions: Vec<Action> = vec![];
+    let actions = sqlx::query_as::<_, Action>("SELECT * FROM actions")
+        .fetch_all(&mut *db)
+        .await?;
 
     let mut filters = std::iter::zip(
         params.0.field.unwrap_or_default(),
