@@ -150,6 +150,7 @@ def login():
 @app.route("/auth")
 def auth():
     token = oauth.discogs.authorize_access_token()
+    print(token)
     resp = oauth.discogs.get("https://api.discogs.com/oauth/identity")
     user = resp.json()
     # DON'T DO IT IN PRODUCTION, SAVE INTO DB IN PRODUCTION
