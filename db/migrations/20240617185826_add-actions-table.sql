@@ -1,7 +1,8 @@
 CREATE TABLE users (
     user_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    discogs_access_token VARCHAR(2048),
-    discogs_refresh_token VARCHAR(512)
+    discogs_oauth_token VARCHAR(128) NOT NULL,
+    discogs_oauth_token_secret VARCHAR(128) NOT NULL,
+    discogs_user_id INT NOT NULL UNIQUE
 );
 
 CREATE TABLE actions (

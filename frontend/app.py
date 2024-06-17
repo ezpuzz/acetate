@@ -1,17 +1,32 @@
 import os
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_htmx import HTMX
+from flask_sqlalchemy import SQLAlchemy
 
 from authlib.integrations.flask_client import OAuth
 from jinja2 import StrictUndefined
 import requests
 
+db = SQLAlchemy()
+
 app = Flask(__name__, static_url_path="/public")
 app.jinja_env.undefined = StrictUndefined
+
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "supersekrit")
 
 AXUM_API = os.environ.get("AXUM_API", "https://acetate.onrender.com/")
+
+db.init_app(app)
+
+with app.app_context():
+    db.reflect()
+
+
+class User(db.Model):
+    __table__ = db.metadata.tables["users"]
+
 
 htmx = HTMX(app)
 
@@ -19,10 +34,8 @@ oauth = OAuth(app)
 
 oauth.register(
     name="discogs",
-    client_id=os.environ.get("DISCOGS_CLIENT_ID", "iHrDPobqsnneJtaewqfv"),
-    client_secret=os.environ.get(
-        "DISCOGS_CLIENT_SECRET", "kUXeSihKsZVkgifXWKBXQanHdfIQBPXp"
-    ),
+    client_id=os.environ.get("DISCOGS_CLIENT_ID", None),
+    client_secret=os.environ.get("DISCOGS_CLIENT_SECRET", None),
     request_token_url="https://api.discogs.com/oauth/request_token",
     access_token_url="https://api.discogs.com/oauth/access_token",
     authorize_url="https://www.discogs.com/oauth/authorize",
@@ -33,6 +46,7 @@ oauth.register(
 @app.route("/")
 @app.route("/releases")
 def releases():
+    print(session["user"])
     filters = requests.get(f"{AXUM_API}filters", timeout=5)
     filters.raise_for_status()
 
@@ -131,6 +145,18 @@ def releases():
     )
 
 
+@app.route("/users")
+def users():
+    print(session)
+    db_user = User(discogs_access_token="asdf", discogs_refresh_token=None)
+    db.session.add(db_user)
+    db.session.commit()
+
+    u = db.session.execute(db.select(User)).scalars().all()
+    print(u)
+    return u
+
+
 @app.route("/wants")
 def wants():
     username = session["user"]["username"]
@@ -148,13 +174,41 @@ def login():
     return oauth.discogs.authorize_redirect(redirect_uri)
 
 
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+
+from sqlalchemy.dialects.postgresql import insert
+
+
 @app.route("/auth")
 def auth():
     token = oauth.discogs.authorize_access_token()
-    print(token)
     resp = oauth.discogs.get("https://api.discogs.com/oauth/identity")
     user = resp.json()
-    # DON'T DO IT IN PRODUCTION, SAVE INTO DB IN PRODUCTION
-    session["token"] = token
+
+    print(token)
+    print(user)
+    print(session)
+
+    stmt = insert(User).values(
+        discogs_oauth_token=token["oauth_token"],
+        discogs_oauth_token_secret=token["oauth_token_secret"],
+        discogs_user_id=user["id"],
+    )
+    stmt = stmt.on_conflict_do_update(
+        constraint="users_discogs_user_id_key",
+        set_=dict(
+            discogs_oauth_token=token["oauth_token"],
+            discogs_oauth_token_secret=token["oauth_token_secret"],
+        ),
+    )
+    print(stmt)
+    db.session.execute(stmt)
+    db.session.commit()
+
     session["user"] = user
+
     return redirect("/")
