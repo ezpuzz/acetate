@@ -129,6 +129,7 @@ struct QueryParameters {
     field: Option<Vec<String>>,
     value: Option<Vec<String>>,
     from: Option<i64>,
+    size: Option<i64>,
 }
 
 async fn releases(
@@ -220,7 +221,7 @@ async fn releases(
 
     let search = client
         .search(elasticsearch::SearchParts::Index(&["releases"]))
-        .size(5)
+        .size(params.0.size.unwrap_or(10))
         .from(params.0.from.unwrap_or(0))
         .body(json)
         .send()

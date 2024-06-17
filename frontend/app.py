@@ -36,6 +36,13 @@ def releases():
     filters = requests.get(f"{AXUM_API}filters", timeout=5)
     filters.raise_for_status()
 
+    pageSize = int(request.args.get("pageSize", 5))
+    offset = (int(request.args.get("page", 1)) - 1) * pageSize
+    page = 1 + offset // pageSize
+
+    print(pageSize)
+    print(offset)
+
     releases = requests.get(
         f"{AXUM_API}releases",
         params=[
@@ -59,7 +66,8 @@ def releases():
                 ("value", request.args["artist"])
                 if "artist" in request.args and request.args["artist"]
                 else None,
-                ("from", request.args.get("from", None)),
+                ("from", offset),
+                ("size", pageSize),
                 ("field", "formats.name.keyword")
                 if "formats.name.keyword" in request.args
                 else None,
@@ -83,7 +91,7 @@ def releases():
         ],
         timeout=10,
     )
-    print(releases.json())
+    print(releases.url)
     releases.raise_for_status()
     releases = releases.json()
 
@@ -94,10 +102,6 @@ def releases():
     for r in releases:
         if "videos" in r:
             r["videos"] = [v[32:] for v in r["videos"]]
-
-    pageSize = int(request.args.get("pageSize", 5))
-    offset = int(request.args.get("from", 0))
-    page = 1 + offset // pageSize
 
     if htmx and not htmx.boosted:
         return render_template(
