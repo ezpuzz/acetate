@@ -1,6 +1,6 @@
 <div class="min-h-0 grow overflow-auto flex flex-col gap-y-3 p-3">
     {% for release in releases %}
-    <div class="rounded p-2 border sm:flex bg-slate-100 shadow">
+    <div id="release{{release.id}}" class="rounded p-2 border sm:flex bg-slate-100 shadow">
         <div class="w-full sm:w-1/3 flex flex-col gap-2 pr-4">
             <div>
                 <h2 class="text-lg leading-none"><a href="https://discogs.com/release/{{release.id}}"
@@ -71,7 +71,7 @@
                 <input type="hidden" name="release_id" value="{{release.id}}" />
                 <button hx-post="/want" hx-target="closest div" hx-trigger="click" hx-include="closest div"
                     class="border rounded p-2 bg-emerald-400 hover:bg-emerald-700">I want this.</button>
-                <button hx-post="/hate" hx-target="closest div" hx-trigger="click" hx-include="closest div"
+                <button hx-post="/hate" hx-target="#release{{release.id}}" hx-trigger="click" hx-include="closest div"
                     class="border rounded p-2 bg-rose-400 hover:bg-rose-700">I hate this.</button>
             </div>
         </div>
