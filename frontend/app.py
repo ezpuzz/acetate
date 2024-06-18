@@ -36,6 +36,18 @@ htmx = HTMX(app)
 
 oauth = OAuth(app)
 
+
+def get_token():
+    user = db.session.scalar(
+        db.select(User).where(User.discogs_user_id == session.get("user").get("id"))
+    )
+    print(user)
+    return dict(
+        oauth_token=user.discogs_oauth_token,
+        oauth_token_secret=user.discogs_oauth_token_secret,
+    )
+
+
 oauth.register(
     name="discogs",
     client_id=os.environ.get("DISCOGS_CLIENT_ID", None),
@@ -43,7 +55,7 @@ oauth.register(
     request_token_url="https://api.discogs.com/oauth/request_token",
     access_token_url="https://api.discogs.com/oauth/access_token",
     authorize_url="https://www.discogs.com/oauth/authorize",
-    fetch_token=lambda: session.get("token"),  # DON'T DO IT IN PRODUCTION
+    fetch_token=get_token,
 )
 
 
@@ -147,6 +159,26 @@ def releases():
             **request.args,
         },
     )
+
+
+@app.post("/want")
+def want():
+    if not request.form.get("release_id"):
+        raise Exception()
+
+    username = session["user"]["username"]
+
+    wants = oauth.discogs.put(
+        f"https://api.discogs.com/users/{username}/wants/{request.form.get('release_id')}"
+    )
+    wants.raise_for_status()
+    return render_template("releases/wanted.jinja")
+
+
+@app.post("/hate")
+def hate():
+    if not request.form.get("release_id"):
+        raise Exception()
 
 
 @app.route("/wants")
