@@ -108,24 +108,36 @@ def releases():
                     if request.args.get("videos_only", "on") == "on"
                     else "false",
                 ),
-                ("field", "formats.name.keyword")
-                if "formats.name.keyword" in request.args
-                else None,
-                ("value", request.args["formats.name.keyword"])
-                if "formats.name.keyword" in request.args
-                else None,
-                ("field", "formats.descriptions.keyword")
-                if "formats.descriptions.keyword" in request.args
-                else None,
-                ("value", request.args["formats.descriptions.keyword"])
-                if "formats.descriptions.keyword" in request.args
-                else None,
-                ("field", "styles.keyword")
-                if "styles.keyword" in request.args
-                else None,
-                ("value", request.args["styles.keyword"])
-                if "styles.keyword" in request.args
-                else None,
+                *[
+                    x
+                    for y in [
+                        [
+                            ("field", "formats.name.keyword"),
+                            ("value", v),
+                        ]
+                        for v in request.args.getlist("formats.name.keyword")
+                    ]
+                    for x in y
+                ],
+                *[
+                    x
+                    for y in [
+                        [
+                            ("field", "formats.descriptions.keyword"),
+                            ("value", v),
+                        ]
+                        for v in request.args.getlist("formats.descriptions.keyword")
+                    ]
+                    for x in y
+                ],
+                *[
+                    x
+                    for y in [
+                        [("field", "styles.keyword"), ("value", v)]
+                        for v in request.args.getlist("styles.keyword")
+                    ]
+                    for x in y
+                ],
             ]
             if p is not None
         ],
