@@ -30,7 +30,6 @@
 
     <div class="flex items-center gap-2">
         <label for="videos_only">Only Release with Videos</label>
-        <input type="hidden" name="videos_only" value="off" />
         <input type="checkbox" id="videos_only" name="videos_only" checked hx-trigger="click" hx-get="/releases"
             hx-target="#results" hx-include="#search, #filters, #pagination" />
     </div>

@@ -4,6 +4,19 @@
 <head>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
+    <script type="text/javascript">
+        window.onload = function () {
+            document.body.addEventListener('htmx:configRequest', function (evt) {
+                const isInput = evt.detail.elt.tagName == 'INPUT';
+                const isCheckbox = evt.detail.elt.type == 'checkbox';
+                const isNotChecked = evt.detail.elt.checked == false;
+                if (isInput && isCheckbox && isNotChecked) {
+                    const name = evt.detail.elt.name;
+                    evt.detail.parameters[name] = false;
+                }
+            });
+        }
+    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
     <meta name="viewport" content="width=device-width, minimum-scale=1.0" />
 
@@ -55,30 +68,30 @@
     {% block content %}{% endblock %}
 
     <script id="__bs_script__">
-        //<![CDATA[
-        (function () {
-            try {
-                var script = document.createElement("script");
-                if ("async") {
-                    script.async = true;
-                }
-                script.src =
-                    "http://HOST:3005/browser-sync/browser-sync-client.js?v=3.0.2".replace(
-                        "HOST",
-                        location.hostname,
+            //<![CDATA[
+            (function () {
+                try {
+                    var script = document.createElement("script");
+                    if ("async") {
+                        script.async = true;
+                    }
+                    script.src =
+                        "http://HOST:3005/browser-sync/browser-sync-client.js?v=3.0.2".replace(
+                            "HOST",
+                            location.hostname,
+                        );
+                    if (document.body) {
+                        document.body.appendChild(script);
+                    } else if (document.head) {
+                        document.head.appendChild(script);
+                    }
+                } catch (e) {
+                    console.error(
+                        "Browsersync: could not append script tag",
+                        e,
                     );
-                if (document.body) {
-                    document.body.appendChild(script);
-                } else if (document.head) {
-                    document.head.appendChild(script);
                 }
-            } catch (e) {
-                console.error(
-                    "Browsersync: could not append script tag",
-                    e,
-                );
-            }
-        })();
+            })();
         //]]>
     </script>
 </body>
