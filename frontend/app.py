@@ -98,6 +98,12 @@ def releases():
                 else None,
                 ("from", offset),
                 ("size", pageSize),
+                (
+                    "videos_only",
+                    "true"
+                    if request.args.get("videos_only", "on") == "on"
+                    else "false",
+                ),
                 ("field", "formats.name.keyword")
                 if "formats.name.keyword" in request.args
                 else None,

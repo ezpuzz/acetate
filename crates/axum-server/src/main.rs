@@ -138,6 +138,7 @@ struct QueryParameters {
     value: Option<Vec<String>>,
     from: Option<i64>,
     size: Option<i64>,
+    videos_only: Option<bool>,
 }
 
 async fn releases(
@@ -191,9 +192,11 @@ async fn releases(
     })
     .collect::<Vec<Value>>();
 
-    filters.append(&mut vec![json!({ "exists": {
-        "field": "videos"
-    }})]);
+    if params.0.videos_only.unwrap_or(false) {
+        filters.append(&mut vec![json!({ "exists": {
+            "field": "videos"
+        }})]);
+    }
 
     let json = json!({
         "query": {
