@@ -32,6 +32,10 @@ class User(db.Model):
     __table__ = db.metadata.tables["users"]
 
 
+class Action(db.Model):
+    __table__ = db.metadata.tables["actions"]
+
+
 htmx = HTMX(app)
 
 oauth = OAuth(app)
@@ -185,6 +189,18 @@ def want():
 def hate():
     if not request.form.get("release_id"):
         raise Exception()
+
+    user = db.session.scalar(
+        db.select(User).where(User.discogs_user_id == session.get("user").get("id"))
+    )
+
+    action = Action(
+        user_id=user.user_id, action="HIDE", identifier=request.form.get("release_id")
+    )
+
+    db.session.add(action)
+    db.session.commit()
+    return render_template("releases/hidden.jinja")
 
 
 @app.route("/wants")
