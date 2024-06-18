@@ -66,6 +66,14 @@
             </dl>
             {#
             <pre class="w-full text-wrap overflow-auto h-64 text-slate-400">{{release}}</pre> #}
+
+            <div>
+                <input type="hidden" name="release_id" value="{{release.id}}" />
+                <button hx-post="/want" hx-target="closest div" hx-trigger="click" hx-include="closest div"
+                    class="border rounded p-2 bg-emerald-400 hover:bg-emerald-700">I want this.</button>
+                <button hx-post="/hate" hx-target="closest div" hx-trigger="click" hx-include="closest div"
+                    class="border rounded p-2 bg-rose-400 hover:bg-rose-700">I hate this.</button>
+            </div>
         </div>
         {% if release.videos is defined %}
         <div class="w-full sm:w-2/3">
