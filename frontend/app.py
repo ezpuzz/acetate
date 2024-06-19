@@ -152,7 +152,9 @@ def releases():
 
         if "user" in session:
             r["thumb"] = (
-                oauth.discogs.get(f"https://api.discogs.com/releases/{r['id']}")
+                oauth.discogs.get(
+                    f"https://api.discogs.com/releases/{r['id']}", timeout=5
+                )
                 .json()
                 .get("thumb")
             )
@@ -192,7 +194,8 @@ def want():
     username = session["user"]["username"]
 
     wants = oauth.discogs.put(
-        f"https://api.discogs.com/users/{username}/wants/{request.form.get('release_id')}"
+        f"https://api.discogs.com/users/{username}/wants/{request.form.get('release_id')}",
+        timeout=5,
     )
     wants.raise_for_status()
     return render_template("releases/wanted.jinja")
@@ -301,7 +304,9 @@ def hide():
 
         if "user" in session:
             r["thumb"] = (
-                oauth.discogs.get(f"https://api.discogs.com/releases/{r['id']}")
+                oauth.discogs.get(
+                    f"https://api.discogs.com/releases/{r['id']}", timeout=5
+                )
                 .json()
                 .get("thumb")
             )
@@ -323,7 +328,9 @@ def hide():
 @app.route("/wants")
 def wants():
     username = session["user"]["username"]
-    wants = oauth.discogs.get(f"https://api.discogs.com/users/{username}/wants")
+    wants = oauth.discogs.get(
+        f"https://api.discogs.com/users/{username}/wants", timeout=5
+    )
     wants.raise_for_status()
     wants = wants.json()
     return render_template(
@@ -349,7 +356,7 @@ from sqlalchemy.dialects.postgresql import insert
 @app.route("/auth")
 def auth():
     token = oauth.discogs.authorize_access_token()
-    resp = oauth.discogs.get("https://api.discogs.com/oauth/identity")
+    resp = oauth.discogs.get("https://api.discogs.com/oauth/identity", timeout=5)
     user = resp.json()
 
     stmt = insert(User).values(
