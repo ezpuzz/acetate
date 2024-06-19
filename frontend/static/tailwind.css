@@ -601,6 +601,10 @@ video {
   margin-bottom: 0.25rem;
 }
 
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
 .block {
   display: block;
 }
@@ -1157,6 +1161,10 @@ video {
 
   .sm\:pr-4 {
     padding-right: 1rem;
+  }
+
+  .sm\:pr-2 {
+    padding-right: 0.5rem;
   }
 }
 
