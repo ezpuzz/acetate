@@ -1,4 +1,4 @@
-<form id="search" action="/releases" method="get" hx-boost="true" hx-push-url="true"
+<form id="search" action="/releases" method="get" hx-boost="true" hx-push-url="true" hx-vals='{"page": "1"}'
     class="px-4 flex-none flex flex-wrap items-stretch gap-2">
 
 
@@ -46,7 +46,7 @@
             <label class="border p-1 sm:p-px rounded-lg sm:border-none has-[:checked]:bg-blue-400 flex
                 mb-1 sm:mb-0 items-center leading-tight hyphens-auto break-normal text-ellipsis overflow-hidden"><input
                     class="peer hidden sm:block mr-1" hx-get="/releases" hx-target="#results"
-                    hx-include="#search, #filters, #pagination" type="checkbox"
+                    hx-include="#search, #filters, #pagination" type="checkbox" hx-vals='{"page": "1"}'
                     name="{{filters['aggregations'][f]['meta']['field']}}" value='{{v["key"]}}' hx-push-url="true" {% if
                     filters['aggregations'][f]['meta']['field'] in request.args and
                     request.args[filters['aggregations'][f]['meta']['field']]==v["key"] %}checked{% endif %} />
