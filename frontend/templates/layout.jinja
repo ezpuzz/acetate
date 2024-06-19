@@ -4,29 +4,16 @@
 <head>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
-    <script type="text/javascript">
-        window.onload = function () {
-            document.body.addEventListener('htmx:configRequest', function (evt) {
-                const isInput = evt.detail.elt.tagName == 'INPUT';
-                const isCheckbox = evt.detail.elt.type == 'checkbox';
-                const isNotChecked = evt.detail.elt.checked == false;
-                if (isInput && isCheckbox && isNotChecked) {
-                    const name = evt.detail.elt.name;
-                    evt.detail.parameters[name] = false;
-                }
-            });
-        }
-    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='tailwind.css') }}" />
     <meta name="viewport" content="width=device-width, minimum-scale=1.0" />
 
 </head>
 
 <body class="text-sm flex flex-col h-screen overflow-hidden">
-    <div id="topbar" class="flex-none w-full flex items-center shadow-md">
-        <a class="text-lg px-2">Acetate</a>
-        <nav class="flex-grow">
-            <ul class="flex items-stretch gap-4 h-12">
+    <div id="topbar" class="flex-none w-full flex items-stretch shadow-md">
+        <a class="text-lg px-2 flex items-center">Acetate</a>
+        <nav class="h-full">
+            <ul class="h-full flex items-stretch gap-4">
                 <li class="cursor-pointer px-2 flex items-center hover:bg-gray-200"> <a href="/"
                         class="border-y-4 border-b-orange-500 border-t-transparent cursor-pointer px-2 flex items-center h-full w-full">Discover</a>
                 </li>
@@ -46,6 +33,7 @@
                 </li> #}
             </ul>
         </nav>
+        <div class="flex-grow"></div>
         <div class="w-px self-stretch my-2 bg-gray-300"></div>
         {% if session.user is defined %}
         <div class="cursor-pointer flex px-2 self-stretch items-center gap-2 hover:bg-gray-200">
@@ -61,37 +49,38 @@
             </svg> #}
         </div>
         {% else %}
-        <a href="/login" class="p-2 hover:underline">Sign in with Discogs</a>
+        <a href="/login" class="p-2 hover:underline border rounded-lg mx-2 shadow my-2">Connect <img
+                src="https://asset.brandfetch.io/idhjWOeyjS/idAHPGcnww.svg" class="h-6" /></a>
         {% endif %}
     </div>
 
     {% block content %}{% endblock %}
 
     <script id="__bs_script__">
-            //<![CDATA[
-            (function () {
-                try {
-                    var script = document.createElement("script");
-                    if ("async") {
-                        script.async = true;
-                    }
-                    script.src =
-                        "http://HOST:3005/browser-sync/browser-sync-client.js?v=3.0.2".replace(
-                            "HOST",
-                            location.hostname,
-                        );
-                    if (document.body) {
-                        document.body.appendChild(script);
-                    } else if (document.head) {
-                        document.head.appendChild(script);
-                    }
-                } catch (e) {
-                    console.error(
-                        "Browsersync: could not append script tag",
-                        e,
-                    );
+        //<![CDATA[
+        (function () {
+            try {
+                var script = document.createElement("script");
+                if ("async") {
+                    script.async = true;
                 }
-            })();
+                script.src =
+                    "http://HOST:3005/browser-sync/browser-sync-client.js?v=3.0.2".replace(
+                        "HOST",
+                        location.hostname,
+                    );
+                if (document.body) {
+                    document.body.appendChild(script);
+                } else if (document.head) {
+                    document.head.appendChild(script);
+                }
+            } catch (e) {
+                console.error(
+                    "Browsersync: could not append script tag",
+                    e,
+                );
+            }
+        })();
         //]]>
     </script>
 </body>
