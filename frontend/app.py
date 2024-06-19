@@ -45,7 +45,6 @@ def get_token():
     user = db.session.scalar(
         db.select(User).where(User.discogs_user_id == session.get("user").get("id"))
     )
-    print(user)
     return dict(
         oauth_token=user.discogs_oauth_token,
         oauth_token_secret=user.discogs_oauth_token_secret,
@@ -66,16 +65,12 @@ oauth.register(
 @app.route("/")
 @app.route("/releases")
 def releases():
-    print(session.get("user"))
     filters = requests.get(f"{AXUM_API}filters", timeout=5)
     filters.raise_for_status()
 
     pageSize = int(request.args.get("pageSize", 5))
     offset = (int(request.args.get("page", 1)) - 1) * pageSize
     page = 1 + offset // pageSize
-
-    print(pageSize)
-    print(offset)
 
     releases = requests.get(
         f"{AXUM_API}releases",
@@ -162,7 +157,6 @@ def releases():
                 .get("thumb")
             )
 
-    print(session)
     if htmx and not htmx.boosted:
         return render_template(
             "releases/results.jinja",
@@ -219,7 +213,111 @@ def hide():
 
     db.session.add(action)
     db.session.commit()
-    return render_template("releases/hidden.jinja")
+
+    filters = requests.get(f"{AXUM_API}filters", timeout=5)
+    filters.raise_for_status()
+
+    pageSize = int(request.form.get("pageSize", 5))
+    offset = (int(request.form.get("page", 1)) - 1) * pageSize
+    page = 1 + offset // pageSize
+
+    releases = requests.get(
+        f"{AXUM_API}releases",
+        params=[
+            p
+            for p in [
+                ("field", "nested:labels.name")
+                if "label" in request.form and request.form["label"]
+                else None,
+                ("value", request.form["label"])
+                if "label" in request.form and request.form["label"]
+                else None,
+                ("field", "nested:tracklist.title")
+                if "song" in request.form and request.form["song"]
+                else None,
+                ("value", request.form["song"])
+                if "song" in request.form and request.form["song"]
+                else None,
+                ("field", "nested:artists.name")
+                if "artist" in request.form and request.form["artist"]
+                else None,
+                ("value", request.form["artist"])
+                if "artist" in request.form and request.form["artist"]
+                else None,
+                ("from", offset),
+                ("size", pageSize),
+                (
+                    "videos_only",
+                    "true"
+                    if request.form.get("videos_only", "on") == "on"
+                    else "false",
+                ),
+                *[
+                    x
+                    for y in [
+                        [
+                            ("field", "formats.name.keyword"),
+                            ("value", v),
+                        ]
+                        for v in request.form.getlist("formats.name.keyword")
+                    ]
+                    for x in y
+                ],
+                *[
+                    x
+                    for y in [
+                        [
+                            ("field", "formats.descriptions.keyword"),
+                            ("value", v),
+                        ]
+                        for v in request.form.getlist("formats.descriptions.keyword")
+                    ]
+                    for x in y
+                ],
+                *[
+                    x
+                    for y in [
+                        [("field", "styles.keyword"), ("value", v)]
+                        for v in request.form.getlist("styles.keyword")
+                    ]
+                    for x in y
+                ],
+            ]
+            if p is not None
+        ],
+        timeout=10,
+    )
+    print(releases.url)
+    releases.raise_for_status()
+    releases = releases.json()
+
+    hits = int(releases["hits"]["total"]["value"])
+
+    releases = [r["_source"] for r in releases["hits"]["hits"]]
+
+    for r in releases:
+        if "videos" in r:
+            r["videos"] = [v[32:] for v in r["videos"]]
+
+        if "user" in session:
+            r["thumb"] = (
+                oauth.discogs.get(f"https://api.discogs.com/releases/{r['id']}")
+                .json()
+                .get("thumb")
+            )
+
+    return render_template(
+        "releases/hidden.jinja",
+        **{
+            "pageSize": pageSize,
+            "releases": releases,
+            "hits": hits,
+            "page": page,
+            "from": offset,
+            "filters": filters.json(),
+            **request.form,
+        },
+    )
 
 
 @app.route("/wants")
@@ -254,10 +352,6 @@ def auth():
     resp = oauth.discogs.get("https://api.discogs.com/oauth/identity")
     user = resp.json()
 
-    print(token)
-    print(user)
-    print(session)
-
     stmt = insert(User).values(
         discogs_oauth_token=token["oauth_token"],
         discogs_oauth_token_secret=token["oauth_token_secret"],
@@ -270,7 +364,6 @@ def auth():
             discogs_oauth_token_secret=token["oauth_token_secret"],
         ),
     )
-    print(stmt)
     db.session.execute(stmt)
     db.session.commit()
 
