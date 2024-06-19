@@ -4,10 +4,12 @@
         <div class="w-full">
             <div
                 class="float-right ml-2 flex-none w-24 h-24 bg-gray-500 flex items-center justify-center overflow-hidden">
-                <img class="inset-full object-cover" src="{{release.thumb|d()}}" />{%if 'user' not in
+                <div hx-get="/thumb/{{release.id}}" hx-trigger="load" hx-swap="outerHTML">Loading...</div>{%if 'user'
+                not in
                 session %}<a href="/login" class="p-2">
                     Login to see covers.
-                </a>{% endif %}</div>
+                </a>{% endif %}
+            </div>
 
             <div>
                 <h2 class="text-lg leading-none"><a target="_blank" href="https://discogs.com/release/{{release.id}}"

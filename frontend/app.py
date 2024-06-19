@@ -150,15 +150,6 @@ def releases():
         if "videos" in r:
             r["videos"] = [v[32:] for v in r["videos"]]
 
-        if "user" in session:
-            r["thumb"] = (
-                oauth.discogs.get(
-                    f"https://api.discogs.com/releases/{r['id']}", timeout=5
-                )
-                .json()
-                .get("thumb")
-            )
-
     if htmx and not htmx.boosted:
         return render_template(
             "releases/results.jinja",
@@ -302,15 +293,6 @@ def hide():
         if "videos" in r:
             r["videos"] = [v[32:] for v in r["videos"]]
 
-        if "user" in session:
-            r["thumb"] = (
-                oauth.discogs.get(
-                    f"https://api.discogs.com/releases/{r['id']}", timeout=5
-                )
-                .json()
-                .get("thumb")
-            )
-
     return render_template(
         "releases/hidden.jinja",
         **{
@@ -322,6 +304,23 @@ def hide():
             "filters": filters.json(),
             **request.form,
         },
+    )
+
+
+@app.route("/thumb/<release_id>")
+def thumb(release_id):
+    if not "user" in session:
+        raise Exception()
+
+    return render_template(
+        "image.jinja",
+        src=(
+            oauth.discogs.get(
+                f"https://api.discogs.com/releases/{release_id}", timeout=5
+            )
+            .json()
+            .get("thumb")
+        ),
     )
 
 
