@@ -155,6 +155,13 @@ def releases():
         if "videos" in r:
             r["videos"] = [v[32:] for v in r["videos"]]
 
+        if "user" in session:
+            r["thumb"] = (
+                oauth.discogs.get(f"https://api.discogs.com/releases/{r['id']}")
+                .json()
+                .get("thumb")
+            )
+
     print(session)
     if htmx and not htmx.boosted:
         return render_template(

@@ -566,6 +566,14 @@ video {
   position: relative;
 }
 
+.inset-full {
+  inset: 100%;
+}
+
+.float-right {
+  float: right;
+}
+
 .mx-2 {
   margin-left: 0.5rem;
   margin-right: 0.5rem;
@@ -599,6 +607,10 @@ video {
 
 .flex {
   display: flex;
+}
+
+.grid {
+  display: grid;
 }
 
 .hidden {
@@ -654,6 +666,10 @@ video {
 
 .h-6 {
   height: 1.5rem;
+}
+
+.h-24 {
+  height: 6rem;
 }
 
 .max-h-full {
@@ -927,6 +943,16 @@ video {
   background-color: rgb(96 165 250 / var(--tw-bg-opacity));
 }
 
+.bg-gray-500 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(107 114 128 / var(--tw-bg-opacity));
+}
+
+.object-cover {
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+
 .p-2 {
   padding: 0.5rem;
 }
@@ -1049,6 +1075,10 @@ video {
   --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.\*\:mb-2 > * {
+  margin-bottom: 0.5rem;
 }
 
 .hover\:bg-gray-200:hover {
