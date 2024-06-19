@@ -17,7 +17,7 @@ use axum::{
 use dotenv::dotenv;
 use serde::{self, Deserialize, Serialize};
 use std::net::SocketAddr;
-use tower_http::cors::CorsLayer;
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -29,12 +29,22 @@ async fn main() -> anyhow::Result<()> {
         .connect(&config.database_url)
         .await?;
 
+    let credentials = Credentials::Basic("elastic".into(), config.es_password.clone());
+    let transport = Transport::cloud(&config.es_cloud_id.clone(), credentials)?;
+    let client = Elasticsearch::new(transport);
+
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
+
     let app = Router::new()
         .route("/releases", get(releases))
         .route("/filters", get(filters))
         .route("/actions", post(actions))
+        .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())
         .layer(Extension(config))
+        .layer(Extension(client))
         .layer(Extension(pool.clone()));
 
     // run it
@@ -83,13 +93,8 @@ async fn actions(
 
 #[debug_handler]
 async fn filters(
-    Extension(config): Extension<Config>,
+    Extension(client): Extension<Elasticsearch>,
 ) -> Result<axum::response::Response, error::Error> {
-    let credentials = Credentials::Basic("elastic".into(), config.es_password.clone());
-    let transport = Transport::cloud(&config.es_cloud_id.clone(), credentials)?;
-
-    let client = Elasticsearch::new(transport);
-
     let search = client
         .search(elasticsearch::SearchParts::None)
         .body(json!({
@@ -143,14 +148,9 @@ struct QueryParameters {
 
 async fn releases(
     Extension(pool): Extension<Pool<Postgres>>,
-    Extension(config): Extension<Config>,
+    Extension(client): Extension<Elasticsearch>,
     params: axum_extra::extract::Query<QueryParameters>,
 ) -> Result<axum::response::Response, error::Error> {
-    let credentials = Credentials::Basic("elastic".into(), config.es_password.clone());
-    let transport = Transport::cloud(&config.es_cloud_id.clone(), credentials)?;
-
-    let client = Elasticsearch::new(transport);
-
     // let search = elasticsearch_dsl::Search::new().size(10);
     // let resp: serde_json::Value = client
     //     .post("https://localhost:9200/releases")
@@ -227,7 +227,7 @@ async fn releases(
         ]
     });
 
-    println!("{}", to_string_pretty(&json).unwrap());
+    // println!("{}", to_string_pretty(&json).unwrap());
 
     let search = client
         .search(elasticsearch::SearchParts::Index(&["releases"]))
