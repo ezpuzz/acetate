@@ -1,1 +1,10 @@
 Hidden.
+{% for release in releases %}
+{% if not loop.last %}
+{# Could use this to refresh the existing entries, but iframes don't preserve well. #}
+{# {% set swapoob = true %}
+{% include 'releases/release.jinja' %} #}
+{% else %}
+<div hx-swap-oob="beforeend:#resultsinner">{% include 'releases/release.jinja' %}</div>
+{% endif %}
+{% endfor %}
