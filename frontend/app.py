@@ -197,12 +197,12 @@ def hide():
     if not request.form.get("release_id"):
         raise Exception()
 
-    user = db.session.scalar(
-        db.select(User).where(User.discogs_user_id == session.get("user").get("id"))
-    )
-
     action = Action(
-        user_id=user.user_id, action="HIDE", identifier=request.form.get("release_id")
+        user_id=db.select(User.user_id)
+        .scalar_subquery()
+        .where(User.discogs_user_id == session.get("user").get("id")),
+        action="HIDE",
+        identifier=request.form.get("release_id"),
     )
 
     db.session.add(action)
