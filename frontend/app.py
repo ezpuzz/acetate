@@ -147,7 +147,7 @@ def releases():
     releases.raise_for_status()
     releases = releases.json()
 
-    hits = releases["hits"]["total"]["value"]
+    hits = int(releases["hits"]["total"]["value"])
 
     releases = [r["_source"] for r in releases["hits"]["hits"]]
 
@@ -204,8 +204,8 @@ def want():
     return render_template("releases/wanted.jinja")
 
 
-@app.post("/hate")
-def hate():
+@app.post("/hide")
+def hide():
     if not request.form.get("release_id"):
         raise Exception()
 
