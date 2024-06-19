@@ -1,6 +1,8 @@
+import asyncio
 import os
 from flask import Flask, render_template, request, session, redirect, url_for
 from flask_htmx import HTMX
+import flask_htmx
 from flask_sqlalchemy import SQLAlchemy
 
 from authlib.integrations.flask_client import OAuth
@@ -8,6 +10,8 @@ from jinja2 import StrictUndefined
 import requests
 
 from dotenv import load_dotenv
+import werkzeug
+import werkzeug.datastructures
 
 load_dotenv()
 
@@ -64,91 +68,13 @@ oauth.register(
 
 @app.route("/")
 @app.route("/releases")
-def releases():
-    filters = requests.get(f"{AXUM_API}filters", timeout=5)
-    filters.raise_for_status()
+async def releases():
+    async with asyncio.TaskGroup() as tg:
+        filters = tg.create_task(get_filters())
+        releases = tg.create_task(get_releases(request.args))
 
-    pageSize = int(request.args.get("pageSize", 5))
-    offset = (int(request.args.get("page", 1)) - 1) * pageSize
-    page = 1 + offset // pageSize
-
-    releases = requests.get(
-        f"{AXUM_API}releases",
-        params=[
-            p
-            for p in [
-                ("field", "nested:labels.name")
-                if "label" in request.args and request.args["label"]
-                else None,
-                ("value", request.args["label"])
-                if "label" in request.args and request.args["label"]
-                else None,
-                ("field", "nested:tracklist.title")
-                if "song" in request.args and request.args["song"]
-                else None,
-                ("value", request.args["song"])
-                if "song" in request.args and request.args["song"]
-                else None,
-                ("field", "nested:artists.name")
-                if "artist" in request.args and request.args["artist"]
-                else None,
-                ("value", request.args["artist"])
-                if "artist" in request.args and request.args["artist"]
-                else None,
-                ("from", offset),
-                ("size", pageSize),
-                (
-                    "videos_only",
-                    "true"
-                    if request.args.get("videos_only", "on") == "on"
-                    else "false",
-                ),
-                *[
-                    x
-                    for y in [
-                        [
-                            ("field", "formats.name.keyword"),
-                            ("value", v),
-                        ]
-                        for v in request.args.getlist("formats.name.keyword")
-                    ]
-                    for x in y
-                ],
-                *[
-                    x
-                    for y in [
-                        [
-                            ("field", "formats.descriptions.keyword"),
-                            ("value", v),
-                        ]
-                        for v in request.args.getlist("formats.descriptions.keyword")
-                    ]
-                    for x in y
-                ],
-                *[
-                    x
-                    for y in [
-                        [("field", "styles.keyword"), ("value", v)]
-                        for v in request.args.getlist("styles.keyword")
-                    ]
-                    for x in y
-                ],
-            ]
-            if p is not None
-        ],
-        timeout=10,
-    )
-    print(releases.url)
-    releases.raise_for_status()
-    releases = releases.json()
-
-    hits = int(releases["hits"]["total"]["value"])
-
-    releases = [r["_source"] for r in releases["hits"]["hits"]]
-
-    for r in releases:
-        if "videos" in r:
-            r["videos"] = [v[32:] for v in r["videos"]]
+    filters = filters.result()
+    releases, page, pageSize, offset, hits = releases.result()
 
     if htmx and not htmx.boosted:
         return render_template(
@@ -159,7 +85,7 @@ def releases():
                 "hits": hits,
                 "page": page,
                 "from": offset,
-                "filters": filters.json(),
+                "filters": filters,
                 **request.args,
             },
         )
@@ -171,7 +97,7 @@ def releases():
             "hits": hits,
             "page": page,
             "from": offset,
-            "filters": filters.json(),
+            "filters": filters,
             **request.args,
         },
     )
@@ -179,8 +105,8 @@ def releases():
 
 @app.post("/want")
 def want():
-    if not request.form.get("release_id"):
-        raise Exception()
+    if not request.form.get("release_id") or "user" not in session:
+        return flask_htmx.make_response(redirect="/login")
 
     username = session["user"]["username"]
 
@@ -192,27 +118,15 @@ def want():
     return render_template("releases/wanted.jinja")
 
 
-@app.post("/hide")
-def hide():
-    if not request.form.get("release_id"):
-        raise Exception()
-
-    action = Action(
-        user_id=db.select(User.user_id)
-        .scalar_subquery()
-        .where(User.discogs_user_id == session.get("user").get("id")),
-        action="HIDE",
-        identifier=request.form.get("release_id"),
-    )
-
-    db.session.add(action)
-    db.session.commit()
-
+async def get_filters():
     filters = requests.get(f"{AXUM_API}filters", timeout=5)
     filters.raise_for_status()
+    return filters.json()
 
-    pageSize = int(request.form.get("pageSize", 5))
-    offset = (int(request.form.get("page", 1)) - 1) * pageSize
+
+async def get_releases(params: werkzeug.datastructures.MultiDict):
+    pageSize = int(params.get("pageSize", 5))
+    offset = int(params.get("offset", (int(params.get("page", 1)) - 1) * pageSize))
     page = 1 + offset // pageSize
 
     releases = requests.get(
@@ -220,31 +134,17 @@ def hide():
         params=[
             p
             for p in [
-                ("field", "nested:labels.name")
-                if "label" in request.form and request.form["label"]
-                else None,
-                ("value", request.form["label"])
-                if "label" in request.form and request.form["label"]
-                else None,
-                ("field", "nested:tracklist.title")
-                if "song" in request.form and request.form["song"]
-                else None,
-                ("value", request.form["song"])
-                if "song" in request.form and request.form["song"]
-                else None,
-                ("field", "nested:artists.name")
-                if "artist" in request.form and request.form["artist"]
-                else None,
-                ("value", request.form["artist"])
-                if "artist" in request.form and request.form["artist"]
-                else None,
+                ("field", "nested:labels.name") if params.get("label") else None,
+                ("value", params["label"]) if params.get("label") else None,
+                ("field", "nested:tracklist.title") if params.get("song") else None,
+                ("value", params["song"]) if params.get("song") else None,
+                ("field", "nested:artists.name") if params.get("artist") else None,
+                ("value", params["artist"]) if params.get("artist") else None,
                 ("from", offset),
                 ("size", pageSize),
                 (
                     "videos_only",
-                    "true"
-                    if request.form.get("videos_only", "on") == "on"
-                    else "false",
+                    "true" if params.get("videos_only", "on") == "on" else "false",
                 ),
                 *[
                     x
@@ -253,7 +153,7 @@ def hide():
                             ("field", "formats.name.keyword"),
                             ("value", v),
                         ]
-                        for v in request.form.getlist("formats.name.keyword")
+                        for v in params.getlist("formats.name.keyword")
                     ]
                     for x in y
                 ],
@@ -264,7 +164,7 @@ def hide():
                             ("field", "formats.descriptions.keyword"),
                             ("value", v),
                         ]
-                        for v in request.form.getlist("formats.descriptions.keyword")
+                        for v in params.getlist("formats.descriptions.keyword")
                     ]
                     for x in y
                 ],
@@ -272,7 +172,7 @@ def hide():
                     x
                     for y in [
                         [("field", "styles.keyword"), ("value", v)]
-                        for v in request.form.getlist("styles.keyword")
+                        for v in params.getlist("styles.keyword")
                     ]
                     for x in y
                 ],
@@ -281,7 +181,6 @@ def hide():
         ],
         timeout=10,
     )
-    print(releases.url)
     releases.raise_for_status()
     releases = releases.json()
 
@@ -293,6 +192,41 @@ def hide():
         if "videos" in r:
             r["videos"] = [v[32:] for v in r["videos"]]
 
+    return releases, page, pageSize, offset, hits
+
+
+async def hide_release(release_id):
+    action = Action(
+        user_id=db.select(User.user_id)
+        .scalar_subquery()
+        .where(User.discogs_user_id == session.get("user").get("id")),
+        action="HIDE",
+        identifier=release_id,
+    )
+
+    db.session.add(action)
+    db.session.commit()
+
+
+@app.post("/hide")
+async def hide():
+    if not request.form.get("release_id") or "user" not in session:
+        return flask_htmx.make_response(redirect="/login")
+
+    params = request.form.copy()
+    params["pageSize"] = "1"
+    params["offset"] = str(
+        int(request.form.get("from", 0)) + int(request.form.get("pageSize", 5)) - 1
+    )
+
+    async with asyncio.TaskGroup() as tg:
+        tg.create_task(hide_release(request.form.get("release_id")))
+        filters = tg.create_task(get_filters())
+        releases = tg.create_task(get_releases(params))
+
+    filters = filters.result()
+    releases, page, pageSize, offset, hits = releases.result()
+
     return render_template(
         "releases/hidden.jinja",
         **{
@@ -301,7 +235,7 @@ def hide():
             "hits": hits,
             "page": page,
             "from": offset,
-            "filters": filters.json(),
+            "filters": filters,
             **request.form,
         },
     )

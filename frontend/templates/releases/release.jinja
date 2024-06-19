@@ -4,11 +4,12 @@
         <div class="w-full">
             <div
                 class="float-right ml-2 flex-none w-24 h-24 bg-gray-500 flex items-center justify-center overflow-hidden">
-                <div hx-get="/thumb/{{release.id}}" hx-trigger="load" hx-swap="outerHTML">Loading...</div>{%if 'user'
+                {%if 'user'
                 not in
                 session %}<a href="/login" class="p-2">
                     Login to see covers.
-                </a>{% endif %}
+                </a>{% else %}<div hx-get="/thumb/{{release.id}}" hx-trigger="load" hx-swap="outerHTML">Loading...</div>
+                {% endif %}
             </div>
 
             <div>
