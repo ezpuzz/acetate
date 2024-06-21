@@ -338,6 +338,7 @@ def auth():
         discogs_oauth_token=token["oauth_token"],
         discogs_oauth_token_secret=token["oauth_token_secret"],
         discogs_user_id=user["id"],
+        username=user["username"],
     )
     stmt = stmt.on_conflict_do_update(
         constraint="users_discogs_user_id_key",
