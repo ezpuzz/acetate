@@ -69,9 +69,18 @@ oauth.register(
 @app.route("/")
 @app.route("/releases")
 async def releases():
+    extra_args = {}
+
+    if "videos_only" not in request.args:
+        extra_args["videos_only"] = "on"
+
+    args = request.args.copy()
+
+    args.update(extra_args)
+
     async with asyncio.TaskGroup() as tg:
         filters = tg.create_task(get_filters())
-        releases = tg.create_task(get_releases(request.args))
+        releases = tg.create_task(get_releases(args))
 
     filters = filters.result()
     releases, page, pageSize, offset, hits = releases.result()
