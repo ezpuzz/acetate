@@ -1,40 +1,31 @@
 {% extends "layout.jinja" %}
 {% block content %}
-<form id="search" action="/releases" method="get" hx-boost="true" hx-push-url="true" hx-vals='{"page": "1"}'
+<form id="search" action="/collection" method="get" hx-boost="true" hx-push-url="true" hx-vals='{"page": "1"}'
     class="px-4 flex-none flex flex-wrap items-stretch gap-2">
 
 
     <div class="flex flex-col items-start">
         <label for="label">Label</label>
 
-        <input id="label" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#results"
+        <input id="label" hx-trigger="input changed delay:500ms, search" hx-get="/collection" hx-target="#results"
             hx-include="#search, #filters, #pagination" type="search" name="label" value="{{label|d()}}"
             placeholder="Defected" class="rounded-md border p-2 w-1/5 min-w-64" />
-    </div>
-
-
-    <div class="flex flex-col items-start">
-        <label for="song">Song Name</label>
-
-        <input id="song" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#results"
-            hx-include="#search, #filters, #pagination" type="search" name="song" value="{{song|d()}}"
-            placeholder="Don't Cry Tonight" class="rounded-md border p-2 w-1/5 min-w-64" />
     </div>
 
     <div class="flex flex-col items-start">
         <label for="artist">Artist</label>
 
-        <input id="artist" hx-trigger="input changed delay:500ms, search" hx-get="/releases" hx-target="#results"
+        <input id="artist" hx-trigger="input changed delay:500ms, search" hx-get="/collection" hx-target="#results"
             hx-include="#search, #filters, #pagination" type="search" name="artist" value="{{artist|d()}}"
             placeholder="Acen" class="rounded-md border p-2 w-1/5 min-w-64" />
     </div>
 
+    <div class="flex flex-col items-start">
+        <label for="catno">Cat No.</label>
 
-    <div class="flex items-center gap-2">
-        <label for="videos_only">Only Release with Videos</label>
-        <input type="checkbox" id="videos_only" name="videos_only" checked hx-trigger="click" hx-get="/releases"
-            hx-target="#results" hx-include="#search, #filters, #pagination" />
-        <input type="hidden" name="videos_only" value="off" />
+        <input id="catno" hx-trigger="input changed delay:500ms, search" hx-get="/collection" hx-target="#results"
+            hx-include="#search, #filters, #pagination" type="search" name="catno" value="{{catno|d()}}"
+            placeholder="BREAKS001" class="rounded-md border p-2 w-1/5 min-w-64" />
     </div>
 </form>
 
@@ -47,7 +38,7 @@
             {% for v in filters["aggregations"][f]["buckets"] %}
             <label class="border p-1 sm:p-px rounded-lg sm:border-none has-[:checked]:bg-blue-400 flex
                 mb-1 sm:mb-0 items-center leading-tight hyphens-auto break-normal text-ellipsis overflow-hidden"><input
-                    class="peer hidden sm:block mr-1" hx-get="/releases" hx-target="#results"
+                    class="peer hidden sm:block mr-1" hx-get="/collection" hx-target="#results"
                     hx-include="#search, #filters, #pagination" type="checkbox" hx-vals='{"page": "1"}'
                     name="{{filters['aggregations'][f]['meta']['field']}}" value='{{v["key"]}}' hx-push-url="true" {% if
                     filters['aggregations'][f]['meta']['field'] in request.args and
@@ -61,7 +52,7 @@
 
     <div id="results" class="grow flex flex-col min-w-0">
 
-        {% include 'releases/results.jinja' %}
+        {% include 'collection/results.jinja' %}
 
     </div>
 </div>
