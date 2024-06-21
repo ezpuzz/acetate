@@ -9,13 +9,17 @@
 </head>
 
 <body class="text-sm flex flex-col absolute inset-0 overflow-hidden">
-    <div id="topbar" class="flex-none w-full flex items-stretch shadow-md">
+    <div id="topbar" class="flex-none w-full flex items-stretch shadow-md min-h-12">
         <a href="/" class="text-lg px-2 flex items-center">Acetate</a>
         <nav class="h-full">
             <ul class="h-full flex items-stretch gap-4">
-                <li class="cursor-pointer px-2 flex items-center hover:bg-gray-200"> <a href="/"
-                        class="border-y-4 border-b-orange-500 border-t-transparent cursor-pointer px-2 flex items-center h-full w-full">Discover</a>
+                <li class="cursor-pointer flex items-center hover:bg-gray-200"> <a href="/releases"
+                        class="border-b-4 {% if url_for(request.endpoint) == '/releases' %}border-b-orange-500{%else%}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">Discover</a>
                 </li>
+                <li class="cursor-pointer flex items-center hover:bg-gray-200"> <a href="/collection"
+                        class="border-b-4 {% if url_for(request.endpoint) == '/collection' %}border-b-orange-500{%else%}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">Collect</a>
+                </li>
+
                 {# <li class="relative hover:bg-gray-200">
                     <a href="/wanted"
                         class="border-y-4 border-b-orange-500 border-t-transparent cursor-pointer px-2 flex items-center h-full w-full">Wanted</a>
@@ -52,8 +56,10 @@
                 src="https://asset.brandfetch.io/idhjWOeyjS/idAHPGcnww.svg" class="h-6" /></a>
         {% endif %}
     </div>
+    <div id="content" class="pt-4 grow flex flex-col min-h-0 shrink gap-y-4">
 
-    {% block content %}{% endblock %}
+        {% block content %}{% endblock %}
+    </div>
 
     <script id="__bs_script__">
         //<![CDATA[

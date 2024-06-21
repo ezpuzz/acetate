@@ -90,7 +90,43 @@ async def releases():
             },
         )
     return render_template(
-        "index.jinja",
+        "releases.jinja",
+        **{
+            "pageSize": pageSize,
+            "releases": releases,
+            "hits": hits,
+            "page": page,
+            "from": offset,
+            "filters": filters,
+            **request.args,
+        },
+    )
+
+
+@app.route("/collection")
+async def collection():
+    async with asyncio.TaskGroup() as tg:
+        filters = tg.create_task(get_filters())
+        releases = tg.create_task(get_releases(request.args))
+
+    filters = filters.result()
+    releases, page, pageSize, offset, hits = releases.result()
+
+    if htmx and not htmx.boosted:
+        return render_template(
+            "collection/results.jinja",
+            **{
+                "pageSize": pageSize,
+                "releases": releases,
+                "hits": hits,
+                "page": page,
+                "from": offset,
+                "filters": filters,
+                **request.args,
+            },
+        )
+    return render_template(
+        "collect.jinja",
         **{
             "pageSize": pageSize,
             "releases": releases,
@@ -138,13 +174,19 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
                 ("value", params["label"]) if params.get("label") else None,
                 ("field", "nested:tracklist.title") if params.get("song") else None,
                 ("value", params["song"]) if params.get("song") else None,
-                ("field", "nested:artists.name") if params.get("artist") else None,
+                ("field", "nested:artists.name.keyword")
+                if params.get("artist")
+                else None,
                 ("value", params["artist"]) if params.get("artist") else None,
+                ("field", "nested:labels.catno.keyword")
+                if params.get("catno")
+                else None,
+                ("value", params["catno"]) if params.get("catno") else None,
                 ("from", offset),
                 ("size", pageSize),
                 (
                     "videos_only",
-                    "true" if params.get("videos_only", "on") == "on" else "false",
+                    "true" if params.get("videos_only") == "on" else "false",
                 ),
                 *[
                     x

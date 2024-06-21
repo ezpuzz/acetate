@@ -168,32 +168,68 @@ async fn releases(
         .fetch_all(&mut *db)
         .await?;
 
-    let mut filters = std::iter::zip(
+    let mut must_filters = vec![];
+    let mut filters = vec![];
+
+    std::iter::zip(
         params.0.field.unwrap_or_default(),
         params.0.value.unwrap_or_default(),
     )
-    .map(|f| {
+    .for_each(|f| {
         if f.0.contains("nested:") {
-            json!({"nested": {
+            filters.push(json!({"nested": {
                 "path": f.0[7..f.0.chars().position(|c| c == '.').unwrap()],
                 "query": {
-                    "match_bool_prefix": {
-                        f.0[7..]: {
-                            "query": f.1,
-                            "minimum_should_match": "3<80%",
-                            // "fuzziness": "AUTO"
+                    "bool": {
+                        "should": [
+                            {   "fuzzy": {
+                                    f.0[7..]: {
+                                        "value": format!("{0}",f.1),
+                                        "prefix_length": 1,
+                                        "boost": "0.5"
+                                    }
+                                }
+                            },
+                            {   "match": {
+                                    f.0[7..]: {
+                                        "query": format!("{0}",f.1),
+                                        "operator": "and",
+                                        "boost": "0.5"
+                                    }
+                                }
+                            },
+                            {   "wildcard": {
+                                    f.0[7..]: {
+                                        "value": format!("*{0}*",f.1),
+                                        "case_insensitive": true,
+                                        "boost": "10.0"
+                                    }
+                                }
+                            },
+                            {   "wildcard": {
+                                    f.0[7..]: {
+                                        "value": format!("{0}*",f.1),
+                                        "case_insensitive": true,
+                                        "boost": "15.0"
+                                    }
+                                }
+                            }
+                        ],
+                        "boost": match &f.0[7..]{
+                            "labels.catno.keyword" => "15.0",
+                            _ => "1.0"
                         }
-                    }
-                }
-            }})
+                    },
+                },
+                "score_mode": "max"
+            }}))
         } else {
-            json!({ "match_phrase": { f.0: f.1 }})
+            must_filters.push(json!({ "match": { f.0: f.1 }}));
         }
-    })
-    .collect::<Vec<Value>>();
+    });
 
     if params.0.videos_only.unwrap_or(false) {
-        filters.append(&mut vec![json!({ "exists": {
+        must_filters.append(&mut vec![json!({ "exists": {
             "field": "videos"
         }})]);
     }
@@ -202,6 +238,7 @@ async fn releases(
         "query": {
             "bool": {
                 "must": filters,
+                "filter": must_filters,
                 "must_not": [
                     {
                         "ids": {
@@ -215,19 +252,25 @@ async fn releases(
                     //         "master_id.is_main_release": "false"
                     //       }
                     // }
-                ]
+                ],
+                // "minimum_should_match": 1
             }
         },
         "sort": [
             {
-                "id": {
+                "_score": {
+                    "order": "desc"
+                }
+            },
+            {
+                "released": {
                     "order": "desc"
                 }
             }
         ]
     });
 
-    // println!("{}", to_string_pretty(&json).unwrap());
+    println!("{}", to_string_pretty(&json).unwrap());
 
     let search = client
         .search(elasticsearch::SearchParts::Index(&["releases"]))
