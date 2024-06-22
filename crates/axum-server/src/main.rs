@@ -267,7 +267,30 @@ async fn releases(
                     "order": "desc"
                 }
             }
-        ]
+        ],
+        "aggs": {
+            "Styles": {
+                "terms": { "field": "styles.keyword", "size": 1000, "min_doc_count": 50 },
+                "meta": {
+                    "field": "styles.keyword"
+                }
+            },
+            // "genres": {
+            //     "terms": { "field": "genres.keyword", "size": 1000 }
+            // },
+            "Format": {
+                "terms": { "field": "formats.name.keyword", "size": 20 },
+                "meta": {
+                    "field": "formats.name.keyword"
+                }
+            },
+            "Format Descriptions": {
+                "terms": { "field": "formats.descriptions.keyword", "size": 20 },
+                "meta": {
+                    "field": "formats.descriptions.keyword"
+                }
+            }
+        },
     });
 
     println!("{}", to_string_pretty(&json).unwrap());
