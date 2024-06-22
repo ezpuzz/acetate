@@ -18,7 +18,7 @@
                 <span class="text-slate-500 text-xs">by</span> {{release.artists|map(attribute="name")|join(', ')}}
             </div>
             <dl class="*:mb-2">
-                <div class="hidden sm:block">
+                <div class="">
                     <dt class="text-xs text-slate-700">Label</dt>
                     {% for label in release.labels %}
                     <dd>
@@ -29,13 +29,21 @@
                     {% endfor %}
                 </div>
                 <div class="">
-                    <dt class="text-xs text-slate-700">Format</dt>{% if release.formats is defined %}
+                    <dt class="text-xs text-slate-700">Format</dt>
+                    {% if release.formats is defined %}
                     {% for f in release.formats %}
                     <dd>
                         {{f.text|d()}}
                         {{f.descriptions|d()|join(' ')}} {{f.name|d()}}
-                    </dd>{% endfor %} {% endif %}
+                    </dd>{% endfor %}
+                    {% endif %}
                 </div>
+
+                <div class="flex flex-wrap gap-2" id="prices{{release.id}}" hx-get="/prices/{{release.id}}"
+                    hx-trigger="load">
+                    <dt class="text-xs text-slate-700">Prices</dt>
+                </div>
+
                 <div class="flex gap-2">
                     <div class="hidden sm:block">
                         <dt class="text-xs text-slate-700">Released</dt>
@@ -62,17 +70,6 @@
                     </dd>
                 </div>
             </dl>
-            {#
-            <pre class="w-full text-wrap overflow-auto h-64 text-slate-400">{{release}}</pre> #}
-            <div>
-                <input type="hidden" name="release_id" value="{{release.id}}" />
-                <button hx-post="/want" hx-target="closest div" hx-trigger="click" hx-include="closest div"
-                    class="border rounded p-2 bg-emerald-400 hover:bg-emerald-700">I want this.</button>
-                <button hx-post="/hide" hx-target="#release{{release.id}}" hx-trigger="click"
-                    hx-include="#release{{release.id}}, #search, #filters, #pagination"
-                    class="border rounded p-2 bg-rose-400 hover:bg-rose-700">Hide
-                    this.</button>
-            </div>
 
         </div>
 
