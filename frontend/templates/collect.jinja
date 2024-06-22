@@ -7,25 +7,25 @@
     <div class="flex flex-col items-start">
         <label for="label">Label</label>
 
-        <input id="label" hx-trigger="input changed delay:500ms, search" hx-get="/collection" hx-target="#results"
-            hx-include="#search, #filters, #pagination" type="search" name="label" value="{{label|d()}}"
-            placeholder="Defected" class="rounded-md border p-2 w-1/5 min-w-64" />
+        <input id="label" hx-trigger="input changed delay:500ms, search" hx-sync="this:replace" hx-get="/collection"
+            hx-target="#results" hx-include="#search, #filters, #pagination" type="search" name="label"
+            value="{{label|d()}}" placeholder="Defected" class="rounded-md border p-2 w-1/5 min-w-64" />
     </div>
 
     <div class="flex flex-col items-start">
         <label for="artist">Artist</label>
 
-        <input id="artist" hx-trigger="input changed delay:500ms, search" hx-get="/collection" hx-target="#results"
-            hx-include="#search, #filters, #pagination" type="search" name="artist" value="{{artist|d()}}"
-            placeholder="Acen" class="rounded-md border p-2 w-1/5 min-w-64" />
+        <input id="artist" hx-trigger="input changed delay:500ms, search" hx-sync="this:replace" hx-get="/collection"
+            hx-target="#results" hx-include="#search, #filters, #pagination" type="search" name="artist"
+            value="{{artist|d()}}" placeholder="Acen" class="rounded-md border p-2 w-1/5 min-w-64" />
     </div>
 
     <div class="flex flex-col items-start">
         <label for="catno">Cat No.</label>
 
-        <input id="catno" hx-trigger="input changed delay:500ms, search" hx-get="/collection" hx-target="#results"
-            hx-include="#search, #filters, #pagination" type="search" name="catno" value="{{catno|d()}}"
-            placeholder="BREAKS001" class="rounded-md border p-2 w-1/5 min-w-64" />
+        <input id="catno" hx-trigger="input changed delay:500ms, search" hx-sync="this:replace" hx-get="/collection"
+            hx-target="#results" hx-include="#search, #filters, #pagination" type="search" name="catno"
+            value="{{catno|d()}}" placeholder="BREAKS001" class="rounded-md border p-2 w-1/5 min-w-64" />
     </div>
 </form>
 
