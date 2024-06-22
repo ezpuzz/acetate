@@ -83,7 +83,7 @@ async def releases():
         releases = tg.create_task(get_releases(args))
 
     filters = filters.result()
-    releases, page, pageSize, offset, hits, filters = releases.result()
+    releases, page, pageSize, offset, hits = releases.result()
 
     if htmx and not htmx.boosted:
         return render_template(
@@ -118,8 +118,8 @@ async def collection():
         filters = tg.create_task(get_filters())
         releases = tg.create_task(get_releases(request.args))
 
-    # filters = filters.result()
-    releases, page, pageSize, offset, hits, filters = releases.result()
+    filters = filters.result()
+    releases, page, pageSize, offset, hits = releases.result()
 
     if htmx and not htmx.boosted:
         return render_template(
@@ -166,7 +166,7 @@ def want():
 async def get_filters():
     filters = requests.get(f"{AXUM_API}filters", timeout=5)
     filters.raise_for_status()
-    return filters.json()
+    return filters.json().get("aggregations")
 
 
 async def get_releases(params: werkzeug.datastructures.MultiDict):
@@ -236,7 +236,6 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
     releases = releases.json()
 
     hits = int(releases["hits"]["total"]["value"])
-    filters = releases["aggregations"]
 
     releases = [r["_source"] for r in releases["hits"]["hits"]]
 
@@ -244,7 +243,7 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
         if "videos" in r:
             r["videos"] = [v[32:] for v in r["videos"]]
 
-    return releases, page, pageSize, offset, hits, filters
+    return releases, page, pageSize, offset, hits
 
 
 async def hide_release(release_id):
@@ -277,7 +276,7 @@ async def hide():
         releases = tg.create_task(get_releases(params))
 
     filters = filters.result()
-    releases, page, pageSize, offset, hits, filters = releases.result()
+    releases, page, pageSize, offset, hits = releases.result()
 
     return render_template(
         "releases/hidden.jinja",
