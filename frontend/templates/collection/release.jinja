@@ -80,7 +80,7 @@
     {% if release.videos is defined %}
     <div id="videos{{release.id}}" hx-preserve="true" class="w-full sm:w-2/3">
         <iframe
-            src="https://www.youtube.com/embed/?playlist={{release.videos|join(',')}}&version=3&fs=0&enablejsapi=0&rel=0"
+            src="https://www.youtube.com/embed/?playlist={{release.videos|unique|join(',')}}&version=3&fs=0&enablejsapi=0&rel=0"
             frameborder="0" allow="autoplay; encrypted-media" allowfullscreen class="w-full aspect-video"></iframe>
         {#
         <pre class="text-wrap">{{release.videos}}</pre> #}

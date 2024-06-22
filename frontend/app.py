@@ -83,7 +83,7 @@ async def releases():
         releases = tg.create_task(get_releases(args))
 
     filters = filters.result()
-    releases, page, pageSize, offset, hits = releases.result()
+    releases, page, pageSize, offset, hits, filters = releases.result()
 
     if htmx and not htmx.boosted:
         return render_template(
@@ -118,8 +118,8 @@ async def collection():
         filters = tg.create_task(get_filters())
         releases = tg.create_task(get_releases(request.args))
 
-    filters = filters.result()
-    releases, page, pageSize, offset, hits = releases.result()
+    # filters = filters.result()
+    releases, page, pageSize, offset, hits, filters = releases.result()
 
     if htmx and not htmx.boosted:
         return render_template(
@@ -236,6 +236,7 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
     releases = releases.json()
 
     hits = int(releases["hits"]["total"]["value"])
+    filters = releases["aggregations"]
 
     releases = [r["_source"] for r in releases["hits"]["hits"]]
 
@@ -243,7 +244,7 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
         if "videos" in r:
             r["videos"] = [v[32:] for v in r["videos"]]
 
-    return releases, page, pageSize, offset, hits
+    return releases, page, pageSize, offset, hits, filters
 
 
 async def hide_release(release_id):
@@ -276,7 +277,7 @@ async def hide():
         releases = tg.create_task(get_releases(params))
 
     filters = filters.result()
-    releases, page, pageSize, offset, hits = releases.result()
+    releases, page, pageSize, offset, hits, filters = releases.result()
 
     return render_template(
         "releases/hidden.jinja",
