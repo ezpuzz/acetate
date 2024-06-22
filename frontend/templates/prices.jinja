@@ -1,0 +1,6 @@
+<dt class="text-xs text-slate-700 w-full">Prices</dt>
+{% for p in prices %}
+<dd class="rounded p-1 border"><span class="text-xs">{{p}}</span> {{"$%.2f"|format(prices[p]['value'])}}</dd>
+{% else %}
+Unknown Price
+{% endfor %}

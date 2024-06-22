@@ -309,6 +309,41 @@ def thumb(release_id):
     )
 
 
+@app.route("/prices/<release_id>")
+def prices(release_id):
+    if not "user" in session:
+        raise Exception()
+
+    prices = oauth.discogs.get(
+        f"https://api.discogs.com/marketplace/price_suggestions/{release_id}",
+        timeout=5,
+    ).json()
+
+    if prices == {}:
+        # look up price of master release
+        release = requests.get(f"{AXUM_API}release?id={release_id}", timeout=5).json()[
+            "_source"
+        ]
+        if (
+            "master_id" in release
+            and release["master_id"]["is_main_release"] == "false"
+        ):
+            prices = oauth.discogs.get(
+                f"https://api.discogs.com/marketplace/price_suggestions/{release['master_id']['#text']}",
+                timeout=5,
+            ).json()
+
+    short_prices = {}
+    for k in prices:
+        print(k)
+        short_prices[k[k.index("(") + 1 : -1]] = prices[k]
+
+    return render_template(
+        "prices.jinja",
+        prices=short_prices,
+    )
+
+
 @app.route("/wants")
 def wants():
     username = session["user"]["username"]

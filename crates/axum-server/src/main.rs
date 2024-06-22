@@ -39,6 +39,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::new()
         .route("/releases", get(releases))
+        .route("/release", get(release))
         .route("/filters", get(filters))
         .route("/actions", post(actions))
         .layer(TraceLayer::new_for_http())
@@ -301,6 +302,30 @@ async fn releases(
         .size(params.0.size.unwrap_or(10))
         .from(params.0.from.unwrap_or(0))
         .body(json)
+        .send()
+        .await?;
+
+    let builder = Response::builder().status(200);
+
+    let body = search.json::<Value>().await?;
+
+    builder
+        .header("content-type", "application/json")
+        .body(Body::from(body.to_string()))
+        .map_err(|e| e.into())
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ReleaseQueryParameters {
+    id: String,
+}
+
+async fn release(
+    Extension(client): Extension<Elasticsearch>,
+    params: axum_extra::extract::Query<ReleaseQueryParameters>,
+) -> Result<axum::response::Response, error::Error> {
+    let search = client
+        .get(elasticsearch::GetParts::IndexId(&"releases", &params.0.id))
         .send()
         .await?;
 
