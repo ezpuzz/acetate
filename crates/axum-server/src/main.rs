@@ -101,24 +101,24 @@ async fn filters(
         .body(json!({
             "aggs": {
                 "Styles": {
-                    "terms": { "field": "styles.keyword", "size": 1000, "min_doc_count": 50 },
+                    "terms": { "field": "styles", "size": 1000, "min_doc_count": 50 },
                     "meta": {
-                        "field": "styles.keyword"
+                        "field": "styles"
                     }
                 },
                 // "genres": {
-                //     "terms": { "field": "genres.keyword", "size": 1000 }
+                //     "terms": { "field": "genres", "size": 1000 }
                 // },
                 "Format": {
-                    "terms": { "field": "formats.name.keyword", "size": 20 },
+                    "terms": { "field": "formats.name", "size": 20 },
                     "meta": {
-                        "field": "formats.name.keyword"
+                        "field": "formats.name"
                     }
                 },
                 "Format Descriptions": {
-                    "terms": { "field": "formats.descriptions.keyword", "size": 20 },
+                    "terms": { "field": "formats.descriptions", "size": 20 },
                     "meta": {
-                        "field": "formats.descriptions.keyword"
+                        "field": "formats.descriptions"
                     }
                 }
             },
@@ -217,7 +217,7 @@ async fn releases(
                             }
                         ],
                         "boost": match &f.0[7..]{
-                            "labels.catno.keyword" => "15.0",
+                            "labels.catno" => "15.0",
                             _ => "1.0"
                         }
                     },
@@ -272,24 +272,24 @@ async fn releases(
         // The below is cool but really slow.
         // "aggs": {
         //     "Styles": {
-        //         "terms": { "field": "styles.keyword", "size": 1000, "min_doc_count": 50 },
+        //         "terms": { "field": "styles", "size": 1000, "min_doc_count": 50 },
         //         "meta": {
-        //             "field": "styles.keyword"
+        //             "field": "styles"
         //         }
         //     },
         //     // "genres": {
-        //     //     "terms": { "field": "genres.keyword", "size": 1000 }
+        //     //     "terms": { "field": "genres", "size": 1000 }
         //     // },
         //     "Format": {
-        //         "terms": { "field": "formats.name.keyword", "size": 20 },
+        //         "terms": { "field": "formats.name", "size": 20 },
         //         "meta": {
-        //             "field": "formats.name.keyword"
+        //             "field": "formats.name"
         //         }
         //     },
         //     "Format Descriptions": {
-        //         "terms": { "field": "formats.descriptions.keyword", "size": 20 },
+        //         "terms": { "field": "formats.descriptions", "size": 20 },
         //         "meta": {
-        //             "field": "formats.descriptions.keyword"
+        //             "field": "formats.descriptions"
         //         }
         //     }
         // },

@@ -95,6 +95,7 @@ async def releases():
                 "page": page,
                 "from": offset,
                 "filters": filters,
+                "htmx": htmx,
                 **request.args,
             },
         )
@@ -107,6 +108,7 @@ async def releases():
             "page": page,
             "from": offset,
             "filters": filters,
+            "htmx": htmx,
             **request.args,
         },
     )
@@ -183,13 +185,9 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
                 ("value", params["label"]) if params.get("label") else None,
                 ("field", "nested:tracklist.title") if params.get("song") else None,
                 ("value", params["song"]) if params.get("song") else None,
-                ("field", "nested:artists.name.keyword")
-                if params.get("artist")
-                else None,
+                ("field", "nested:artists.name") if params.get("artist") else None,
                 ("value", params["artist"]) if params.get("artist") else None,
-                ("field", "nested:labels.catno.keyword")
-                if params.get("catno")
-                else None,
+                ("field", "nested:labels.catno") if params.get("catno") else None,
                 ("value", params["catno"]) if params.get("catno") else None,
                 ("from", offset),
                 ("size", pageSize),
@@ -201,10 +199,10 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
                     x
                     for y in [
                         [
-                            ("field", "formats.name.keyword"),
+                            ("field", "formats.name"),
                             ("value", v),
                         ]
-                        for v in params.getlist("formats.name.keyword")
+                        for v in params.getlist("formats.name")
                     ]
                     for x in y
                 ],
@@ -212,18 +210,18 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
                     x
                     for y in [
                         [
-                            ("field", "formats.descriptions.keyword"),
+                            ("field", "formats.descriptions"),
                             ("value", v),
                         ]
-                        for v in params.getlist("formats.descriptions.keyword")
+                        for v in params.getlist("formats.descriptions")
                     ]
                     for x in y
                 ],
                 *[
                     x
                     for y in [
-                        [("field", "styles.keyword"), ("value", v)]
-                        for v in params.getlist("styles.keyword")
+                        [("field", "styles"), ("value", v)]
+                        for v in params.getlist("styles")
                     ]
                     for x in y
                 ],
@@ -238,10 +236,6 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
     hits = int(releases["hits"]["total"]["value"])
 
     releases = [r["_source"] for r in releases["hits"]["hits"]]
-
-    for r in releases:
-        if "videos" in r:
-            r["videos"] = [v[32:] for v in r["videos"]]
 
     return releases, page, pageSize, offset, hits
 
