@@ -124,7 +124,7 @@ struct QueryParameters {
     from: Option<i64>,
     size: Option<i64>,
     videos_only: Option<bool>,
-    #[serde(deserialize_with = "from_base64")]
+    #[serde(default, deserialize_with = "from_base64")]
     hide: Option<RoaringBitmap>,
 }
 
