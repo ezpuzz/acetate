@@ -37,10 +37,15 @@
         <input type="hidden" name="videos_only" value="off" />
     </div>
 
-    <a class="absolute z-10 block top-24 rounded-l border border-r-0 shadow-lg bg-white p-2 right-0" href="#filters">
+    <a id="active_filters" hx-swap-oob="true"
+        class="absolute z-10 block top-24 rounded-l border border-r-0 shadow-lg bg-white p-2 right-0" href="#filters">
         Filters >>
         {% for f in filters %}
-        <div class="w-full">{{f}}</div>
+        {% if filters[f]['meta']['field'] in request.args %}
+        {% for v in request.args.getlist(filters[f]['meta']['field']) %}
+        <div class="w-full">{{v}}</div>
+        {% endfor %}
+        {% endif %}
         {% endfor %}
     </a>
 
