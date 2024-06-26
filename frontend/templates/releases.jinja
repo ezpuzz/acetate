@@ -1,7 +1,7 @@
 {% extends "layout.jinja" %}
 {% block content %}
 <form id="search" action="/releases" method="get" hx-boost="true" hx-push-url="true" hx-vals='{"page": "1"}'
-    class="px-4 flex-none flex flex-wrap items-stretch gap-2 relative">
+    class="px-4 flex-none flex flex-wrap items-stretch gap-2">
 
 
     <div class="flex flex-col items-start">
@@ -37,8 +37,12 @@
         <input type="hidden" name="videos_only" value="off" />
     </div>
 
-    <a class="absolute block top-2 rounded-l border border-r-0 shadow-lg bg-white p-2 right-0" href="#filters">Filters
-        >></a>
+    <a class="absolute z-10 block top-24 rounded-l border border-r-0 shadow-lg bg-white p-2 right-0" href="#filters">
+        Filters >>
+        {% for f in filters %}
+        <div class="w-full">{{f}}</div>
+        {% endfor %}
+    </a>
 
 </form>
 
@@ -48,9 +52,10 @@
 </div>
 
 <div id="filters"
-    class="absolute inset-0 h-full w-full bg-white -translate-x-full target:translate-x-0 shrink-0 flex flex-col">
-    <div class="flex items-center justify-between text-xl px-2 bg-slate-100">Filters <a
-            class="border rounded p-2 my-2 text-sm" href="#">Close Filters</a></div>
+    class="absolute z-20 inset-0 h-full w-full bg-white -translate-x-full target:translate-x-0 shrink-0 flex flex-col">
+    <div class="flex items-center justify-between text-xl px-2 bg-slate-100">Filters
+        <a class="border rounded p-2 my-2 text-sm" href="#">Close Filters</a>
+    </div>
     <div class="overflow-auto grow p-2">
         {% for f in filters %}
         <h3 class="text-lg">{{f}}</h3>
