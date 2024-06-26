@@ -10,7 +10,7 @@
     <div class="flex-none w-full h-16 flex items-center px-4 gap-4 border-t bg-white">
         <div>Show <span class="font-bold">1 - 100</span> of <span class="font-bold">57475</span> results</div>
         <div class="grow"></div>
-        <div hx-boost="true">
+        <div>
             Results per page
             <select name="pageSize" hx-get="/" hx-replace-url="true" hx-target="body" class="border rounded-md p-2">
                 <option value="25" {{"selected" if pageSize=="25" }}>25</option>
