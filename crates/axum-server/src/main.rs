@@ -1,5 +1,7 @@
+use base64::Engine;
 use config::Config;
 use elasticsearch::{auth::Credentials, http::transport::Transport, Elasticsearch};
+use roaring::RoaringBitmap;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 mod config;
 mod error;
@@ -15,7 +17,7 @@ use axum::{
     Router,
 };
 use dotenv::dotenv;
-use serde::{self, Deserialize, Serialize};
+use serde::{self, de::DeserializeOwned, Deserialize, Deserializer, Serialize};
 use std::net::SocketAddr;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
@@ -41,7 +43,6 @@ async fn main() -> anyhow::Result<()> {
         .route("/releases", get(releases))
         .route("/release", get(release))
         .route("/filters", get(filters))
-        .route("/actions", post(actions))
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())
         .layer(Extension(config))
@@ -68,28 +69,6 @@ struct Actions {
 struct Action {
     action: String,
     identifier: String,
-}
-
-async fn actions(
-    Extension(pool): Extension<Pool<Postgres>>,
-    params: axum_extra::extract::Query<Action>,
-) -> Result<(), error::Error> {
-    let mut client = pool.acquire().await?;
-
-    let action = params.0.action.to_uppercase();
-
-    let user = 0;
-
-    sqlx::query!(
-        "INSERT INTO actions VALUES ($1, $2, $3)",
-        user,
-        action,
-        params.0.identifier
-    )
-    .execute(&mut *client)
-    .await?;
-
-    Ok(())
 }
 
 #[debug_handler]
@@ -145,6 +124,21 @@ struct QueryParameters {
     from: Option<i64>,
     size: Option<i64>,
     videos_only: Option<bool>,
+    #[serde(deserialize_with = "from_base64")]
+    hide: Option<RoaringBitmap>,
+}
+
+fn from_base64<'a, D>(deserializer: D) -> Result<Option<RoaringBitmap>, D::Error>
+where
+    D: Deserializer<'a>,
+{
+    use serde::de::Error;
+    String::deserialize(deserializer).and_then(|string| {
+        base64::engine::general_purpose::STANDARD
+            .decode(&string)
+            .map_err(|e| Error::custom(e.to_string()))
+            .and_then(|bytes| Ok(Some(RoaringBitmap::deserialize_from(&*bytes).unwrap())))
+    })
 }
 
 async fn releases(
@@ -163,13 +157,9 @@ async fn releases(
 
     // dbg!(filters);
 
-    let mut db = pool.acquire().await?;
-
-    let actions = sqlx::query_as::<_, Action>("SELECT * FROM actions")
-        .fetch_all(&mut *db)
-        .await?;
-
     let mut must_filters = vec![];
+    let mut must_not_filters = vec![];
+
     let mut filters = vec![];
 
     std::iter::zip(
@@ -235,26 +225,51 @@ async fn releases(
         }})]);
     }
 
+    if params.0.hide.is_some() {
+        // following needs the plugin to work on ES
+        // must_filters.push(json!(
+        //     {
+        //         "script": {
+        //             "script": {
+        //                 "source": "fast_filter",
+        //                 "lang": "fast_filter",
+        //                 "params": {
+        //                     "field": "id",
+        //                     "operation": "exclude",
+        //                     "terms": params.0.hide.unwrap()
+        //                 }
+        //             }
+        //         }
+        //     }
+        // ))
+        must_not_filters.push(json!({
+                    "terms": {
+                        "id": params.0.hide.unwrap().iter().collect::<Vec<u32>>()
+                    }
+        }));
+    }
+
     let json = json!({
         "query": {
             "bool": {
                 "must": filters,
                 "filter": must_filters,
-                "must_not": [
-                    {
-                        "ids": {
-                            "values": actions.iter().map(|a| &a.identifier).collect::<Vec<_>>()
-                        }
-                    },
-                    // Note: the following avoids duplicates but hides remixes, needs smarter filtering to avoid lots of dupes
-                    // Workaround: allow hiding all of a particular release with some kind of confirmation?
-                    // {
-                    //     "term": {
-                    //         "master_id.is_main_release": "false"
-                    //       }
-                    // }
-                ],
-                // "minimum_should_match": 1
+                "must_not": must_not_filters
+                // "must_not": [
+                //     {
+                //         "ids": {
+                //             "values": params.0.hide
+                //         }
+                //     },
+                //     // Note: the following avoids duplicates but hides remixes, needs smarter filtering to avoid lots of dupes
+                //     // Workaround: allow hiding all of a particular release with some kind of confirmation?
+                //     // {
+                //     //     "term": {
+                //     //         "master_id.is_main_release": "false"
+                //     //       }
+                //     // }
+                // ],
+                // // "minimum_should_match": 1
             }
         },
         "sort": [

@@ -12,6 +12,8 @@ import requests
 from dotenv import load_dotenv
 import werkzeug
 import werkzeug.datastructures
+from pyroaring import BitMap
+import base64
 
 load_dotenv()
 
@@ -176,11 +178,23 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
     offset = int(params.get("offset", (int(params.get("page", 1)) - 1) * pageSize))
     page = 1 + offset // pageSize
 
+    actions = db.session.scalars(
+        db.select(Action.identifier).where(
+            Action.action == "HIDE",
+            Action.user_id
+            == db.select(User.user_id)
+            .scalar_subquery()
+            .where(User.discogs_user_id == session.get("user").get("id")),
+        )
+    ).all()
+    print(actions)
+
     releases = requests.get(
         f"{AXUM_API}releases",
         params=[
             p
             for p in [
+                ("hide", base64.b64encode(BitMap.serialize(BitMap(actions)))),
                 ("field", "nested:labels.name") if params.get("label") else None,
                 ("value", params["label"]) if params.get("label") else None,
                 ("field", "nested:tracklist.title") if params.get("song") else None,

@@ -589,6 +589,66 @@ files = [
 ]
 
 [[package]]
+name = "pyroaring"
+version = "0.4.5"
+description = "Fast and lightweight set for unsigned 32 bits integers."
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyroaring-0.4.5-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:2d50a048ecc4b2f3b1885a86c02c16de21b3e3e6e699d9d49a22ee26e0ae8697"},
+    {file = "pyroaring-0.4.5-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:b25d4bcb3c3312039bc3892945954c34d759d22bf04398c092a7c6bfb0619b88"},
+    {file = "pyroaring-0.4.5-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:1d7e8a6dad2b3061c9f4c7b2c4f41fad12dd66f4e4b8094bf7e8e97a7b2e1a4f"},
+    {file = "pyroaring-0.4.5-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c2e50e67e834630a76614289dfcf6023ace0ef3be2c6284c0f49b3168dc4e004"},
+    {file = "pyroaring-0.4.5-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:202d199b7f6eba6d9d23b1b7ee867da26217e4b61ceb2aff7d212fd45d535bd2"},
+    {file = "pyroaring-0.4.5-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:3ece8d6c3d10df00e1ab8fca1c6b189faab01854d11c89a413d88fb61e0a5f57"},
+    {file = "pyroaring-0.4.5-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:84abbacf91f40fe12f5832544c3647174dce77ed6be48c11bf7724042f1c3a68"},
+    {file = "pyroaring-0.4.5-cp310-cp310-win_amd64.whl", hash = "sha256:56bad90b0293753c9c759c1076c4cac5f8cfabe53c33ed20b28be8f54521f87d"},
+    {file = "pyroaring-0.4.5-cp310-cp310-win_arm64.whl", hash = "sha256:b34c4e4036163b686ad3714787a78cc2c52ce0cbf4e6e84d5a8b5d1476ed3159"},
+    {file = "pyroaring-0.4.5-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:6214761d54a8b7770c7288c053922e401a50dcfdf828041c828ab567d7323c37"},
+    {file = "pyroaring-0.4.5-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:d38838674082703b21d1dbe257e3b65fafff919ccb17c2776ead19b3f1216afa"},
+    {file = "pyroaring-0.4.5-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:c4fae09a39eafa0b3938cdd3bebac06ac69cbee3f93bc2bbd8fc26e3b5273680"},
+    {file = "pyroaring-0.4.5-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8d8c5df8881b4c9fb91d5dae135168748feb2d9f29d686d7b0f6af51dc36d3f1"},
+    {file = "pyroaring-0.4.5-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4d969fc3d9d0f06205e3fd9c3ccb3e8ea3c18ad81af1e1dfc2203423becef76c"},
+    {file = "pyroaring-0.4.5-cp311-cp311-musllinux_1_1_aarch64.whl", hash = "sha256:677d2693e1895dcebdf9a1e09605f3710f7595db7d46c25d539671d85ed2870d"},
+    {file = "pyroaring-0.4.5-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:451e6daabd8377c8e13d42aff3bb27d5e3bb0f721dc00e4a224222564f808f22"},
+    {file = "pyroaring-0.4.5-cp311-cp311-win_amd64.whl", hash = "sha256:07fa96e481f66251a0fb7e2bdb2981417c61c47befb1cccc4e6d67eaaa8acb55"},
+    {file = "pyroaring-0.4.5-cp311-cp311-win_arm64.whl", hash = "sha256:7a74aa7029c7b9497751e4407f8b9a5b6650706e8a300aed03848cee849aad96"},
+    {file = "pyroaring-0.4.5-cp312-cp312-macosx_10_9_universal2.whl", hash = "sha256:b19e96d84331e8d7947bde0e5184ff9b5f51c0b64a8b8fe4f447076a5c3187b8"},
+    {file = "pyroaring-0.4.5-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:13f920b64b88e35a5b86cd76268b8f09de6e31355183065607db6dd3502c3c61"},
+    {file = "pyroaring-0.4.5-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:2f8fc4ae03f5ba75fb1c346509ea4a46620f1be0b5f0066aad5c53acbbb18f30"},
+    {file = "pyroaring-0.4.5-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f9a1024e52768b06070b03e9de028a694e6089c0568d425d1f36b62b8f0f2473"},
+    {file = "pyroaring-0.4.5-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7c790f7769907320e7a77871e17ea8ecbfc70493f461ae83a75bea0d1fd556bd"},
+    {file = "pyroaring-0.4.5-cp312-cp312-musllinux_1_1_aarch64.whl", hash = "sha256:66d1218c8a2291a30263c3928fe14c92d4a606e36674a4d64b645a40265e2add"},
+    {file = "pyroaring-0.4.5-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:bd63eeee06905dfba7ea146187ac59a35bbc97b879d92518aea3c1382833e2ad"},
+    {file = "pyroaring-0.4.5-cp312-cp312-win_amd64.whl", hash = "sha256:187953fef584a3d2c84e42ff3d471aca5400e3f5676542f30b65f87f9e2ea47e"},
+    {file = "pyroaring-0.4.5-cp312-cp312-win_arm64.whl", hash = "sha256:2320a5dc11dd165b684f58db6a761bba2d058da88d14e7c8a65441016df1e70f"},
+    {file = "pyroaring-0.4.5-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:334c2cff2c1b9ca2472037f2d4917dc60544dd768dc4832a33d013e15d949d98"},
+    {file = "pyroaring-0.4.5-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ccf7116927ea58c756a477b894ed259afdc4e68baa072ed47897a694fdf73003"},
+    {file = "pyroaring-0.4.5-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:601b77fa43b9f3aceb10040e8d57ee2190dc671ce22b32d054bebe4579bfa68c"},
+    {file = "pyroaring-0.4.5-cp37-cp37m-musllinux_1_1_aarch64.whl", hash = "sha256:a757d8347a179f186804fda7dd2b918175818a03e6aebbb50e1427c92d3f8dfb"},
+    {file = "pyroaring-0.4.5-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:56e4a936c8a5784b76163921b9d8411be6d0a7db9564593651626fae10c5910c"},
+    {file = "pyroaring-0.4.5-cp37-cp37m-win_amd64.whl", hash = "sha256:3d5f6465ca0239d9f050bc2213f7e4a7a86649a37cc2abf5cf1b10f5aa9b15da"},
+    {file = "pyroaring-0.4.5-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:814ef39bee5c953d69d1bf9fa71978a19b6dd68e2512d0f8f6328e32580928b5"},
+    {file = "pyroaring-0.4.5-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:ca63031497d9f75c96189c46548abed31bb7b53fc39d43cb1b109e269e82d42f"},
+    {file = "pyroaring-0.4.5-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:bdbebc604239abd0feb5fefaeea7464d8499f32f16f42905c3c9492805a9a5b3"},
+    {file = "pyroaring-0.4.5-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:263c1d5732978e801e71d11bd8229bbd8da78766d0d8679e01d9b5b1fbc17f41"},
+    {file = "pyroaring-0.4.5-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:50ea8a899b833a20263ca268d97d26c24c81c4bdf8df184d45f470c12cc6e868"},
+    {file = "pyroaring-0.4.5-cp38-cp38-musllinux_1_1_aarch64.whl", hash = "sha256:c5cd4e44cbc9bc73a8e4e3d9c5e76d18f3e8f10bfdaf0426254449dd667f656f"},
+    {file = "pyroaring-0.4.5-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:74dcecb7e32c0cc18291c75e325e86688afdfd01a16b8d0b7148e7c8b18f6e47"},
+    {file = "pyroaring-0.4.5-cp38-cp38-win_amd64.whl", hash = "sha256:04aa6c336cbb7bbbfbbd349aaceabcdc5f96c58ca7fd8747a7d0fbdb4d78563d"},
+    {file = "pyroaring-0.4.5-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:f4dbb384b2a0ca9969f5872bc4b02fd770700e7ab3f085dac9501d8b52c36488"},
+    {file = "pyroaring-0.4.5-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:a4194799f016144ed1beca3e9fc2ed9e1fc61b69a20097492c9bdf3592290cb0"},
+    {file = "pyroaring-0.4.5-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:d85320c2b26f2631adc6ace9f857adb3b160c1e589d2145efe80724450cff0db"},
+    {file = "pyroaring-0.4.5-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:bc94a72141f3c161150ae4be3dcfac20167cc9165f2dc3526126c07674b6b598"},
+    {file = "pyroaring-0.4.5-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0695522d3eb82c7d38a2dca25ad465928644afe18f9956554441abdbac45f36e"},
+    {file = "pyroaring-0.4.5-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:5d62b0614585ad463acead85e30c2864684ae5900c9c7cedb2744b9ccac16620"},
+    {file = "pyroaring-0.4.5-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:854e0d95eade4d985631aff8bb0c962722ce778d9d43b87d0102507b6c75b488"},
+    {file = "pyroaring-0.4.5-cp39-cp39-win_amd64.whl", hash = "sha256:37b05d30e41bf5d4546a4ac3a27e219a182bb5775d26036fa95f0416871bc516"},
+    {file = "pyroaring-0.4.5-cp39-cp39-win_arm64.whl", hash = "sha256:2cbb9a213a84f4657dc79915d065abbf2727d99dedc7e9991f7cce33ac5b0ebf"},
+    {file = "pyroaring-0.4.5.tar.gz", hash = "sha256:816c93baa5c729ff906056ffedf723c9cddaf1ea988a882e0ec5062ae9ea673c"},
+]
+
+[[package]]
 name = "python-dotenv"
 version = "1.0.1"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -784,4 +844,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "2f615d73c6d09efa20a885033dbf0436fe84d1f91e04dc2e18adaf9a82eaa3a2"
+content-hash = "be16844ffddf261cddec3e59a1d9f37eaf6d30befa752faa2e173137e5c05f68"
