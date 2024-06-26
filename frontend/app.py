@@ -187,7 +187,6 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
             .where(User.discogs_user_id == session.get("user").get("id")),
         )
     ).all()
-    print(actions)
 
     releases = requests.get(
         f"{AXUM_API}releases",
