@@ -178,15 +178,16 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
     offset = int(params.get("offset", (int(params.get("page", 1)) - 1) * pageSize))
     page = 1 + offset // pageSize
 
-    actions = db.session.scalars(
-        db.select(Action.identifier).where(
-            Action.action == "HIDE",
-            Action.user_id
-            == db.select(User.user_id)
-            .scalar_subquery()
-            .where(User.discogs_user_id == session.get("user").get("id")),
-        )
-    ).all()
+    if "user" in session:
+        actions = db.session.scalars(
+            db.select(Action.identifier).where(
+                Action.action == "HIDE",
+                Action.user_id
+                == db.select(User.user_id)
+                .scalar_subquery()
+                .where(User.discogs_user_id == session.get("user").get("id")),
+            )
+        ).all()
 
     releases = requests.get(
         f"{AXUM_API}releases",
