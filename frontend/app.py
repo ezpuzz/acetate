@@ -14,6 +14,7 @@ import werkzeug
 import werkzeug.datastructures
 from pyroaring import BitMap
 import base64
+from elasticapm.contrib.flask import ElasticAPM
 
 load_dotenv()
 
@@ -21,6 +22,17 @@ db = SQLAlchemy()
 
 app = Flask(__name__, static_url_path="/public")
 app.jinja_env.undefined = StrictUndefined
+
+if os.environ.get("ELASTIC_APM_ENABLED") != "false":
+    app.config["ELASTIC_APM"] = {
+        "SERVICE_NAME": "acetate-frontend",
+        "SECRET_TOKEN": os.environ.get("APM_SECRET_TOKEN"),
+        "SERVER_URL": os.environ.get("APM_SERVER_URL"),
+        "ENVIRONMENT": os.environ.get("RENDER_EXTERNAL_HOSTNAME"),
+    }
+
+    apm = ElasticAPM(app)
+
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
 
@@ -178,6 +190,7 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
     offset = int(params.get("offset", (int(params.get("page", 1)) - 1) * pageSize))
     page = 1 + offset // pageSize
 
+    actions = []
     if "user" in session:
         actions = db.session.scalars(
             db.select(Action.identifier).where(
@@ -194,7 +207,12 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
         params=[
             p
             for p in [
-                ("hide", base64.b64encode(BitMap.serialize(BitMap(actions)))),
+                (
+                    "hide",
+                    base64.b64encode(BitMap.serialize(BitMap(actions)))
+                    if actions
+                    else None,
+                ),
                 ("field", "nested:labels.name") if params.get("label") else None,
                 ("value", params["label"]) if params.get("label") else None,
                 ("field", "nested:tracklist.title") if params.get("song") else None,
