@@ -166,7 +166,7 @@ def want():
 
 
 async def get_filters():
-    filters = requests.get(f"{AXUM_API}filters", timeout=5)
+    filters = requests.get(f"{AXUM_API}filters", timeout=10)
     filters.raise_for_status()
     return filters.json().get("aggregations")
 
