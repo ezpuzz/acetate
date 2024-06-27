@@ -15,6 +15,8 @@ import werkzeug.datastructures
 from pyroaring import BitMap
 import base64
 from elasticapm.contrib.flask import ElasticAPM
+import re
+from sqlalchemy.dialects.postgresql import insert
 
 load_dotenv()
 
@@ -185,9 +187,6 @@ async def get_filters():
     return filters.json().get("aggregations")
 
 
-import re
-
-
 async def get_releases(params: werkzeug.datastructures.MultiDict, omit_hidden=True):
     pageSize = int(params.get("pageSize", 5))
     offset = int(params.get("offset", (int(params.get("page", 1)) - 1) * pageSize))
@@ -205,68 +204,74 @@ async def get_releases(params: werkzeug.datastructures.MultiDict, omit_hidden=Tr
             )
         ).all()
 
+    params = [
+        p
+        for p in [
+            (
+                "hide",
+                base64.urlsafe_b64encode(BitMap.serialize(BitMap(actions))).decode(
+                    "UTF-8"
+                ),
+            )
+            if actions
+            else None,
+            params.get("label") and ("field", "nested:labels.name"),
+            params.get("label") and ("value", params["label"]),
+            params.get("song") and ("field", "nested:tracklist.title"),
+            params.get("song") and ("value", params["song"]),
+            params.get("artist") and ("field", "nested:artists.name"),
+            params.get("artist") and ("value", params["artist"]),
+            params.get("title") and ("field", "title"),
+            params.get("title") and ("value", params.get("title")),
+            ("field", "nested:labels.catno") if params.get("catno") else None,
+            ("value", re.sub(r"(.*?)\s*-?\s*(\d+)", r"\1 \2", params.get("catno")))
+            if params.get("catno")
+            else None,
+            ("from", offset),
+            ("size", pageSize),
+            (
+                "videos_only",
+                "true" if params.get("videos_only") == "on" else "false",
+            ),
+            *[
+                x
+                for y in [
+                    [
+                        ("field", "formats.name"),
+                        ("value", v),
+                    ]
+                    for v in params.getlist("formats.name")
+                ]
+                for x in y
+            ],
+            *[
+                x
+                for y in [
+                    [
+                        ("field", "formats.descriptions"),
+                        ("value", v),
+                    ]
+                    for v in params.getlist("formats.descriptions")
+                ]
+                for x in y
+            ],
+            *[
+                x
+                for y in [
+                    [("field", "styles"), ("value", v)]
+                    for v in params.getlist("styles")
+                ]
+                for x in y
+            ],
+        ]
+        if p
+    ]
+
+    print(params)
+
     releases = httpx.get(
         f"{AXUM_API}releases",
-        params=[
-            p
-            for p in [
-                (
-                    "hide",
-                    base64.urlsafe_b64encode(BitMap.serialize(BitMap(actions))).decode(
-                        "UTF-8"
-                    ),
-                )
-                if actions
-                else None,
-                ("field", "nested:labels.name") if params.get("label") else None,
-                ("value", params["label"]) if params.get("label") else None,
-                ("field", "nested:tracklist.title") if params.get("song") else None,
-                ("value", params["song"]) if params.get("song") else None,
-                ("field", "nested:artists.name") if params.get("artist") else None,
-                ("value", params["artist"]) if params.get("artist") else None,
-                ("field", "nested:labels.catno") if params.get("catno") else None,
-                ("value", re.sub(r"(.*?)\s*-?\s*(\d+)", r"\1 \2", params.get("catno")))
-                if params.get("catno")
-                else None,
-                ("from", offset),
-                ("size", pageSize),
-                (
-                    "videos_only",
-                    "true" if params.get("videos_only") == "on" else "false",
-                ),
-                *[
-                    x
-                    for y in [
-                        [
-                            ("field", "formats.name"),
-                            ("value", v),
-                        ]
-                        for v in params.getlist("formats.name")
-                    ]
-                    for x in y
-                ],
-                *[
-                    x
-                    for y in [
-                        [
-                            ("field", "formats.descriptions"),
-                            ("value", v),
-                        ]
-                        for v in params.getlist("formats.descriptions")
-                    ]
-                    for x in y
-                ],
-                *[
-                    x
-                    for y in [
-                        [("field", "styles"), ("value", v)]
-                        for v in params.getlist("styles")
-                    ]
-                    for x in y
-                ],
-            ]
-            if p is not None
-        ],
+        params=params,
         timeout=10,
     )
     releases.raise_for_status()
@@ -327,7 +332,7 @@ async def hide():
 
 @app.route("/thumb/<release_id>")
 def thumb(release_id):
-    if not "user" in session:
+    if "user" not in session:
         raise Exception()
 
     return render_template(
@@ -344,7 +349,7 @@ def thumb(release_id):
 
 @app.route("/prices/<release_id>")
 def prices(release_id):
-    if not "user" in session:
+    if "user" not in session:
         raise Exception()
 
     prices = oauth.discogs.get(
@@ -399,9 +404,6 @@ def login():
 def logout():
     session.clear()
     return redirect("/")
-
-
-from sqlalchemy.dialects.postgresql import insert
 
 
 @app.route("/auth")

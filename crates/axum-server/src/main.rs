@@ -157,10 +157,10 @@ async fn releases(
 
     // dbg!(filters);
 
-    let mut must_filters = vec![];
-    let mut must_not_filters = vec![];
+    let mut filter = vec![];
+    let mut must_not = vec![];
 
-    let mut filters = vec![];
+    let mut must = vec![];
 
     std::iter::zip(
         params.0.field.unwrap_or_default(),
@@ -168,7 +168,7 @@ async fn releases(
     )
     .for_each(|f| {
         if f.0.contains("nested:") {
-            filters.push(json!({"nested": {
+            must.push(json!({"nested": {
                 "path": f.0[7..f.0.chars().position(|c| c == '.').unwrap()],
                 "query": {
                     "bool": {
@@ -214,13 +214,21 @@ async fn releases(
                 },
                 "score_mode": "max"
             }}))
+        } else if f.0 == "title" {
+            must.push(json!({
+                "wildcard": { f.0: {
+                    "value": format!("*{0}*",f.1),
+                    "case_insensitive": true,
+                    "boost": "10.0"
+                } }
+            }));
         } else {
-            must_filters.push(json!({ "match": { f.0: f.1 }}));
+            filter.push(json!({ "term": { f.0: f.1 }}));
         }
     });
 
     if params.0.videos_only.unwrap_or(false) {
-        must_filters.append(&mut vec![json!({ "exists": {
+        filter.append(&mut vec![json!({ "exists": {
             "field": "videos"
         }})]);
     }
@@ -242,7 +250,7 @@ async fn releases(
         //         }
         //     }
         // ))
-        must_not_filters.push(json!({
+        must_not.push(json!({
                     "terms": {
                         "id": params.0.hide.unwrap().iter().collect::<Vec<u32>>()
                     }
@@ -252,9 +260,9 @@ async fn releases(
     let json = json!({
         "query": {
             "bool": {
-                "must": filters,
-                "filter": must_filters,
-                "must_not": must_not_filters
+                "must": must,
+                "filter": filter,
+                "must_not": must_not
                 // "must_not": [
                 //     {
                 //         "ids": {
