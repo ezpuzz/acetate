@@ -606,6 +606,14 @@ video {
   top: 6rem;
 }
 
+.bottom-full {
+  bottom: 100%;
+}
+
+.top-full {
+  top: 100%;
+}
+
 .z-0 {
   z-index: 0;
 }
@@ -677,6 +685,10 @@ video {
   margin-left: auto;
 }
 
+.mr-4 {
+  margin-right: 1rem;
+}
+
 .line-clamp-3 {
   overflow: hidden;
   display: -webkit-box;
@@ -721,6 +733,11 @@ video {
 .size-8 {
   width: 2rem;
   height: 2rem;
+}
+
+.size-5 {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .h-12 {
@@ -821,6 +838,14 @@ video {
 
 .min-w-0 {
   min-width: 0px;
+}
+
+.min-w-16 {
+  min-width: 4rem;
+}
+
+.min-w-32 {
+  min-width: 8rem;
 }
 
 .max-w-full {
@@ -1242,8 +1267,17 @@ video {
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
+.drop-shadow-lg {
+  --tw-drop-shadow: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04)) drop-shadow(0 4px 3px rgb(0 0 0 / 0.1));
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+}
+
 .\*\:mb-2 > * {
   margin-bottom: 0.5rem;
+}
+
+.target\:block:target {
+  display: block;
 }
 
 .target\:translate-x-0:target {
@@ -1268,6 +1302,14 @@ video {
 
 .hover\:underline:hover {
   text-decoration-line: underline;
+}
+
+.group:focus-within .group-focus-within\:block {
+  display: block;
+}
+
+.group:hover .group-hover\:block {
+  display: block;
 }
 
 .peer:checked ~ .peer-checked\:bg-blue-400 {
