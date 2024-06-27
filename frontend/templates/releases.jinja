@@ -1,34 +1,13 @@
 {% extends "layout.jinja" %}
+{% from "components/active-search.jinja" import activesearch as activesearch %}
+
 {% block content %}
 <form id="search" action="/releases" method="get" hx-push-url="true" hx-vals='{"page": "1"}'
     class="px-4 flex-none flex flex-wrap items-stretch gap-2">
 
-
-    <div class="flex flex-col items-start">
-        <label for="label">Label</label>
-
-        <input id="label" hx-trigger="input changed delay:500ms, search" hx-sync="this:replace" hx-get="/releases"
-            hx-target="#results" hx-include="#search, #filters, #pagination" type="search" name="label"
-            value="{{label|d()}}" placeholder="Defected" class="rounded-md border p-2 w-1/5 min-w-64" />
-    </div>
-
-
-    <div class="flex flex-col items-start">
-        <label for="song">Song Name</label>
-
-        <input id="song" hx-trigger="input changed delay:500ms, search" hx-sync="this:replace" hx-get="/releases"
-            hx-target="#results" hx-include="#search, #filters, #pagination" type="search" name="song"
-            value="{{song|d()}}" placeholder="Don't Cry Tonight" class="rounded-md border p-2 w-1/5 min-w-64" />
-    </div>
-
-    <div class="flex flex-col items-start">
-        <label for="artist">Artist</label>
-
-        <input id="artist" hx-trigger="input changed delay:500ms, search" hx-sync="this:replace" hx-get="/releases"
-            hx-target="#results" hx-include="#search, #filters, #pagination" type="search" name="artist"
-            value="{{artist|d()}}" placeholder="Acen" class="rounded-md border p-2 w-1/5 min-w-64" />
-    </div>
-
+    {{ activesearch("label", "Label", label, "Defected") }}
+    {{ activesearch("artist", "Artist", artist, "Acen") }}
+    {{ activesearch("song", "Song Name", song, "Don't Cry Tonight") }}
 
     <div class="flex items-center gap-2">
         <label for="videos_only">Only Release with Videos</label>

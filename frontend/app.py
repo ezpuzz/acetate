@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from authlib.integrations.flask_client import OAuth
 from jinja2 import StrictUndefined
-import requests
+import httpx
 
 from dotenv import load_dotenv
 import werkzeug
@@ -128,18 +128,18 @@ async def releases():
     )
 
 
-@app.route("/collection")
-async def collection():
+@app.route("/dig")
+async def dig():
     async with asyncio.TaskGroup() as tg:
         filters = tg.create_task(get_filters())
-        releases = tg.create_task(get_releases(request.args))
+        releases = tg.create_task(get_releases(request.args, omit_hidden=False))
 
     filters = filters.result()
     releases, page, pageSize, offset, hits = releases.result()
 
     if htmx and not htmx.boosted:
         return render_template(
-            "collection/results.jinja",
+            "dig/results.jinja",
             **{
                 "pageSize": pageSize,
                 "releases": releases,
@@ -151,7 +151,7 @@ async def collection():
             },
         )
     return render_template(
-        "collect.jinja",
+        "dig.jinja",
         **{
             "pageSize": pageSize,
             "releases": releases,
@@ -180,18 +180,21 @@ def want():
 
 
 async def get_filters():
-    filters = requests.get(f"{AXUM_API}filters", timeout=10)
+    filters = httpx.get(f"{AXUM_API}filters", timeout=10)
     filters.raise_for_status()
     return filters.json().get("aggregations")
 
 
-async def get_releases(params: werkzeug.datastructures.MultiDict):
+import re
+
+
+async def get_releases(params: werkzeug.datastructures.MultiDict, omit_hidden=True):
     pageSize = int(params.get("pageSize", 5))
     offset = int(params.get("offset", (int(params.get("page", 1)) - 1) * pageSize))
     page = 1 + offset // pageSize
 
     actions = []
-    if "user" in session:
+    if "user" in session and omit_hidden:
         actions = db.session.scalars(
             db.select(Action.identifier).where(
                 Action.action == "HIDE",
@@ -202,17 +205,19 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
             )
         ).all()
 
-    releases = requests.get(
+    releases = httpx.get(
         f"{AXUM_API}releases",
         params=[
             p
             for p in [
                 (
                     "hide",
-                    base64.b64encode(BitMap.serialize(BitMap(actions)))
-                    if actions
-                    else None,
-                ),
+                    base64.urlsafe_b64encode(BitMap.serialize(BitMap(actions))).decode(
+                        "UTF-8"
+                    ),
+                )
+                if actions
+                else None,
                 ("field", "nested:labels.name") if params.get("label") else None,
                 ("value", params["label"]) if params.get("label") else None,
                 ("field", "nested:tracklist.title") if params.get("song") else None,
@@ -220,7 +225,9 @@ async def get_releases(params: werkzeug.datastructures.MultiDict):
                 ("field", "nested:artists.name") if params.get("artist") else None,
                 ("value", params["artist"]) if params.get("artist") else None,
                 ("field", "nested:labels.catno") if params.get("catno") else None,
-                ("value", params["catno"]) if params.get("catno") else None,
+                ("value", re.sub(r"(.*?)\s*-?\s*(\d+)", r"\1 \2", params.get("catno")))
+                if params.get("catno")
+                else None,
                 ("from", offset),
                 ("size", pageSize),
                 (
@@ -347,9 +354,9 @@ def prices(release_id):
 
     if prices == {}:
         # look up price of master release
-        release = requests.get(f"{AXUM_API}release?id={release_id}", timeout=5).json()[
-            "_source"
-        ]
+        release = httpx.get(f"{AXUM_API}release?id={release_id}", timeout=5).json()[
+            "hits"
+        ]["hits"][0]["_source"]
         if (
             "master_id" in release
             and release["master_id"]["is_main_release"] == "false"
