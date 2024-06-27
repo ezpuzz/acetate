@@ -134,7 +134,7 @@ where
 {
     use serde::de::Error;
     String::deserialize(deserializer).and_then(|string| {
-        base64::engine::general_purpose::STANDARD
+        base64::engine::general_purpose::URL_SAFE
             .decode(&string)
             .map_err(|e| Error::custom(e.to_string()))
             .and_then(|bytes| Ok(Some(RoaringBitmap::deserialize_from(&*bytes).unwrap())))
@@ -176,7 +176,7 @@ async fn releases(
                             {   "fuzzy": {
                                     f.0[7..]: {
                                         "value": format!("{0}",f.1),
-                                        "prefix_length": 1,
+                                        "fuzziness": 2,
                                         "boost": "0.5"
                                     }
                                 }
@@ -197,9 +197,9 @@ async fn releases(
                                     }
                                 }
                             },
-                            {   "wildcard": {
+                            {   "prefix": {
                                     f.0[7..]: {
-                                        "value": format!("{0}*",f.1),
+                                        "value": f.1,
                                         "case_insensitive": true,
                                         "boost": "15.0"
                                     }
@@ -339,8 +339,22 @@ async fn release(
     Extension(client): Extension<Elasticsearch>,
     params: axum_extra::extract::Query<ReleaseQueryParameters>,
 ) -> Result<axum::response::Response, error::Error> {
+    let json = json!({
+        "query": {
+            "term": {
+                "id": {
+                    "value": params.0.id
+                }
+            }
+        }
+    });
+
+    print!("{:?}", json);
+
     let search = client
-        .get(elasticsearch::GetParts::IndexId(&"releases", &params.0.id))
+        .search(elasticsearch::SearchParts::Index(&["releases"]))
+        .size(1)
+        .body(json)
         .send()
         .await?;
 
