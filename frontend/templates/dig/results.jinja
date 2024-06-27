@@ -1,7 +1,7 @@
-<div id="resultsinner" class="min-h-0 grow overflow-auto flex flex-col gap-y-2 px-2 pb-2">
+<div id="results" class="space-y-2 grow overflow-auto">
     {% for release in releases %}
     {% include 'dig/release.jinja' %}
     {% endfor %}
-</div>
 
-{% include 'dig/pagination.jinja' %}
+    {% include 'dig/pagination.jinja' %}
+</div>

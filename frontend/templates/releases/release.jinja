@@ -1,4 +1,4 @@
-<div id="release{{release.id}}" {% if swapoob is defined %} hx-swap-oob="true" {% endif %}
+<div id="release{{release.id}}" hx-preserve="true" {% if swapoob is defined %} hx-swap-oob="true" {% endif %}
     class="rounded sm:p-2 border sm:flex bg-slate-100 shadow">
     <div class="w-full sm:w-1/2 lg:w-1/3 flex gap-2 p-2 sm:p-0 sm:pr-2">
         <div class="w-full">
@@ -80,7 +80,7 @@
 
     </div>
     {% if release.videos is defined %}
-    <div id="videos{{release.id}}" hx-preserve="true" class="w-full sm:w-1/2 lg:w-2/3">
+    <div id="videos{{release.id}}" class="w-full sm:w-1/2 lg:w-2/3">
         <iframe
             src="https://www.youtube.com/embed/?playlist={{release.videos|unique|join(',')}}&version=3&fs=0&enablejsapi=0&rel=0"
             frameborder="0" allow="autoplay; encrypted-media" allowfullscreen class="w-full aspect-video"></iframe>
