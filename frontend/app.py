@@ -368,7 +368,6 @@ def prices(release_id):
 
     short_prices = {}
     for k in prices:
-        print(k)
         short_prices[k[k.index("(") + 1 : -1]] = prices[k]
 
     return render_template(
