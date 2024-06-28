@@ -5,10 +5,10 @@
 <form id="search" action="/dig" method="get" hx-push-url="true" hx-vals='{"page": "1"}'
     class="px-4 flex-none flex flex-wrap items-stretch gap-2">
 
-    {{ activesearch("label", "Label", label, "Defected") }}
-    {{ activesearch("artist", "Artist", artist, "Acen") }}
-    {{ activesearch("title", "Title", title, "Phantom Power") }}
-    {{ activesearch("catno", "Catalog Number", catno, "BREAKS001") }}
+    {{ activesearch("/dig", "label", "Label", label, "Defected") }}
+    {{ activesearch("/dig", "artist", "Artist", artist, "Acen") }}
+    {{ activesearch("/dig", "title", "Title", title, "Phantom Power") }}
+    {{ activesearch("/dig", "catno", "Catalog Number", catno, "BREAKS001") }}
 
 </form>
 

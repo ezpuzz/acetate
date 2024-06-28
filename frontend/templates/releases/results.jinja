@@ -1,4 +1,4 @@
-<div id="resultsinner" class="min-h-0 grow overflow-auto flex flex-col gap-y-2 px-2 pb-2">
+<div id="results" class="space-y-2 grow overflow-auto">
     {% for release in releases %}
     {% include 'releases/release.jinja' %}
     {% endfor %}
@@ -7,7 +7,7 @@
 {% include 'releases/pagination.jinja' %}
 {% if htmx %}
 {% include 'filters.jinja' %}
-<a id="active_filters" hx-swap-oob="true"
+<a id="active_filters" hx-swap-oob="morph"
     class="absolute z-10 block top-24 rounded-l border border-r-0 shadow-lg bg-white p-2 right-0" href="#filters">
     Filters >>
     {% for f in filters %}
