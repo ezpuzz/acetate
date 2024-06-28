@@ -374,6 +374,9 @@ def prices(release_id):
                 timeout=5,
             ).json()
 
+    if "message" in prices:
+        return prices["message"]
+
     short_prices = {}
     for k in prices:
         short_prices[k[k.index("(") + 1 : -1]] = prices[k]

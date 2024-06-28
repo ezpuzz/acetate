@@ -216,9 +216,9 @@ async fn releases(
             }}))
         } else if f.0 == "title" {
             must.push(json!({
-                "wildcard": { f.0: {
-                    "value": format!("*{0}*",f.1),
-                    "case_insensitive": true,
+                "match": { f.0: {
+                    "query": f.1,
+                    "operator": "AND",
                     "boost": "10.0"
                 } }
             }));
