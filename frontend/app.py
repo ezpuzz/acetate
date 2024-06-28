@@ -340,6 +340,7 @@ def thumb(release_id):
 
     return render_template(
         "image.jinja",
+        release_id=release_id,
         src=(
             oauth.discogs.get(
                 f"https://api.discogs.com/releases/{release_id}", timeout=5
