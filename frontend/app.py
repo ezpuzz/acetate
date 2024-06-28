@@ -272,8 +272,6 @@ async def get_releases(params: werkzeug.datastructures.MultiDict, omit_hidden=Tr
         if p
     ]
 
-    print(params)
-
     releases = httpx.get(
         f"{AXUM_API}releases",
         params=params,
