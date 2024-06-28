@@ -1,7 +1,7 @@
 import asyncio
 import os
 from flask import Flask, render_template, request, session, redirect, url_for
-from flask_htmx import HTMX
+from flask_htmx import HTMX, make_response
 import flask_htmx
 from flask_sqlalchemy import SQLAlchemy
 
@@ -80,6 +80,11 @@ oauth.register(
     authorize_url="https://www.discogs.com/oauth/authorize",
     fetch_token=get_token,
 )
+
+
+@app.route("/healthz")
+def healthz():
+    return "ok"
 
 
 @app.route("/")
