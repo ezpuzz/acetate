@@ -181,7 +181,7 @@ async fn releases(
                                     }
                                 }
                             },
-                            {   "match": {
+                            {   "match_bool_prefix": {
                                     f.0[7..]: {
                                         "query": format!("{0}",f.1),
                                         "operator": "and",
@@ -189,22 +189,22 @@ async fn releases(
                                     }
                                 }
                             },
-                            {   "wildcard": {
-                                    f.0[7..]: {
-                                        "value": format!("*{0}*",f.1),
-                                        "case_insensitive": true,
-                                        "boost": "10.0"
-                                    }
-                                }
-                            },
-                            {   "prefix": {
-                                    f.0[7..]: {
-                                        "value": f.1,
-                                        "case_insensitive": true,
-                                        "boost": "15.0"
-                                    }
-                                }
-                            }
+                            // {   "wildcard": {
+                            //         f.0[7..]: {
+                            //             "value": format!("*{0}*",f.1),
+                            //             "case_insensitive": true,
+                            //             "boost": "10.0"
+                            //         }
+                            //     }
+                            // },
+                            // {   "prefix": {
+                            //         f.0[7..]: {
+                            //             "value": f.1,
+                            //             "case_insensitive": true,
+                            //             "boost": "15.0"
+                            //         }
+                            //     }
+                            // }
                         ],
                         "boost": match &f.0[7..]{
                             "labels.catno" => "15.0",
@@ -216,7 +216,7 @@ async fn releases(
             }}))
         } else if f.0 == "title" {
             must.push(json!({
-                "match": { f.0: {
+                "match_bool_prefix": { f.0: {
                     "query": f.1,
                     "operator": "AND",
                     "boost": "10.0"
