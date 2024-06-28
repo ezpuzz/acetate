@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "risk"
+name = "acetate"
 version = "0.1.0"
 description = ""
 authors = ["Emory Petermann <emory@onlyfor.us>"]
