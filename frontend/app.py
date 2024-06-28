@@ -88,6 +88,11 @@ def healthz():
     return "ok"
 
 
+@app.errorhandler(404)
+def page_not_found(error):
+    return flask.redirect(url_for("discover"))
+
+
 @app.route("/releases")
 def releases():
     return flask.redirect(url_for("discover", **request.args))
