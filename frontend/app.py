@@ -279,7 +279,7 @@ async def get_releases(params: werkzeug.datastructures.MultiDict, omit_hidden=Tr
 
     hits = int(releases["hits"]["total"]["value"])
 
-    releases = [r["_source"] for r in releases["hits"]["hits"]]
+    releases = [{**r["_source"], "id": r["_id"]} for r in releases["hits"]["hits"]]
 
     return releases, page, pageSize, offset, hits
 
@@ -360,8 +360,8 @@ def prices(release_id):
     if prices == {}:
         # look up price of master release
         release = httpx.get(f"{AXUM_API}release?id={release_id}", timeout=5).json()[
-            "hits"
-        ]["hits"][0]["_source"]
+            "_source"
+        ]
         if (
             "master_id" in release
             and release["master_id"]["is_main_release"] == "false"

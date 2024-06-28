@@ -1,4 +1,5 @@
-<div id="pagination" class="flex-none w-full h-16 flex items-center px-4 gap-4 border-t bg-slate-200">
+<div id="pagination" hx-swap-oob="morph"
+    class="sticky bottom-0 flex-none w-full h-16 flex items-center px-4 gap-4 border-t bg-slate-200">
     <div class="text-nowrap"><span class="font-bold">{{from|int+1}} - {% if from|int + pageSize|int > hits %}{{hits}}{%
             else %}{{from|int + pageSize|int}}{% endif %}</span> of
         <span class="font-bold">{{hits}}</span>

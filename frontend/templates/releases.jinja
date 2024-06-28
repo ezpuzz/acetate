@@ -5,9 +5,9 @@
 <form id="search" action="/releases" method="get" hx-push-url="true" hx-vals='{"page": "1"}'
     class="px-4 flex-none flex flex-wrap items-stretch gap-2">
 
-    {{ activesearch("label", "Label", label, "Defected") }}
-    {{ activesearch("artist", "Artist", artist, "Acen") }}
-    {{ activesearch("song", "Song Name", song, "Don't Cry Tonight") }}
+    {{ activesearch("/releases", "label", "Label", label, "Defected") }}
+    {{ activesearch("/releases", "artist", "Artist", artist, "Acen") }}
+    {{ activesearch("/releases", "song", "Song Name", song, "Don't Cry Tonight") }}
 
     <div class="flex items-center gap-2">
         <label for="videos_only">Only Release with Videos</label>
@@ -31,9 +31,7 @@
 </form>
 
 
-<div id="results" class="relative grow flex flex-col min-w-0 overflow-auto">
-    {% include 'releases/results.jinja' %}
-</div>
+{% include 'releases/results.jinja' %}
 
 <div id="filters"
     class="absolute z-20 inset-0 h-full w-full bg-white -translate-x-full target:translate-x-0 shrink-0 flex flex-col">
