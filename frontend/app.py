@@ -87,6 +87,11 @@ def healthz():
     return "ok"
 
 
+@app.route("/releases")
+def releases():
+    return flask_htmx.make_response(redirect="/")
+
+
 @app.route("/")
 @app.route("/discover")
 async def discover():
