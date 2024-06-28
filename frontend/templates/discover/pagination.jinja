@@ -6,7 +6,7 @@
     </div>
     <div class="grow"></div>
     <div class="hidden sm:block">
-        <select name="pageSize" hx-get="/releases" hx-replace-url="true" hx-target="#results" hx-swap="morph"
+        <select name="pageSize" hx-get="/discover" hx-replace-url="true" hx-target="#results" hx-swap="morph"
             hx-include="#search, #filters, #pagination" class="border rounded-md p-2">
             <option value="5" {{"selected" if pageSize=="5" }}>5 per page</option>
             <option value="10" {{"selected" if pageSize=="10" }}>10 per page</option>
@@ -16,18 +16,18 @@
     <div class="flex items-center">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
             class="size-6 flex-none {% if page|int < 2 %}text-slate-500 pointer-events-none{% else %}cursor-pointer{% endif %}"
-            hx-get="/releases" hx-target="#results" hx-swap="morph" hx-trigger="click"
+            hx-get="/discover" hx-target="#results" hx-swap="morph" hx-trigger="click"
             hx-include="#search, #filters, #pagination" hx-vals='{"page": "{{page|int - 1}}"}' hx-push-url="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
         </svg>
-        <input name="page" type="number" class="border mx-2 p-2 w-16" value="{{page|int}}" hx-get="/releases"
+        <input name="page" type="number" class="border mx-2 p-2 w-16" value="{{page|int}}" hx-get="/discover"
             hx-target="#results" hx-swap="morph" hx-push-url="true" hx-trigger="input changed delay:500ms"
             hx-include="#search, #filters, #pagination" />
         of
         {{(hits/(pageSize|int))|round(0, "ceil")|int}}
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
             class="size-6 flex-none cursor-pointer {% if from|int + pageSize|int > hits %}text-slate-500 pointer-events-none{% else %}cursor-pointer{% endif %}"
-            hx-get="/releases" hx-target="#results" hx-swap="morph" hx-trigger="click"
+            hx-get="/discover" hx-target="#results" hx-swap="morph" hx-trigger="click"
             hx-include="#search, #filters, #pagination" hx-vals='{"page": "{{page|int + 1}}"}' hx-push-url="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
         </svg>

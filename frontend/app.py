@@ -88,8 +88,8 @@ def healthz():
 
 
 @app.route("/")
-@app.route("/releases")
-async def releases():
+@app.route("/discover")
+async def discover():
     extra_args = {}
 
     if "videos_only" not in request.args:
@@ -108,7 +108,7 @@ async def releases():
 
     if htmx and not htmx.boosted:
         return render_template(
-            "releases/results.jinja",
+            "discover/results.jinja",
             **{
                 "pageSize": pageSize,
                 "releases": releases,
@@ -121,7 +121,7 @@ async def releases():
             },
         )
     return render_template(
-        "releases.jinja",
+        "discover.jinja",
         **{
             "pageSize": pageSize,
             "releases": releases,
@@ -183,7 +183,7 @@ def want():
         timeout=5,
     )
     wants.raise_for_status()
-    return render_template("releases/wanted.jinja")
+    return render_template("discover/wanted.jinja")
 
 
 async def get_filters():
@@ -322,7 +322,7 @@ async def hide():
     releases, page, pageSize, offset, hits = releases.result()
 
     return render_template(
-        "releases/hidden.jinja",
+        "discover/hidden.jinja",
         **{
             "pageSize": pageSize,
             "releases": releases,
