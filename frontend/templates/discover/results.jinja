@@ -1,10 +1,10 @@
 <div id="results" class="space-y-2 grow overflow-auto">
     {% for release in releases %}
-    {% include 'releases/release.jinja' %}
+    {% include 'discover/release.jinja' %}
     {% endfor %}
 </div>
 
-{% include 'releases/pagination.jinja' %}
+{% include 'discover/pagination.jinja' %}
 {% if htmx %}
 {% include 'filters.jinja' %}
 <a id="active_filters" hx-swap-oob="morph"

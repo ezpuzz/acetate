@@ -2,16 +2,16 @@
 {% from "components/active-search.jinja" import activesearch as activesearch %}
 
 {% block content %}
-<form id="search" action="/releases" method="get" hx-push-url="true" hx-vals='{"page": "1"}'
+<form id="search" action="/discover" method="get" hx-push-url="true" hx-vals='{"page": "1"}'
     class="px-4 flex-none flex flex-wrap items-stretch gap-2">
 
-    {{ activesearch("/releases", "label", "Label", label, "Defected") }}
-    {{ activesearch("/releases", "artist", "Artist", artist, "Acen") }}
-    {{ activesearch("/releases", "song", "Song Name", song, "Don't Cry Tonight") }}
+    {{ activesearch("/discover", "label", "Label", label, "Defected") }}
+    {{ activesearch("/discover", "artist", "Artist", artist, "Acen") }}
+    {{ activesearch("/discover", "song", "Song Name", song, "Don't Cry Tonight") }}
 
     <div class="flex items-center gap-2">
         <label for="videos_only">Only Release with Videos</label>
-        <input type="checkbox" id="videos_only" name="videos_only" checked hx-trigger="click" hx-get="/releases"
+        <input type="checkbox" id="videos_only" name="videos_only" checked hx-trigger="click" hx-get="/discover"
             hx-target="#results" hx-swap="morph" hx-include="#search, #filters, #pagination" />
         <input type="hidden" name="videos_only" value="off" />
     </div>
@@ -31,7 +31,7 @@
 </form>
 
 
-{% include 'releases/results.jinja' %}
+{% include 'discover/results.jinja' %}
 
 <div id="filters"
     class="absolute z-20 inset-0 h-full w-full bg-white -translate-x-full target:translate-x-0 shrink-0 flex flex-col">
@@ -46,7 +46,7 @@
             <label
                 class="border p-1 sm:p-px rounded-lg sm:border-none has-[:checked]:bg-blue-400 flex
                     mb-1 sm:mb-0 items-center leading-tight hyphens-auto break-normal text-ellipsis overflow-hidden"><input
-                    class="peer hidden sm:block mr-1" hx-get="/releases" hx-target="#results" hx-swap="morph"
+                    class="peer hidden sm:block mr-1" hx-get="/discover" hx-target="#results" hx-swap="morph"
                     hx-include="#search, #filters, #pagination" type="checkbox" hx-vals='{"page": "1"}'
                     name="{{filters[f]['meta']['field']}}" value='{{v["key"]}}' hx-push-url="true" {% if
                     filters[f]['meta']['field'] in request.args and request.args[filters[f]['meta']['field']]==v["key"]
