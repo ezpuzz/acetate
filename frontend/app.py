@@ -1,6 +1,7 @@
 import asyncio
 import os
 from flask import Flask, render_template, request, session, redirect, url_for
+import flask
 from flask_htmx import HTMX, make_response
 import flask_htmx
 from flask_sqlalchemy import SQLAlchemy
@@ -89,7 +90,7 @@ def healthz():
 
 @app.route("/releases")
 def releases():
-    return flask_htmx.make_response(redirect="/")
+    return flask.redirect(url_for("discover", **request.args))
 
 
 @app.route("/")
