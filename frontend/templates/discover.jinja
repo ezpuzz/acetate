@@ -16,49 +16,12 @@
         <input type="hidden" name="videos_only" value="off" />
     </div>
 
-    <a id="active_filters" hx-swap-oob="true"
-        class="absolute z-10 block top-24 rounded-l border border-r-0 shadow-lg bg-white p-2 right-0" href="#filters">
-        Filters >>
-        {% for f in filters %}
-        {% if filters[f]['meta']['field'] in request.args %}
-        {% for v in request.args.getlist(filters[f]['meta']['field']) %}
-        <div class="w-full">{{v}}</div>
-        {% endfor %}
-        {% endif %}
-        {% endfor %}
-    </a>
+    {% include 'discover/active_filters.jinja' %}
 
 </form>
 
 
 {% include 'discover/results.jinja' %}
 
-<div id="filters"
-    class="absolute z-20 inset-0 h-full w-full bg-white -translate-x-full target:translate-x-0 shrink-0 flex flex-col">
-    <div class="flex items-center justify-between text-xl px-2 bg-slate-100">Filters
-        <a class="border rounded p-2 my-2 text-sm" href="#">Close Filters</a>
-    </div>
-    <div class="overflow-auto grow p-2">
-        {% for f in filters %}
-        <h3 class="text-lg">{{f}}</h3>
-        <div class="grid grid-cols-3 md:grid-cols-4 gap-x-2">
-            {% for v in filters[f]["buckets"] %}
-            <label
-                class="border p-1 sm:p-px rounded-lg sm:border-none has-[:checked]:bg-blue-400 flex
-                    mb-1 sm:mb-0 items-center leading-tight hyphens-auto break-normal text-ellipsis overflow-hidden"><input
-                    class="peer hidden sm:block mr-1" hx-get="/discover" hx-target="#results" hx-swap="morph"
-                    hx-include="#search, #filters, #pagination" type="checkbox" hx-vals='{"page": "1"}'
-                    name="{{filters[f]['meta']['field']}}" value='{{v["key"]}}' hx-push-url="true" {% if
-                    filters[f]['meta']['field'] in request.args and request.args[filters[f]['meta']['field']]==v["key"]
-                    %}checked{% endif %} />
-                {{v["key"]}} <div class="hidden sm:inline text-xs text-slate-700 leading-none ml-auto">
-                    ({{v["doc_count"]}})
-                </div>
-            </label>
-            {% endfor %}
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
+{% include 'discover/filters.jinja' %}
 {% endblock %}
