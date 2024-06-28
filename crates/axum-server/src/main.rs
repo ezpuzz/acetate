@@ -321,7 +321,7 @@ async fn releases(
     println!("{}", to_string_pretty(&json).unwrap());
 
     let search = client
-        .search(elasticsearch::SearchParts::Index(&["releases_new"]))
+        .search(elasticsearch::SearchParts::Index(&["releases"]))
         .size(params.0.size.unwrap_or(10))
         .from(params.0.from.unwrap_or(0))
         .body(json)
@@ -348,10 +348,7 @@ async fn release(
     params: axum_extra::extract::Query<ReleaseQueryParameters>,
 ) -> Result<axum::response::Response, error::Error> {
     let search = client
-        .get(elasticsearch::GetParts::IndexId(
-            "releases_new",
-            &params.0.id,
-        ))
+        .get(elasticsearch::GetParts::IndexId("releases", &params.0.id))
         .send()
         .await?;
 
