@@ -232,6 +232,8 @@ async def get_releases(params: werkzeug.datastructures.MultiDict, omit_hidden=Tr
             ("value", re.sub(r"(.*?)\s*-?\s*(\d+)", r"\1 \2", params.get("catno")))
             if params.get("catno")
             else None,
+            ("field", "nested:identifiers.value") if params.get("identifier") else None,
+            ("value", params.get("identifier")) if params.get("identifier") else None,
             ("from", offset),
             ("size", pageSize),
             (
