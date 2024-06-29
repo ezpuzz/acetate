@@ -252,7 +252,7 @@ async fn releases(
         // ))
         must_not.push(json!({
                     "terms": {
-                        "id": params.0.hide.unwrap().iter().collect::<Vec<u32>>()
+                        "_id": params.0.hide.unwrap().iter().collect::<Vec<u32>>()
                     }
         }));
     }
