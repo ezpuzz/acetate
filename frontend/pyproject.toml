@@ -34,6 +34,7 @@ venvPath = "."
 [tool.ruff]
 exclude = ["__pycache__/"]
 include = ["**/pyproject.toml", "*.py"]
+line-length = 80
 
 [tool.ruff.lint]
 select = ["ALL"]

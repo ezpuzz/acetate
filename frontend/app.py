@@ -65,7 +65,9 @@ oauth = OAuth(app)
 
 def get_token():
     user = db.session.scalar(
-        db.select(User).where(User.discogs_user_id == session.get("user").get("id")),
+        db.select(User).where(
+            User.discogs_user_id == session.get("user").get("id")
+        ),
     )
     return {
         "oauth_token": user.discogs_oauth_token,
@@ -205,9 +207,13 @@ async def get_filters():
         return filters.json().get("aggregations")
 
 
-async def get_releases(params: werkzeug.datastructures.MultiDict, *, omit_hidden=True):
+async def get_releases(
+    params: werkzeug.datastructures.MultiDict, *, omit_hidden=True
+):
     page_size = int(params.get("pageSize", 5))
-    offset = int(params.get("offset", (int(params.get("page", 1)) - 1) * page_size))
+    offset = int(
+        params.get("offset", (int(params.get("page", 1)) - 1) * page_size)
+    )
     page = 1 + offset // page_size
 
     actions = []
@@ -228,7 +234,9 @@ async def get_releases(params: werkzeug.datastructures.MultiDict, *, omit_hidden
             (
                 (
                     "hide",
-                    base64.urlsafe_b64encode(BitMap.serialize(BitMap(actions))).decode(
+                    base64.urlsafe_b64encode(
+                        BitMap.serialize(BitMap(actions))
+                    ).decode(
                         "UTF-8",
                     ),
                 )
@@ -245,12 +253,21 @@ async def get_releases(params: werkzeug.datastructures.MultiDict, *, omit_hidden
             params.get("title") and ("value", params.get("title")),
             ("field", "nested:labels.catno") if params.get("catno") else None,
             (
-                ("value", re.sub(r"(.*?)\s*-?\s*(\d+)", r"\1 \2", params.get("catno")))
+                (
+                    "value",
+                    re.sub(
+                        r"(.*?)\s*-?\s*(\d+)", r"\1 \2", params.get("catno")
+                    ),
+                )
                 if params.get("catno")
                 else None
             ),
-            ("field", "nested:identifiers.value") if params.get("identifier") else None,
-            ("value", params.get("identifier")) if params.get("identifier") else None,
+            ("field", "nested:identifiers.value")
+            if params.get("identifier")
+            else None,
+            ("value", params.get("identifier"))
+            if params.get("identifier")
+            else None,
             ("from", offset),
             ("size", page_size),
             (
@@ -302,7 +319,9 @@ async def get_releases(params: werkzeug.datastructures.MultiDict, *, omit_hidden
 
         hits = int(releases["hits"]["total"]["value"])
 
-        releases = [{**r["_source"], "id": r["_id"]} for r in releases["hits"]["hits"]]
+        releases = [
+            {**r["_source"], "id": r["_id"]} for r in releases["hits"]["hits"]
+        ]
 
         return releases, page, page_size, offset, hits
 
@@ -328,7 +347,9 @@ async def hide():
     params = request.form.copy()
     params["pageSize"] = "1"
     params["offset"] = str(
-        int(request.form.get("from", 0)) + int(request.form.get("pageSize", 5)) - 1,
+        int(request.form.get("from", 0))
+        + int(request.form.get("pageSize", 5))
+        - 1,
     )
 
     async with asyncio.TaskGroup() as tg:
@@ -384,9 +405,9 @@ def prices(release_id):
 
     if prices == {}:
         # look up price of master release
-        release = httpx.get(f"{AXUM_API}release?id={release_id}", timeout=5).json()[
-            "_source"
-        ]
+        release = httpx.get(
+            f"{AXUM_API}release?id={release_id}", timeout=5
+        ).json()["_source"]
         if (
             "master_id" in release
             and release["master_id"]["is_main_release"] == "false"
@@ -439,7 +460,9 @@ def logout():
 @app.route("/auth")
 def auth():
     token = oauth.discogs.authorize_access_token()
-    resp = oauth.discogs.get("https://api.discogs.com/oauth/identity", timeout=5)
+    resp = oauth.discogs.get(
+        "https://api.discogs.com/oauth/identity", timeout=5
+    )
     user = resp.json()
 
     stmt = insert(User).values(
