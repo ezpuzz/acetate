@@ -1,8 +1,6 @@
 use base64::Engine;
-use config::Config;
 use elasticsearch::{auth::Credentials, http::transport::Transport, Elasticsearch};
 use roaring::RoaringBitmap;
-use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 mod config;
 mod error;
 
@@ -13,11 +11,11 @@ use axum::{
     debug_handler,
     extract::Extension,
     response::Response,
-    routing::{get, post},
+    routing::{get},
     Router,
 };
 use dotenv::dotenv;
-use serde::{self, de::DeserializeOwned, Deserialize, Deserializer, Serialize};
+use serde::{self,  Deserialize, Deserializer, Serialize};
 use std::net::SocketAddr;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
@@ -25,11 +23,6 @@ use tower_http::{cors::CorsLayer, trace::TraceLayer};
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
     let config = config::Config::new();
-
-    let pool = PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&config.database_url)
-        .await?;
 
     let credentials = Credentials::Basic("elastic".into(), config.es_password.clone());
     let transport = Transport::cloud(&config.es_cloud_id.clone(), credentials)?;
@@ -46,9 +39,7 @@ async fn main() -> anyhow::Result<()> {
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())
         .layer(Extension(config))
-        .layer(Extension(client))
-        .layer(Extension(pool.clone()));
-
+        .layer(Extension(client));
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     println!("listening on {}", addr);
@@ -142,7 +133,6 @@ where
 }
 
 async fn releases(
-    Extension(pool): Extension<Pool<Postgres>>,
     Extension(client): Extension<Elasticsearch>,
     params: axum_extra::extract::Query<QueryParameters>,
 ) -> Result<axum::response::Response, error::Error> {
