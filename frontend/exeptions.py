@@ -1,0 +1,2 @@
+class LoggedOutError(Exception):
+    pass

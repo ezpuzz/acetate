@@ -30,3 +30,16 @@ build-backend = "poetry.core.masonry.api"
 [tool.pyright]
 venv = ".venv"
 venvPath = "."
+
+[tool.ruff]
+exclude = ["__pycache__/"]
+include = ["**/pyproject.toml", "*.py"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+"ANN",
+"D",
+"COM812",
+"ISC001"
+]
