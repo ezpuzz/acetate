@@ -19,14 +19,8 @@ serde_json = "1.0.113"
 tower-http = { version = "0.5.1", features = ["cors", "trace"] }
 axum-extra = { version = "0.9.2", features = ["query"] }
 dotenv = "0.15.0"
-axum-login = "0.15.3"
+#axum-login = "0.15.3"
 tracing-subscriber = "0.3.18"
 tracing = "0.1.40"
 roaring = { version = "0.10.5", features = ["serde"] }
 base64 = "0.22.1"
-
-[target.aarch64-apple-darwin]
-linker = "mold"
-
-[profile.dev.package.sqlx-macros]
-opt-level = 3
