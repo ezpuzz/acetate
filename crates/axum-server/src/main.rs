@@ -306,7 +306,7 @@ async fn releases(
                 //     //       }
                 //     // }
                 // ],
-                "minimum_should_match": 1
+                "minimum_should_match": if should.len() > 0 { 1 } else {0 }
             }
         },
         "sort": [
@@ -315,11 +315,11 @@ async fn releases(
                     "order": "desc"
                 }
             },
-            {
-                "released": {
-                    "order": "desc"
-                }
-            }
+            // {
+            //     "released.formatted": {
+            //         "order": "desc"
+            //     }
+            // }
         ],
         // The below is cool but really slow.
         // "aggs": {
