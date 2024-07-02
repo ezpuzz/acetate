@@ -4,7 +4,6 @@
 
     <input id="{{name}}" name="{{name}}" hx-trigger="input changed delay:400ms, search" hx-sync="this:replace"
         hx-get="{{target}}" hx-target="#results" hx-swap="morph" hx-include="#search, #filters, #pagination"
-        type="search" value="{{value|d()}}" placeholder="{{placeholder}}"
-        class="rounded-md border p-2 w-1/5 min-w-64" />
+        type="search" value="{{value|d()}}" placeholder="{{placeholder}}" class="rounded-md border p-2 min-w-32" />
 </div>
 {% endmacro %}
