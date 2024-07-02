@@ -92,12 +92,12 @@ def healthz():
 
 
 @app.errorhandler(404)
-def page_not_found():
+def page_not_found(error):
     return flask.redirect(url_for("discover"))
 
 
 @app.route("/releases")
-def releases():
+def old_releases_endpoint():
     return flask.redirect(url_for("discover", **request.args))
 
 
@@ -202,7 +202,7 @@ def want():
 
 async def get_filters():
     async with httpx.AsyncClient() as client:
-        filters = await client.get(f"{AXUM_API}filters", timeout=10)
+        filters = await client.get(f"{AXUM_API}filters", timeout=20)
         filters.raise_for_status()
         return filters.json().get("aggregations")
 
@@ -304,12 +304,20 @@ async def get_releases(
                 ]
                 for x in y
             ],
+            *[
+                x
+                for y in [
+                    [("field", "country"), ("value", v)]
+                    for v in params.getlist("country")
+                ]
+                for x in y
+            ],
         ]
         if p
     ]
 
     async with httpx.AsyncClient() as client:
-        releases = client.get(
+        releases = await client.get(
             f"{AXUM_API}releases",
             params=params,
             timeout=10,
@@ -394,7 +402,7 @@ def thumb(release_id):
 
 
 @app.route("/prices/<release_id>")
-def prices(release_id):
+def get_price(release_id):
     if "user" not in session:
         raise LoggedOutError
 
@@ -431,7 +439,7 @@ def prices(release_id):
 
 
 @app.route("/wants")
-def wants():
+def wantlist():
     username = session["user"]["username"]
     wants = oauth.discogs.get(
         f"https://api.discogs.com/users/{username}/wants",

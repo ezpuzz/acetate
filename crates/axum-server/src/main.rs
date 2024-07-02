@@ -7,15 +7,10 @@ mod error;
 use serde_json::{json, to_string_pretty, Value};
 
 use axum::{
-    body::Body,
-    debug_handler,
-    extract::Extension,
-    response::Response,
-    routing::{get},
-    Router,
+    body::Body, debug_handler, extract::Extension, response::Response, routing::get, Router,
 };
 use dotenv::dotenv;
-use serde::{self,  Deserialize, Deserializer, Serialize};
+use serde::{self, Deserialize, Deserializer, Serialize};
 use std::net::SocketAddr;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
@@ -90,6 +85,12 @@ async fn filters(
                     "meta": {
                         "field": "formats.descriptions"
                     }
+                },
+                "Country": {
+                    "terms": {"field": "country", "size": 50},
+                    "meta": {
+                        "field": "country"
+                    }
                 }
             },
             "size": 0
@@ -151,13 +152,50 @@ async fn releases(
     let mut must_not = vec![];
 
     let mut must = vec![];
+    let mut should = vec![];
 
     std::iter::zip(
         params.0.field.unwrap_or_default(),
         params.0.value.unwrap_or_default(),
     )
     .for_each(|f| {
-        if f.0.contains("nested:") {
+        if f.0.contains("nested:artists") {
+            should.push(json!({
+            "nested": {
+                "path": "artists",
+                "query": {
+                    "bool": {
+                        "should": [
+                            {
+                                "match": {"artists.name": f.1}
+                            },
+                            {
+                                "match": {"artists.anv": f.1}
+                            },
+                            ]
+                        }
+                    }
+                }
+            }));
+            should.push(json!({
+                "nested": {
+                    "path": "extraartists",
+                    "query": {
+                        "bool": {
+                            "should": [
+                                {
+                                    "match": {"extraartists.name": f.1}
+                                },
+                                {
+                                    "match": {"extraartists.anv": f.1}
+                                },
+
+                            ]
+                        }
+                    }
+                }
+            }));
+        } else if f.0.contains("nested:") {
             must.push(json!({"nested": {
                 "path": f.0[7..f.0.chars().position(|c| c == '.').unwrap()],
                 "query": {
@@ -171,7 +209,7 @@ async fn releases(
                                     }
                                 }
                             },
-                            {   "match_bool_prefix": {
+                            {   "match": {
                                     f.0[7..]: {
                                         "query": format!("{0}",f.1),
                                         "operator": "and",
@@ -252,7 +290,8 @@ async fn releases(
             "bool": {
                 "must": must,
                 "filter": filter,
-                "must_not": must_not
+                "must_not": must_not,
+                "should": should,
                 // "must_not": [
                 //     {
                 //         "ids": {
@@ -267,7 +306,7 @@ async fn releases(
                 //     //       }
                 //     // }
                 // ],
-                // // "minimum_should_match": 1
+                "minimum_should_match": 1
             }
         },
         "sort": [
