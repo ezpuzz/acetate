@@ -1,0 +1,6 @@
+{% macro property(title, values)%}
+<dt class="text-xs text-slate-700">{{title}}</dt>
+{% for v in values|d([]) %}
+<dd>{{ caller(v) }}</dd>
+{% endfor %}
+{% endmacro %}
