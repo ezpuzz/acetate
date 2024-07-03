@@ -3,14 +3,20 @@
 
 {% block content %}
 <form id="search" action="/dig" method="get" hx-push-url="true" hx-vals='{"page": "1"}'
-    class="px-4 flex-none grid grid-cols-2 sm:flex sm:flex-wrap items-stretch gap-2">
+    class="px-2 flex-none grid grid-cols-2 sm:flex sm:flex-wrap items-stretch gap-2">
 
     {{ activesearch("/dig", "label", "Label", label, "Defected") }}
     {{ activesearch("/dig", "artist", "Artist", artist, "Acen") }}
     {{ activesearch("/dig", "title", "Title", title, "Phantom Power") }}
     {{ activesearch("/dig", "catno", "Catalog Number", catno, "BREAKS001") }}
     {{ activesearch("/dig", "identifier", "Identifiers", identifier, "12345") }}
+    <div class="flex flex-col items-stretch">
+        <label>&nbsp</label>
+        <input hx-on:click="document.querySelectorAll('.activesearch').forEach((i) => i.value = '')" value="Reset"
+            class="cursor-pointer p-2 border rounded bg-slate-200" />
+    </div>
 
+</form>
 </form>
 
 <div class="flex grow min-h-0">

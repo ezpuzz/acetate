@@ -86,6 +86,12 @@ oauth.register(
 )
 
 
+@app.after_request
+def add_header(response):
+    response.headers["Vary"] = "HX-Request"
+    return response
+
+
 @app.route("/healthz")
 def healthz():
     return "ok"
