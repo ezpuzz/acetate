@@ -1,4 +1,4 @@
-<div id="results" class="space-y-2 grow overflow-auto">
+<div id="results" class="space-y-2 grow overflow-auto" hx-on::after-swap="this.scrollTo(0,0)">
     {% for release in releases %}
     {% include 'discover/release.jinja' %}
     {% endfor %}
