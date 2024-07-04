@@ -3,16 +3,15 @@
     <div class="flex items-center justify-between text-xl px-2 bg-slate-100">Filters
         <a class="border rounded p-2 my-2 text-sm" href="#">See Results</a>
     </div>
-    <div class="overflow-auto grow p-2">
+    <div class="overflow-auto grow p-2 space-y-2">
         {% for f in filters %}
         {% set field = filters[f]['meta']['field']%}
 
         <h3 class="text-lg">{{f}}</h3>
-        <div class="grid grid-cols-3 md:grid-cols-4 gap-x-2">
+        <div class="grid grid-cols-3 md:grid-cols-4 gap-1">
             {% for v in filters[f]["buckets"] %}
-            <label
-                class="border p-1 sm:p-px rounded-lg sm:border-none has-[:checked]:bg-blue-400 flex
-                    mb-1 sm:mb-0 items-center leading-tight hyphens-auto break-normal text-ellipsis overflow-hidden"><input
+            <label class="border p-1 sm:p-px rounded-lg sm:border-none has-[:checked]:bg-blue-400 flex
+                     items-center leading-tight hyphens-auto break-normal text-ellipsis overflow-hidden"><input
                     class="peer hidden sm:block mr-1" hx-get="/discover#filters" hx-target="#results"
                     hx-sync="#filters:replace" hx-swap="morph" hx-include="#search, #filters, #pagination"
                     type="checkbox" hx-vals='{"page": "1"}' name="{{field}}" value='{{v["key"]}}' hx-push-url="true" {%

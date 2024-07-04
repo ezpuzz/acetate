@@ -1,4 +1,4 @@
-<div id="results" class="flex flex-col w-full" hx-on::after-swap="this.firstElementChild.scrollTo(0,0)">
+<div id="results" class="flex flex-col min-w-0" hx-on::after-swap="this.firstElementChild.scrollTo(0,0)">
     <div class="px-2 pb-2 space-y-2 md:space-y-0 gap-2 min-h-0 overflow-auto md:grid grid-cols-2">
         {% for release in releases %}
         {% include 'dig/release.jinja' %}

@@ -39,7 +39,9 @@
         {% if release.identifiers is defined %}
         <div>
             {% call(id) property("Identifiers", release.identifiers) %}
-            <span class="text-slate-400 text-xs leading-none">{{id.type}}</span> {{id.value}}
+            <span class="block w-full text-ellipsis overflow-hidden text-nowrap">
+                <span class="text-slate-400 text-xs leading-none">{{id.type}}</span>
+                {{id.value}}</span>
             {% endcall %}
         </div>
         {% endif %}
