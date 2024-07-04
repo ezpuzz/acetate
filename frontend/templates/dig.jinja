@@ -3,7 +3,7 @@
 
 {% block content %}
 <form id="search" action="/dig" method="get" hx-push-url="true" hx-vals='{"page": "1"}'
-    class="px-2 flex-none grid grid-cols-2 sm:flex sm:flex-wrap items-stretch gap-2">
+    class="px-2 flex-none grid grid-cols-2 sm:flex sm:flex-wrap items-stretch gap-2 pb-2">
 
     {{ activesearch("/dig", "label", "Label", label, "Defected") }}
     {{ activesearch("/dig", "artist", "Artist", artist, "Acen") }}
