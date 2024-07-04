@@ -210,7 +210,9 @@ async def get_filters():
     async with httpx.AsyncClient() as client:
         filters = await client.get(f"{AXUM_API}filters", timeout=20)
         filters.raise_for_status()
-        return filters.json().get("aggregations")
+        filters = filters.json().get("aggregations")
+        keys = sorted(filters, key=lambda f: len(filters[f]["buckets"]))
+        return {k: filters[k] for k in keys}
 
 
 async def get_releases(
