@@ -23,7 +23,7 @@
 
         {# Styles #}
         <div class="flex flex-wrap gap-2">
-            {% for style in release.styles %}
+            {% for style in release.styles|d([]) %}
             <div class="rounded-full bg-slate-200 p-1 leading-none">{{style}}</div>
             {% endfor %}
         </div>
@@ -83,7 +83,7 @@
                 this.</button>
         </div>
 
-        <div class="w-full hidden sm:block">
+        <div class="p-2 w-full hidden sm:block">
             <dt class="text-xs text-slate-700">Notes</dt>
             <dd>
                 <pre class="text-wrap">{{release.notes|d('')}}</pre>

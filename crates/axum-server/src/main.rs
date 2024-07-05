@@ -116,6 +116,7 @@ struct QueryParameters {
     from: Option<i64>,
     size: Option<i64>,
     videos_only: Option<bool>,
+    masters_only: Option<bool>,
     #[serde(default, deserialize_with = "from_base64")]
     hide: Option<RoaringBitmap>,
 }
@@ -261,6 +262,16 @@ async fn releases(
         }})]);
     }
 
+    if params.0.masters_only.unwrap_or(false) {
+        // Note: the following avoids duplicates but hides remixes, needs smarter filtering to avoid lots of dupes
+        // Workaround: allow hiding all of a particular release with some kind of confirmation?
+        must_not.append(&mut vec![json!({
+            "term": {
+                "master_id.is_main_release": "false"
+            }
+        })]);
+    }
+
     if params.0.hide.is_some() {
         // following needs the plugin to work on ES
         // must_filters.push(json!(
@@ -292,20 +303,6 @@ async fn releases(
                 "filter": filter,
                 "must_not": must_not,
                 "should": should,
-                // "must_not": [
-                //     {
-                //         "ids": {
-                //             "values": params.0.hide
-                //         }
-                //     },
-                //     // Note: the following avoids duplicates but hides remixes, needs smarter filtering to avoid lots of dupes
-                //     // Workaround: allow hiding all of a particular release with some kind of confirmation?
-                //     // {
-                //     //     "term": {
-                //     //         "master_id.is_main_release": "false"
-                //     //       }
-                //     // }
-                // ],
                 "minimum_should_match": if should.len() > 0 { 1 } else {0 }
             }
         },
@@ -315,11 +312,11 @@ async fn releases(
                     "order": "desc"
                 }
             },
-            // {
-            //     "released.formatted": {
-            //         "order": "desc"
-            //     }
-            // }
+            {
+                "released": {
+                    "order": "desc"
+                }
+            }
         ],
         // The below is cool but really slow.
         // "aggs": {

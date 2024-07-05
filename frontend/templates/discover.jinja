@@ -10,11 +10,18 @@
     {{ activesearch("/discover", "song", "Song Name", song, "Don't Cry Tonight") }}
 
     <div class="flex items-center gap-2">
-        <label for="videos_only">Videos</label>
+        <label for="videos_only">Videos Only</label>
         <input type="checkbox" id="videos_only" name="videos_only" checked hx-trigger="click" hx-get="/discover"
             hx-target="#results" hx-swap="morph" hx-include="#search, #filters, #pagination" />
         <input type="hidden" name="videos_only" value="off" />
     </div>
+    <div class="flex items-center gap-2">
+        <label for="masters_only">Masters Only (may hide remixes)</label>
+        <input type="checkbox" id="masters_only" name="masters_only" checked hx-trigger="click" hx-get="/discover"
+            hx-target="#results" hx-swap="morph" hx-include="#search, #filters, #pagination" />
+        <input type="hidden" name="masters_only" value="off" />
+    </div>
+
 
     {% include 'discover/active_filters.jinja' %}
 
