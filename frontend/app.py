@@ -282,6 +282,10 @@ async def get_releases(
                 "videos_only",
                 "true" if params.get("videos_only") == "on" else "false",
             ),
+            (
+                "masters_only",
+                "true" if params.get("masters_only") == "on" else "false",
+            ),
             *[
                 x
                 for y in [

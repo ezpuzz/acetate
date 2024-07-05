@@ -8,7 +8,7 @@
         {% set field = filters[f]['meta']['field']%}
 
         <h3 class="text-lg">{{f}}</h3>
-        <div class="grid grid-cols-3 md:grid-cols-4 gap-1">
+        <div class="grid grid-cols-3 md:grid-cols-4 gap-1 md:gap-x-4">
             {% for v in filters[f]["buckets"] %}
             <label class="border p-1 sm:p-px rounded-lg sm:border-none has-[:checked]:bg-blue-400 flex
                      items-center leading-tight hyphens-auto break-normal text-ellipsis overflow-hidden"><input
