@@ -3,23 +3,25 @@
 
 {% block content %}
 <form id="search" action="/discover" method="get" hx-push-url="true" hx-vals='{"page": "1"}'
-    class="m-2 flex-none grid grid-cols-2 sm:flex sm:flex-wrap items-stretch gap-2">
+    class="m-2 flex-none grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
 
     {{ activesearch("/discover", "label", "Label", label, "Defected") }}
     {{ activesearch("/discover", "artist", "Artist", artist, "Acen") }}
     {{ activesearch("/discover", "song", "Song Name", song, "Don't Cry Tonight") }}
 
-    <div class="flex items-center gap-2">
-        <label for="videos_only">Videos Only</label>
-        <input type="checkbox" id="videos_only" name="videos_only" checked hx-trigger="click" hx-get="/discover"
-            hx-target="#results" hx-swap="morph" hx-include="#search, #filters, #pagination" />
-        <input type="hidden" name="videos_only" value="off" />
-    </div>
-    <div class="flex items-center gap-2">
-        <label for="masters_only">Masters Only (may hide remixes)</label>
-        <input type="checkbox" id="masters_only" name="masters_only" checked hx-trigger="click" hx-get="/discover"
-            hx-target="#results" hx-swap="morph" hx-include="#search, #filters, #pagination" />
-        <input type="hidden" name="masters_only" value="off" />
+    <div class="col-span-2">
+        <div class="flex items-start gap-2">
+            <input type="checkbox" id="videos_only" name="videos_only" checked hx-trigger="click" hx-get="/discover"
+                hx-target="#results" hx-swap="morph" hx-include="#search, #filters, #pagination" />
+            <input type="hidden" name="videos_only" value="off" />
+            <label class="text-xs text-slate-700" for="videos_only">Videos Only</label>
+        </div>
+        <div class="flex items-start gap-2">
+            <input type="checkbox" id="masters_only" name="masters_only" checked hx-trigger="click" hx-get="/discover"
+                hx-target="#results" hx-swap="morph" hx-include="#search, #filters, #pagination" />
+            <input type="hidden" name="masters_only" value="off" />
+            <label class="text-xs text-slate-700" for="masters_only">Masters Only (may hide remixes)</label>
+        </div>
     </div>
 
 
