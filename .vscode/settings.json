@@ -2,11 +2,14 @@
     "rust-analyzer.linkedProjects": [
         "./crates/axum-server/Cargo.toml"
     ],
-    "python.analysis.typeCheckingMode": "basic",
     "python.analysis.autoImportCompletions": true,
     "workbench.colorCustomizations": {
         "activityBar.background": "#1B340A",
         "titleBar.activeBackground": "#26480E",
         "titleBar.activeForeground": "#F4FCEF"
     },
+    "python.analysis.include": [
+        "frontend/"
+    ],
+    "python.analysis.inlayHints.callArgumentNames": "all",
 }

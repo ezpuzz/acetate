@@ -1,6 +1,4 @@
 {
-    "python.analysis.typeCheckingMode": "off",
-    "python.analysis.autoImportCompletions": true,
     "workbench.colorCustomizations": {
         "activityBar.background": "#591127",
         "titleBar.activeBackground": "#7D1736",
