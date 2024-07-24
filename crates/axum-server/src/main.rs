@@ -218,14 +218,14 @@ async fn releases(
                                     }
                                 }
                             },
-                            // {   "wildcard": {
-                            //         f.0[7..]: {
-                            //             "value": format!("*{0}*",f.1),
-                            //             "case_insensitive": true,
-                            //             "boost": "10.0"
-                            //         }
-                            //     }
-                            // },
+                            {   "wildcard": {
+                                    f.0[7..]: {
+                                        "value": format!("*{0}*",f.1),
+                                        "case_insensitive": true,
+                                        "boost": "10.0"
+                                    }
+                                }
+                            },
                             // {   "prefix": {
                             //         f.0[7..]: {
                             //             "value": f.1,
