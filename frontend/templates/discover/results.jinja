@@ -1,4 +1,4 @@
-<div id="results" class="px-2 pb-2 space-y-2 md:space-y-0 gap-2 grow overflow-auto lg:grid grid-cols-2 2xl:grid-cols-3"
+<div id="results" class="px-2 pb-2 space-y-2 lg:space-y-0 gap-2 grow overflow-auto lg:grid grid-cols-2 2xl:grid-cols-3"
     hx-on::after-swap="this.scrollTo(0,0)">
     {% for release in releases %}
     {% include 'discover/release.jinja' %}

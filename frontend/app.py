@@ -264,7 +264,7 @@ async def get_releases(
                 (
                     "value",
                     re.sub(
-                        r"(.*?)\s*-?\s*(\d+)", r"\1 \2", params.get("catno")
+                        r"(.*?)\s*-?\s*(\d+)", r"\1*\2", params.get("catno")
                     ),
                 )
                 if params.get("catno")
