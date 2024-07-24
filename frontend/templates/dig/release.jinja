@@ -44,7 +44,7 @@
                         class="hover:underline line-clamp-3 leading-none">{{release.title}}</a></h2>
                 <div class="text-xs md:text-md leading-none">
                     <span class="text-slate-500 text-xs">by</span>
-                    {{release.artists|map(attribute="name")|join(',')}}
+                    {{release.artists|map(attribute="name")|join(', ')}}
                 </div>
             </div>
 
