@@ -1,11 +1,25 @@
-<div id="results" class="px-2 pb-2 space-y-2 lg:space-y-0 gap-2 grow overflow-auto lg:grid grid-cols-2 2xl:grid-cols-3"
-    hx-on::after-swap="this.scrollTo(0,0)">
-    {% for release in releases %}
-    {% include 'discover/release.jinja' %}
-    {% endfor %}
-</div>
+{% if search_after is not defined %}
+<div id="results-wrapper" class="grow overflow-auto [overflow-anchor:none]">
+    {% endif %}
 
-{% include 'discover/pagination.jinja' %}
+    <div id="results" hx-include="" {% if search_after is defined %} hx-swap-oob="beforeend" {% endif %}
+        class="relative px-2 pb-2 space-y-2 lg:space-y-0 gap-2 lg:grid grid-cols-2 2xl:grid-cols-3">
+        {% for release in releases %}
+        {% include 'discover/release.jinja' %}
+        {% if loop.last %}
+        <form class="absolute size-2 border border-red-600 bottom-[400px]" hx-trigger="intersect once"
+            hx-target="#results" hx-include=".release:last-of-type, #search, #filters, #pagination" hx-get="/discover"
+            hx-swap="none">
+        </form>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    {% if search_after is not defined %}
+</div>
+{% endif %}
+
+{# {% include 'discover/pagination.jinja' %} #}
 {% if htmx %}
 {% set swapoob = true %}
 {% include 'discover/filters.jinja' %}

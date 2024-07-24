@@ -289,6 +289,7 @@ async def get_releases(
             ("value", params.get("identifier"))
             if params.get("identifier")
             else None,
+            ("search_after", params.get("search_after")),
             ("from", offset),
             ("size", page_size),
             (
@@ -353,7 +354,8 @@ async def get_releases(
         hits = int(releases["hits"]["total"]["value"])
 
         releases = [
-            {**r["_source"], "id": r["_id"]} for r in releases["hits"]["hits"]
+            {**r["_source"], "id": r["_id"], "sort": r["sort"]}
+            for r in releases["hits"]["hits"]
         ]
 
         return releases, page, page_size, offset, hits
@@ -387,24 +389,8 @@ async def hide():
 
     async with asyncio.TaskGroup() as tg:
         tg.create_task(hide_release(request.form.get("release_id")))
-        filters = tg.create_task(get_filters())
-        releases = tg.create_task(get_releases(params))
 
-    filters = filters.result()
-    releases, page, page_size, offset, hits = releases.result()
-
-    return render_template(
-        "discover/hidden.jinja",
-        **{
-            "pageSize": page_size,
-            "releases": releases,
-            "hits": hits,
-            "page": page,
-            "from": offset,
-            "filters": filters,
-            **request.form,
-        },
-    )
+    return ""
 
 
 @app.route("/thumb/<release_id>")
