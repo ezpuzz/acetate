@@ -19,6 +19,7 @@ elastic-apm = {version = "^6.22.3", extras = ["flask"]}
 psutil = "^6.0.0"
 httpx = {version = "^0.27.0", extras = ["http2"]}
 requests = "^2.32.3"
+colorhash = "^2.0.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.5"
