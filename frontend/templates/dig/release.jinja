@@ -17,10 +17,10 @@
     {% endif %}
 
     <div class="flex space-x-2 p-2">
-        <div class="flex-grow *:mb-2 last:mb-0">
+        <div class="w-full flex-grow *:mb-2 last:mb-0">
             {# Thumbnail #}
             <div
-                class="float-right ml-2 flex-none w-24 h-24 bg-gray-500 flex items-center justify-center overflow-hidden">
+                class="float-right md:ml-2 flex-none w-24 h-24 bg-gray-500 flex items-center justify-center overflow-hidden">
                 {%if 'user' not in session %}
                 <a href="/login" class="p-2">
                     Login to see covers.
@@ -30,26 +30,37 @@
                 </div>
                 {% endif %}
             </div>
+
             {# Title and Year #}
-            <div class="">
-                <div class="float-right flex flex-col gap-2 items-end">
-                    <div class="rounded bg-slate-200 p-1 leading-none">{{release.released|d()}}</div>
-                    <div class="rounded bg-slate-200 p-1 leading-none">{{release.country|d()}}</div>
+            <div class="leading-none">
+                <div class="float-right text-xs flex flex-col gap-2 items-end">
+                    <div class="rounded max-md:rounded-r-none bg-slate-200 p-1 leading-none">{{release.released|d()}}
+                    </div>
+                    <div class="rounded max-md:rounded-r-none bg-slate-200 p-1 leading-none">{{release.country|d()}}
+                    </div>
                 </div>
 
-                <h2 class="text-lg leading-none"><a target="_blank" href="https://discogs.com/release/{{release.id}}"
-                        class="hover:underline line-clamp-3">{{release.title}}</a></h2>
-                <span class="text-slate-500 text-xs">by</span> {{release.artists|map(attribute="name")|join(', ')}}
-            </div>
-            {# Styles #}
-            <div class="flex flex-wrap gap-2">
-                {% for style in release.styles|d([]) %}
-                <div class="rounded-full bg-slate-200 p-1 leading-none">{{style}}</div>
-                {% endfor %}
+                <h2 class="text-md md:text-lg"><a target="_blank" href="https://discogs.com/release/{{release.id}}"
+                        class="hover:underline line-clamp-3 leading-none">{{release.title}}</a></h2>
+                <div class="text-xs md:text-md leading-none">
+                    <span class="text-slate-500 text-xs">by</span>
+                    {{release.artists|map(attribute="name")|join(',')}}
+                </div>
             </div>
 
+            {# Styles #}
+            {% if release.styles is defined %}
+            <div class="flex flex-wrap gap-1 md:gap-2 text-xs md:text-sm">
+                {% for style in release.styles|d([]) %}
+                <div class="rounded-full px-2 py-1 leading-none" style="background-color: {{style|colorhash}}">
+                    {{style}}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
             {# Data #}
-            <dl class="space-y-2">
+            <dl class="space-y-2 max-sm:mb-0">
                 <div>
                     <dt class="text-xs text-slate-700">Format</dt>{% if release.formats is defined %}
                     {% for f in release.formats %}
@@ -72,7 +83,7 @@
 
                 {% if release.identifiers is defined %}
                 <div>
-                    {% call(id) property("Identifiers", release.identifiers) %}
+                    {% call(id) property("Other Identifiers", release.identifiers, true) %}
                     <span class="block w-full text-ellipsis overflow-hidden text-nowrap">
                         <span class="text-slate-400 text-xs leading-none">{{id.type}}</span>
                         {{id.value}}</span>
@@ -97,6 +108,7 @@
                     {% endfor %}
                 </div>
             </dl>
+
             <div class="hidden sm:block">
                 <dt class="text-xs text-slate-700">Notes</dt>
                 <dd>

@@ -1,6 +1,18 @@
-{% macro property(title, values)%}
+{% macro property(title, values, expandable)%}
+{% set expandable = expandable|d(false) %}
+{% if not expandable %}
 <dt class="text-xs text-slate-700">{{title}}</dt>
 {% for v in values|d([]) %}
 <dd>{{ caller(v) }}</dd>
 {% endfor %}
+{% else %}
+<details>
+    <summary class="cursor-pointer text-xs text-slate-700">{{title}}</summary>
+    <ul>
+        {% for v in values|d([]) %}
+        <li>{{ caller(v) }}</li>
+        {% endfor %}
+    </ul>
+</details>
+{% endif %}
 {% endmacro %}

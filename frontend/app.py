@@ -9,6 +9,7 @@ import httpx
 import werkzeug
 import werkzeug.datastructures
 from authlib.integrations.flask_client import OAuth
+from colorhash import ColorHash
 from dotenv import load_dotenv
 from elasticapm.contrib.flask import ElasticAPM
 from flask import Flask, redirect, render_template, request, session, url_for
@@ -26,6 +27,18 @@ db = SQLAlchemy()
 
 app = Flask(__name__, static_url_path="/public")
 app.jinja_env.undefined = StrictUndefined
+
+
+# set up colorhash filter
+def color_hash_hex(value):
+    return ColorHash(
+        value,
+        lightness=[x / 100 for x in range(50, 92, 7)],
+        saturation=[x / 100 for x in range(20, 54, 2)],
+    ).hex
+
+
+app.jinja_env.filters["colorhash"] = color_hash_hex
 
 if os.environ.get("ELASTIC_APM_ENABLED") != "false":
     app.config["ELASTIC_APM"] = {

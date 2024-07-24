@@ -259,6 +259,20 @@ files = [
 ]
 
 [[package]]
+name = "colorhash"
+version = "2.0.0"
+description = "Generate color based on any object"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "colorhash-2.0.0-py3-none-any.whl", hash = "sha256:560fd010f545ae4d5323c3dd4f664cbc8c8d75555c5766c22b47be64acce722f"},
+    {file = "colorhash-2.0.0.tar.gz", hash = "sha256:f8171ea6bd3e1f3b9345bf837acc35576062c3b78e5048dc0e37651e09e4a118"},
+]
+
+[package.extras]
+dev = ["black", "pillow", "pre-commit", "pytest"]
+
+[[package]]
 name = "cryptography"
 version = "43.0.0"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
@@ -1114,4 +1128,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "db78883be83eabd41bfebe627aa20423a2eae61c420488ed3d1b10441676e86f"
+content-hash = "4c1834b78c93e1dc149b11fad9bb6e8ff980cbe80e04acc5232c7261eace28ef"
