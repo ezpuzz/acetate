@@ -9,6 +9,9 @@
         {#
         <pre class="text-wrap">{{release.videos}}</pre> #}
     </div>
+    {% else %}
+    <div class="w-full aspect-video text-lg text-slate-500 bg-slate-200 flex items-center justify-center">No videos
+        available.</div>
     {% endif %}
 
     <div class="flex space-x-2 p-2">
