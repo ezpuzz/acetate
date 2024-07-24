@@ -22,8 +22,8 @@
                 {%if 'user' not in session %}
                 <a href="/login" class="p-2">
                     Login to see covers.
-                </a>{% else %}<div hx-get="/thumb/{{release.id}}" id="loading{{release.id}}" hx-preserve
-                    hx-trigger="intersect once" hx-swap="innerHTML">
+                </a>{% else %}<div hx-get="/thumb/{{release.id}}" id="loading{{release.id}}" hx-trigger="intersect once"
+                    hx-on::after-swap="event.stopPropagation()">
                     Loading...
                 </div>
                 {% endif %}
