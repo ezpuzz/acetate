@@ -1,0 +1,13 @@
+{% macro thumb(id) %}
+<div class="flex-none size-24 bg-gray-500 flex items-center justify-center overflow-hidden">
+    {%if 'user' not in session %}
+    <a href="/login" class="p-2">
+        Login to see covers.
+    </a>
+    {% else %}
+    <div hx-get="/thumb/{{id}}" hx-trigger="intersect once" hx-on::after-swap="event.stopPropagation()">
+        Loading...
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}

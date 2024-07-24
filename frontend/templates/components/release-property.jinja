@@ -3,7 +3,7 @@
 {% if not expandable %}
 <dt class="text-xs text-slate-700">{{title}}</dt>
 {% for v in values|d([]) %}
-<dd>{{ caller(v) }}</dd>
+<dd class="leading-none">{{ caller(v) }}</dd>
 {% endfor %}
 {% else %}
 <details>
