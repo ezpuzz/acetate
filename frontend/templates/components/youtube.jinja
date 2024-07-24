@@ -1,0 +1,14 @@
+{% macro youtube(videos) %}
+{% if videos is defined %}
+
+<iframe loading="lazy"
+    src="https://www.youtube.com/embed/?playlist={{videos|unique|join(',')}}&version=3&fs=0&enablejsapi=0&rel=0"
+    frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen
+    class="w-full aspect-video"></iframe>
+{% else %}
+<div class="w-full aspect-video text-lg text-slate-500 bg-slate-200 flex items-center justify-center">
+    No videos available.
+</div>
+{% endif %}
+
+{% endmacro %}

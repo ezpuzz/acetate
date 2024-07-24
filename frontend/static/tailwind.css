@@ -684,6 +684,10 @@ video {
   margin-top: 0.5rem;
 }
 
+.-mr-2 {
+  margin-right: -0.5rem;
+}
+
 .line-clamp-3 {
   overflow: hidden;
   display: -webkit-box;
@@ -737,6 +741,11 @@ video {
 .size-8 {
   width: 2rem;
   height: 2rem;
+}
+
+.size-24 {
+  width: 6rem;
+  height: 6rem;
 }
 
 .h-16 {
@@ -1358,6 +1367,10 @@ video {
 
   .md\:ml-2 {
     margin-left: 0.5rem;
+  }
+
+  .md\:mr-0 {
+    margin-right: 0px;
   }
 
   .md\:block {

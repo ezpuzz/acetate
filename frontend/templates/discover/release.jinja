@@ -1,33 +1,17 @@
+{% from "components/youtube.jinja" import youtube %}
+{% from "components/thumb.jinja" import thumb %}
+{% from "components/tags.jinja" import tags %}
+
 <div id="release{{release.id}}" class="rounded border bg-slate-100 shadow" hx-on::after-swap="event.stopPropagation()">
-    {% if release.videos is defined %}
     <div id="videos{{release.id}}" class="w-full">
-        <iframe loading="lazy"
-            src="https://www.youtube.com/embed/?playlist={{release.videos|unique|join(',')}}&version=3&fs=0&enablejsapi=0&rel=0"
-            frameborder="0" allow="accelerometer; autoplay;
-            encrypted-media; gyroscope;
-            picture-in-picture" allowfullscreen class="w-full aspect-video"></iframe>
-        {#
-        <pre class="text-wrap">{{release.videos}}</pre> #}
+        {{ youtube(release.videos) }}
     </div>
-    {% else %}
-    <div class="w-full aspect-video text-lg text-slate-500 bg-slate-200 flex items-center justify-center">No videos
-        available.</div>
-    {% endif %}
 
     <div class="flex space-x-2 p-2">
         <div class="flex-grow sm:w-2/3 *:mb-2 last:mb-0">
             {# Thumbnail #}
-            <div
-                class="float-right ml-2 flex-none w-24 h-24 bg-gray-500 flex items-center justify-center overflow-hidden">
-                {%if 'user' not in session %}
-                <a href="/login" class="p-2">
-                    Login to see covers.
-                </a>{% else %}<div hx-get="/thumb/{{release.id}}" id="loading{{release.id}}" hx-trigger="intersect once"
-                    hx-on::after-swap="event.stopPropagation()">
-                    Loading...
-                </div>
-                {% endif %}
-            </div>
+            <div class="float-right ml-2">{{ thumb(release.id) }}</div>
+
             {# Title and Year #}
             <div class="">
                 <div class="rounded bg-slate-200 float-right p-1 leading-none">{{release.released|d()}}</div>
@@ -35,16 +19,10 @@
                         class="hover:underline line-clamp-3">{{release.title}}</a></h2>
                 <span class="text-slate-500 text-xs">by</span> {{release.artists|map(attribute="name")|join(', ')}}
             </div>
+
             {# Styles #}
-            {% if release.styles is defined %}
-            <div class="flex flex-wrap gap-1 md:gap-2 text-xs md:text-sm">
-                {% for style in release.styles|d([]) %}
-                <div class="rounded-full px-2 py-1 leading-none" style="background-color: {{style|colorhash}}">
-                    {{style}}
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
+            {{ tags(release.styles) }}
+
             {# Data #}
             <dl class="space-y-2">
                 <div class="hidden sm:block">
