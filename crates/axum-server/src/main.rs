@@ -119,6 +119,7 @@ struct QueryParameters {
     masters_only: Option<bool>,
     #[serde(default, deserialize_with = "from_base64")]
     hide: Option<RoaringBitmap>,
+    search_after: Option<String>,
 }
 
 fn from_base64<'a, D>(deserializer: D) -> Result<Option<RoaringBitmap>, D::Error>
@@ -296,7 +297,7 @@ async fn releases(
         }));
     }
 
-    let json = json!({
+    let mut json = json!({
         "query": {
             "bool": {
                 "must": must,
@@ -316,6 +317,9 @@ async fn releases(
                 "released": {
                     "order": "desc"
                 }
+            },
+            {
+                "_doc": {}
             }
         ],
         // The below is cool but really slow.
@@ -343,6 +347,11 @@ async fn releases(
         //     }
         // },
     });
+
+    println!("{:?}", params.0.search_after);
+    if params.0.search_after.is_some() {
+        json["search_after"] = serde_json::from_str(&params.0.search_after.unwrap()).unwrap();
+    }
 
     println!("{}", to_string_pretty(&json).unwrap());
 

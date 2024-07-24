@@ -2,7 +2,10 @@
 {% from "components/thumb.jinja" import thumb %}
 {% from "components/tags.jinja" import tags %}
 
-<div id="release{{release.id}}" class="rounded border bg-slate-100 shadow" hx-on::after-swap="event.stopPropagation()">
+<div id="release{{release.id}}" class="release rounded border bg-slate-100 shadow"
+    hx-on::after-swap="event.stopPropagation()">
+    <input type="hidden" name="search_after" value="{{release.sort}}" />
+
     <div id="videos{{release.id}}" class="w-full">
         {{ youtube(release.videos) }}
     </div>
@@ -67,8 +70,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round"
                             d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
                     </svg><span class="hidden sm:inline">I want this.</span></button>
-                <button hx-post="/hide" hx-target="#release{{release.id}}" hx-trigger="click"
-                    hx-include="#release{{release.id}}, #search, #filters, #pagination"
+                <button hx-post="/hide" hx-target="#release{{release.id}}" hx-trigger="click" hx-swap="delete"
+                    hx-include="closest div, #search, #filters, #pagination"
                     class="border rounded p-2 bg-rose-400 hover:bg-rose-700 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                         stroke="currentColor" class="size-6 sm:size-4 sm:mr-1">
@@ -80,7 +83,7 @@
             <div class="hidden sm:block">
                 <dt class="text-xs text-slate-700">Notes</dt>
                 <dd>
-                    <pre class="text-wrap">{{release.notes|d('')}}</pre>
+                    <pre class="text-wrap overflow-x-auto">{{release.notes|d('')}}</pre>
                 </dd>
             </div>
         </div>
