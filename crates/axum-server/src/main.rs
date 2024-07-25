@@ -169,10 +169,10 @@ async fn releases(
                     "bool": {
                         "should": [
                             {
-                                "match": {"artists.name": {"query": f.1, "boost": 0}}
+                                "match": {"artists.name": {"query": f.1, "boost": 0, "operator": "AND"}}
                             },
                             {
-                                "match": {"artists.anv": {"query": f.1, "boost": 0}}
+                                "match": {"artists.anv": {"query": f.1, "boost": 0, "operator": "AND"}}
                             },
                             ]
                         }
@@ -186,10 +186,10 @@ async fn releases(
                         "bool": {
                             "should": [
                                 {
-                                    "match": {"extraartists.name": {"query": f.1, "boost": 0}}
+                                    "match": {"extraartists.name": {"query": f.1, "boost": 0, "operator": "AND"}}
                                 },
                                 {
-                                    "match": {"extraartists.anv": {"query": f.1, "boost": 0}}
+                                    "match": {"extraartists.anv": {"query": f.1, "boost": 0, "operator": "AND"}}
                                 },
 
                             ]
