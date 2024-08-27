@@ -348,12 +348,12 @@ async fn releases(
         // },
     });
 
-    println!("{:?}", params.0.search_after);
+    // println!("{:?}", params.0.search_after);
     if params.0.search_after.is_some() {
         json["search_after"] = serde_json::from_str(&params.0.search_after.unwrap()).unwrap();
     }
 
-    println!("{}", to_string_pretty(&json).unwrap());
+    // println!("{}", to_string_pretty(&json).unwrap());
 
     let search = client
         .search(elasticsearch::SearchParts::Index(&["releases"]))

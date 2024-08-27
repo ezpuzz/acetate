@@ -17,11 +17,27 @@
         <a href="/" class="text-lg px-2 flex items-center">Acetate</a>
         <nav class="h-full flex-grow">
             <ul class="h-full flex items-stretch gap-4">
-                <li class="cursor-pointer flex items-center hover:bg-gray-200"> <a href="/discover"
-                        class="border-b-4 {% if url_for(request.endpoint) == '/discover' %}border-b-orange-500{%else%}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">Discover</a>
+                <li
+                    class="cursor-pointer flex items-center hover:bg-gray-200 {% if not url_for(request.endpoint) == '/discover' %}underline text-blue-500{% endif %}">
+                    <a href="/discover"
+                        class="border-b-4 {% if url_for(request.endpoint) == '/discover' %}border-b-orange-500{%else%}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">Discover
+                        Latest</a>
                 </li>
-                <li class="cursor-pointer flex items-center hover:bg-gray-200"> <a href="/dig"
+                <li
+                    class="cursor-pointer flex items-center hover:bg-gray-200 {% if not url_for(request.endpoint) == '/dig' %}underline text-blue-500{% endif %}">
+                    <a href="/dig"
                         class="border-b-4 {% if url_for(request.endpoint) == '/dig' %}border-b-orange-500{%else%}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">Dig</a>
+                </li>
+                {# <li class="cursor-pointer flex items-center hover:bg-gray-200">
+                    <a href="/playlist"
+                        class="border-b-4 {% if url_for(request.endpoint) == '/playlist' %}border-b-orange-500{%else%}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">Playlist</a>
+                </li> #}
+                <li
+                    class="cursor-pointer flex items-center hover:bg-gray-200 {% if not url_for(request.endpoint) == '/filter' %}underline text-blue-500{% endif %}">
+                    <a href="/filter"
+                        class="border-b-4 {% if url_for(request.endpoint) == '/filter' %}border-b-orange-500{%else%}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">
+                        Rapid Search
+                    </a>
                 </li>
 
                 {# <li class="relative hover:bg-gray-200">
@@ -39,7 +55,7 @@
                         </svg>
                     </a>
                     <div id="help"
-                        class="hidden group-hover:block group-focus-within:block absolute top-full right-0 bg-white shadow-lg p-4 min-w-32">
+                        class="hidden group-hover:block group-hover:z-10 group-focus-within:block absolute top-full right-0 bg-white shadow-lg p-4 min-w-32">
                         <p>Would love to hear from you:</p>
                         <a class="flex items-center underline text-blue-600" href="mailto:emory+acetate@onlyfor.us">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"

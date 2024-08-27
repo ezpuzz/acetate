@@ -3,6 +3,7 @@ import base64
 import os
 import re
 
+from elasticsearch import Elasticsearch
 import flask
 import flask_htmx
 import httpx
@@ -170,14 +171,16 @@ async def discover():
 
 @app.route("/dig")
 async def dig():
-    async with asyncio.TaskGroup() as tg:
-        filters = tg.create_task(get_filters())
-        releases = tg.create_task(get_releases(request.args, omit_hidden=False))
-
-    filters = filters.result()
-    releases, page, page_size, offset, hits = releases.result()
-
     if htmx and not htmx.boosted:
+        async with asyncio.TaskGroup() as tg:
+            filters = tg.create_task(get_filters())
+            releases = tg.create_task(
+                get_releases(request.args, omit_hidden=False)
+            )
+
+        filters = filters.result()
+        releases, page, page_size, offset, hits = releases.result()
+
         return render_template(
             "dig/results.jinja",
             **{
@@ -190,15 +193,143 @@ async def dig():
                 **request.args,
             },
         )
+
+    async with asyncio.TaskGroup() as tg:
+        filters = tg.create_task(get_filters())
+    filters = filters.result()
+    page_size = int(request.args.get("pageSize", 5))
+    offset = int(
+        request.args.get(
+            "offset", (int(request.args.get("page", 1)) - 1) * page_size
+        )
+    )
+    page = 1 + offset // page_size
+
     return render_template(
         "dig.jinja",
         **{
             "pageSize": page_size,
-            "releases": releases,
-            "hits": hits,
             "page": page,
             "from": offset,
             "filters": filters,
+            "hits": 0,
+            **request.args,
+        },
+    )
+
+
+@app.route("/playlist")
+async def playlist():
+    return render_template("playlist.jinja")
+
+
+es_client = Elasticsearch(
+    cloud_id=os.environ.get("ES_CLOUD_ID", "http://localhost:9200"),
+    basic_auth=("elastic", os.environ.get("ES_PASSWORD", "")),
+)
+
+
+@app.route("/filter")
+async def filter_view():
+    query = request.args.get("search")
+    releases = []
+
+    if query:
+        releases = es_client.search(
+            index="releases",
+            body={
+                "query": {
+                    "bool": {
+                        "should": [
+                            {
+                                "nested": {
+                                    "path": "artists",
+                                    "query": {
+                                        "multi_match": {
+                                            "query": query,
+                                            "fields": [
+                                                "artists.name",
+                                                "artists.anv",
+                                            ],
+                                        }
+                                    },
+                                }
+                            },
+                            {
+                                "nested": {
+                                    "path": "extraartists",
+                                    "query": {
+                                        "multi_match": {
+                                            "query": query,
+                                            "fields": [
+                                                "extraartists.name",
+                                                "extraartists.anv",
+                                            ],
+                                        }
+                                    },
+                                }
+                            },
+                            {
+                                "nested": {
+                                    "path": "labels",
+                                    "query": {
+                                        "multi_match": {
+                                            "query": query,
+                                            "fields": [
+                                                "labels.name",
+                                                "labels.catno^5",
+                                            ],
+                                        }
+                                    },
+                                }
+                            },
+                            {
+                                "nested": {
+                                    "path": "identifiers",
+                                    "query": {
+                                        "multi_match": {
+                                            "query": query,
+                                            "fields": [
+                                                "identifiers.value",
+                                            ],
+                                        }
+                                    },
+                                }
+                            },
+                            {
+                                "multi_match": {
+                                    "query": query,
+                                    "fields": ["title", "released.keyword"],
+                                }
+                            },
+                        ]
+                    }
+                },
+                "size": 100,
+            },
+        )
+
+    if htmx and not htmx.boosted:
+        return render_template(
+            "search.jinja",
+            **{
+                "releases": [
+                    {"id": r["_id"], **r["_source"]}
+                    for r in releases["hits"]["hits"]
+                ],
+                **request.args,
+            },
+        )
+
+    return render_template(
+        "filter.jinja",
+        **{
+            "releases": [
+                {"id": r["_id"], **r["_source"]}
+                for r in releases["hits"]["hits"]
+            ]
+            if releases
+            else [],
             **request.args,
         },
     )
@@ -391,6 +522,16 @@ async def hide():
         tg.create_task(hide_release(request.form.get("release_id")))
 
     return ""
+
+
+@app.route("/release/<release_id>")
+def release(release_id):
+    release = es_client.get(index="releases", id=release_id)
+    release = {**release["_source"], "id": release["_id"]}
+    return render_template(
+        "discover/release.jinja",
+        release=release,
+    )
 
 
 @app.route("/thumb/<release_id>")

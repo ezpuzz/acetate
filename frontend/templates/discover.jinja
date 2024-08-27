@@ -30,7 +30,10 @@
 </form>
 
 
-{% include 'discover/results.jinja' %}
+<div id="results" hx-get="/discover" hx-trigger="load" hx-swap="outerHTML">
+    <img alt="Results loading..." class="htmx-indicator" />
+</div>
+
 
 {% include 'discover/filters.jinja' %}
 {% endblock %}

@@ -1,0 +1,13 @@
+<div id="results" class="overflow-auto space-y-2">
+    {% for release in releases|d([]) %}
+    <div class="hover:bg-slate-200 rounded p-2 cursor-pointer" hx-get="/release/{{release.id}}" hx-target="#details">
+        <div class="text-xl">
+            {% if release.released is defined %}
+            <div class="rounded bg-slate-200 float-right p-1 leading-none">{{release.released|d()}}</div>
+            {% endif %}
+            {{release.title}}
+        </div>
+        <div>{{release.artists|map(attribute="name")|join(', ')}}</div>
+    </div>
+    {% endfor %}
+</div>

@@ -17,7 +17,6 @@
     </div>
 
 </form>
-</form>
 
 <div class="flex grow min-h-0">
     <div id="filters" class="w-24 sm:w-48 shrink-0 h-full flex flex-col">
@@ -31,9 +30,9 @@
             <label class="border p-1 sm:p-px rounded-lg sm:border-none has-[:checked]:bg-blue-400 flex
                 mb-1 sm:mb-0 items-center leading-tight hyphens-auto break-normal text-ellipsis overflow-hidden"><input
                     class="peer hidden sm:block mr-1" hx-get="/dig" hx-target="#results" hx-swap="morph"
-                    hx-include="#search, #filters, #pagination" type="checkbox" hx-vals='{"page": "1"}' name="{{field}}"
-                    value='{{v["key"]}}' hx-push-url="true" {% if v["key"] in request.args.getlist(field) %}checked{%
-                    endif %} />
+                    hx-sync="#results:replace" hx-include="#search, #filters, #pagination" type="checkbox"
+                    hx-vals='{"page": "1"}' name="{{field}}" value='{{v["key"]}}' hx-push-url="true" {% if v["key"] in
+                    request.args.getlist(field) %}checked{% endif %} />
                 {{v["key"]}}
             </label>
             {% endfor %}
@@ -41,6 +40,9 @@
         </div>
     </div>
 
-    {% include 'dig/results.jinja' %}
+    <div id="results" hx-get="/dig" hx-trigger="load" hx-swap="outerHTML">
+        <img alt="Results loading..." class="htmx-indicator" />
+        {% include 'dig/pagination.jinja' %}
+    </div>
 </div>
 {% endblock %}

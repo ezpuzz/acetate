@@ -63,8 +63,8 @@
                 </div>
                 {% endif %}
 
-                <div id="prices{{release.id}}" hx-get="/prices/{{release.id}}" hx-trigger="intersect once"
-                    hx-on::after-swap="event.stopPropagation()">
+                <div id="prices{{release.id}}" {% if 'user' in session %}hx-get="/prices/{{release.id}}"
+                    hx-trigger="intersect once" hx-on::after-swap="event.stopPropagation()" {% endif%}>
                     {{property("Prices")}}
                     {%if 'user' not in session %}
                     Log in to see prices.
