@@ -41,7 +41,7 @@
     </div>
 
     <div id="results" class="flex flex-col min-w-0 grow items-center" hx-get="/dig" hx-trigger="load"
-        hx-swap="outerHTML">
+        hx-swap="outerHTML" hx-include="#search, #filters, #pagination">
         <svg alt="Results loading..." class="grow size-48" version="1.1" id="L9" xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 100 100"
             enable-background="new 0 0 0 0" xml:space="preserve">
