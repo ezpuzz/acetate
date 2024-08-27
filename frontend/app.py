@@ -133,14 +133,14 @@ async def discover():
 
     args.update(extra_args)
 
-    async with asyncio.TaskGroup() as tg:
-        filters = tg.create_task(get_filters())
-        releases = tg.create_task(get_releases(args))
-
-    filters = filters.result()
-    releases, page, page_size, offset, hits = releases.result()
-
     if htmx and not htmx.boosted:
+        async with asyncio.TaskGroup() as tg:
+            filters = tg.create_task(get_filters())
+            releases = tg.create_task(get_releases(args))
+
+        filters = filters.result()
+        releases, page, page_size, offset, hits = releases.result()
+
         return render_template(
             "discover/results.jinja",
             **{
@@ -154,12 +154,24 @@ async def discover():
                 **request.args,
             },
         )
+
+    async with asyncio.TaskGroup() as tg:
+        filters = tg.create_task(get_filters())
+
+    filters = filters.result()
+    page_size = int(request.args.get("pageSize", 5))
+    offset = int(
+        request.args.get(
+            "offset", (int(request.args.get("page", 1)) - 1) * page_size
+        )
+    )
+    page = 1 + offset // page_size
+
     return render_template(
         "discover.jinja",
         **{
             "pageSize": page_size,
-            "releases": releases,
-            "hits": hits,
+            "hits": 0,
             "page": page,
             "from": offset,
             "filters": filters,
