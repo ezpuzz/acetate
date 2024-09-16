@@ -260,8 +260,8 @@ async def filter_view():
                                         "multi_match": {
                                             "query": query,
                                             "fields": [
-                                                "artists.name",
-                                                "artists.anv",
+                                                "artists.name^20",
+                                                "artists.anv^10",
                                             ],
                                         }
                                     },
@@ -309,9 +309,22 @@ async def filter_view():
                                 }
                             },
                             {
+                                "nested": {
+                                    "path": "tracklist",
+                                    "query": {
+                                        "multi_match": {
+                                            "query": query,
+                                            "fields": [
+                                                "tracklist.title^10",
+                                            ],
+                                        }
+                                    },
+                                }
+                            },
+                            {
                                 "multi_match": {
                                     "query": query,
-                                    "fields": ["title", "released.keyword"],
+                                    "fields": ["title", "released.keyword^30"],
                                 }
                             },
                         ]
@@ -341,6 +354,61 @@ async def filter_view():
                 for r in releases["hits"]["hits"]
             ]
             if releases
+            else [],
+            **request.args,
+        },
+    )
+
+
+@app.route("/by_artist")
+def by_artist():
+    query = request.args.get("search")
+    artists = []
+
+    if query:
+        artists = es_client.search(
+            index="artists",
+            body={
+                "query": {
+                    "multi_match": {
+                        "type": "bool_prefix",
+                        "operator": "and",
+                        "max_expansions": 200,
+                        "fields": [
+                            "name",
+                            "name.folded",
+                            "namevariations",
+                            "namevariations.folded",
+                            "realname",
+                            "realname.folded",
+                        ],
+                        "query": query,
+                    },
+                },
+                "size": 100,
+            },
+        )
+
+    if htmx and not htmx.boosted:
+        return render_template(
+            "by_artist/results.jinja",
+            **{
+                "artists": [
+                    {"id": r["_id"], **r["_source"]}
+                    for r in artists["hits"]["hits"]
+                ],
+                **request.args,
+            },
+        )
+
+    return render_template(
+        "by_artist.jinja",
+        **{
+            "artists": [
+                {"id": r["_id"], **r["_source"]}
+                for r in artists["hits"]["hits"]
+            ]
+            if artists
             else [],
             **request.args,
         },
@@ -534,6 +602,48 @@ async def hide():
         tg.create_task(hide_release(request.form.get("release_id")))
 
     return ""
+
+
+@app.route("/artist/<artist_id>")
+def artist(artist_id):
+    artist = es_client.get(index="artists", id=artist_id)
+    artist = {**artist["_source"], "id": artist["_id"]}
+    return render_template(
+        "by_artist/artist.jinja",
+        artist=artist,
+    )
+
+
+@app.route("/artist/<artist_id>/releases")
+def artist_releases(artist_id):
+    artist = es_client.get(index="artists", id=artist_id)
+    artist = {**artist["_source"], "id": artist["_id"]}
+
+    releases = es_client.search(
+        index="releases",
+        body={
+            "query": {
+                "nested": {
+                    "path": "artists",
+                    "query": {
+                        "terms": {
+                            "artists.id": [
+                                artist_id,
+                                *[g["id"] for g in (artist.get("groups", []))],
+                                *[a["id"] for a in artist.get("aliases", [])],
+                            ]
+                        }
+                    },
+                }
+            },
+            "sort": [{"released": {"order": "asc"}}],
+        },
+        size=500,
+    )
+    return render_template(
+        "by_artist/releases.jinja",
+        releases=releases,
+    )
 
 
 @app.route("/release/<release_id>")
