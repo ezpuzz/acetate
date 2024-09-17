@@ -1,51 +1,43 @@
-<h2 class="text-xl my-2">{{artist.name}}</h2>
-<details class="text-sm text-slate-500 cursor-pointer">
+{% from "by_artist/artist-property.jinja" import property %}
+
+<h2 class="text-xl">{{artist.name}}</h2>
+<details class="text-sm text-slate-500 cursor-pointer mb-2">
     <summary class="text-sm text-slate-500 cursor-pointer">
         JSON
     </summary>
     {{artist|tojson(indent=4)}}
 </details>
 <dl class="space-y-2">
-    <div>
-        <dt class="text-xs text-slate-700">Profile</dt>
-        <dd>{{artist.profile|d()}}</dd>
-    </div>
+    {% call(v) property("Profile", [artist.profile|d()], true) %}
+    {{ v }}
+    {% endcall%}
 
-    <div>
-        <dt class="text-xs text-slate-700">Real Name</dt>
-        <div class="flex flex-wrap gap-1">
-            {{artist.realname|d()}}
-        </div>
-    </div>
+    {% call(v) property("Real Name", [artist.realname|d()], true) %}
+    {{ v }}
+    {% endcall%}
 
-    <div>
-        <dt class="text-xs text-slate-700">Name Variations</dt>
-        <div class="flex flex-wrap gap-1">
-            {% for alias in artist.namevariations|d() %}
-            <dd class="rounded-full px-2 bg-gray-300 text-xs">{{alias}}</dd>
-            {% endfor %}
-        </div>
-    </div>
+    {% call(v) property("Name Variations", artist.namevariations|d(), true) %}
+    <span class="rounded-full px-2 bg-gray-300 text-xs">{{v}}</span>
+    {% endcall%}
 
-    <div>
-        <dt class="text-xs text-slate-700">Aliases</dt>
-        <div class="flex flex-wrap gap-1">
-            {% for alias in artist.aliases|d() %}
-            <dd class="rounded-full px-2 bg-gray-300 text-xs"><a href=""
-                    class="text-blue-500 underline">{{alias['#text']}}</a></dd>
-            {% endfor %}
-        </div>
-    </div>
+    {% call(v) property("Aliases", artist.aliases|d()) %}
+    <span class="rounded-full px-2 bg-gray-300 text-xs">
+        <a href="/by_artist?search={{v['#text']}}" class="text-blue-500 underline">{{v['#text']}}</a>
+    </span>
+    {% endcall%}
 
-    <div>
-        <dt class="text-xs text-slate-700">Groups</dt>
-        <div class="flex flex-wrap gap-1">
-            {% for group in artist.groups|d() %}
-            <dd class="rounded-full p-1 bg-gray-300 text-xs"><a href=""
-                    class="text-blue-500 underline">{{group['#text']}}</a></dd>
-            {% endfor %}
-        </div>
-    </div>
+    {% call(v) property("Groups", artist.groups|d()) %}
+    <span class="rounded-full px-2 bg-gray-300 text-xs">
+        <a href="/by_artist?search={{v['#text']}}" class="text-blue-500 underline">{{v['#text']}}</a>
+    </span>
+    {% endcall%}
+
+    {% call(v) property("Members", (artist.members|d()).name|d()) %}
+    <span class="rounded-full px-2 bg-gray-300 text-xs">
+        <a href="/by_artist?search={{v['#text']}}" class="text-blue-500 underline">{{v['#text']}}</a>
+    </span>
+    {% endcall%}
+
     <div>
         <dt class="text-xs text-slate-700">Releases</dt>
         <div class="space-y-1" hx-get="/artist/{{artist.id}}/releases" hx-trigger="load">
