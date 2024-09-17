@@ -440,7 +440,62 @@ def want():
         timeout=5,
     )
     wants.raise_for_status()
+
+    bitmap = db.session.scalar(
+        db.select(User.wantlist).where(
+            User.discogs_user_id == session.get("user").get("id")
+        )
+    )
+    wants = []
+    if bitmap:
+        wants = BitMap.deserialize(bitmap)
+
+    wants.add(int(request.form.get("release_id")))
+
+    stmt = (
+        update(User)
+        .where(User.discogs_user_id == session.get("user").get("id"))
+        .values(wantlist=BitMap.serialize(wants))
+    )
+    db.session.execute(stmt)
+    db.session.commit()
+
     return render_template("discover/wanted.jinja")
+
+
+@app.post("/unwant")
+def unwant():
+    if not request.form.get("release_id") or "user" not in session:
+        return flask_htmx.make_response(redirect="/login")
+
+    username = session["user"]["username"]
+
+    wants = oauth.discogs.delete(
+        f"https://api.discogs.com/users/{username}/wants/{request.form.get('release_id')}",
+        timeout=10,
+    )
+    wants.raise_for_status()
+
+    bitmap = db.session.scalar(
+        db.select(User.wantlist).where(
+            User.discogs_user_id == session.get("user").get("id")
+        )
+    )
+    wants = []
+    if bitmap:
+        wants = BitMap.deserialize(bitmap)
+
+    wants.remove(int(request.form.get("release_id")))
+
+    stmt = (
+        update(User)
+        .where(User.discogs_user_id == session.get("user").get("id"))
+        .values(wantlist=BitMap.serialize(wants))
+    )
+    db.session.execute(stmt)
+    db.session.commit()
+
+    return render_template("discover/unwanted.jinja")
 
 
 async def get_filters():
@@ -785,7 +840,20 @@ def artist_releases(artist_id):
 @app.route("/release/<release_id>")
 def release(release_id):
     release = es_client.get(index="releases", id=release_id)
-    release = {**release["_source"], "id": release["_id"]}
+    bitmap = db.session.scalar(
+        db.select(User.wantlist).where(
+            User.discogs_user_id == session.get("user").get("id")
+        )
+    )
+    wants = []
+    if bitmap:
+        wants = BitMap.deserialize(bitmap)
+
+    release = {
+        **release["_source"],
+        "id": release["_id"],
+        "wanted": int(release["_id"]) in wants,
+    }
     return render_template(
         "discover/release.jinja",
         release=release,
