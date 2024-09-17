@@ -2,17 +2,19 @@ import asyncio
 import base64
 import os
 import re
+from time import sleep
 
-from elasticsearch import Elasticsearch
 import flask
 import flask_htmx
 import httpx
+from sqlalchemy import update
 import werkzeug
 import werkzeug.datastructures
 from authlib.integrations.flask_client import OAuth
 from colorhash import ColorHash
 from dotenv import load_dotenv
 from elasticapm.contrib.flask import ElasticAPM
+from elasticsearch import Elasticsearch
 from flask import Flask, redirect, render_template, request, session, url_for
 from flask_htmx import HTMX
 from flask_sqlalchemy import SQLAlchemy
@@ -260,8 +262,8 @@ async def filter_view():
                                         "multi_match": {
                                             "query": query,
                                             "fields": [
-                                                "artists.name^20",
-                                                "artists.anv^10",
+                                                "artists.name^5",
+                                                "artists.anv^2",
                                             ],
                                         }
                                     },
@@ -315,7 +317,7 @@ async def filter_view():
                                         "multi_match": {
                                             "query": query,
                                             "fields": [
-                                                "tracklist.title^10",
+                                                "tracklist.title",
                                             ],
                                         }
                                     },
@@ -324,7 +326,18 @@ async def filter_view():
                             {
                                 "multi_match": {
                                     "query": query,
-                                    "fields": ["title", "released.keyword^30"],
+                                    "fields": [
+                                        "released.keyword^30",
+                                        "styles",
+                                    ],
+                                }
+                            },
+                            {
+                                "match_phrase_prefix": {
+                                    "title": {
+                                        "query": query,
+                                        "boost": 5,
+                                    },
                                 }
                             },
                         ]
@@ -623,23 +636,146 @@ def artist_releases(artist_id):
         index="releases",
         body={
             "query": {
-                "nested": {
-                    "path": "artists",
-                    "query": {
-                        "terms": {
-                            "artists.id": [
-                                artist_id,
-                                *[g["id"] for g in (artist.get("groups", []))],
-                                *[a["id"] for a in artist.get("aliases", [])],
-                            ]
-                        }
-                    },
+                "bool": {
+                    "should": [
+                        {
+                            "nested": {
+                                "path": "artists",
+                                "query": {
+                                    "terms": {
+                                        "artists.id": [
+                                            artist_id,
+                                            *[
+                                                g["id"]
+                                                for g in (
+                                                    artist.get("groups", [])
+                                                )
+                                            ],
+                                            *[
+                                                a["id"]
+                                                for a in artist.get(
+                                                    "aliases", []
+                                                )
+                                            ],
+                                        ]
+                                    }
+                                },
+                            },
+                        },
+                        {
+                            "nested": {
+                                "path": "extraartists",
+                                "query": {
+                                    "terms": {
+                                        "extraartists.id": [
+                                            artist_id,
+                                            *[
+                                                g["id"]
+                                                for g in (
+                                                    artist.get("groups", [])
+                                                )
+                                            ],
+                                            *[
+                                                a["id"]
+                                                for a in artist.get(
+                                                    "aliases", []
+                                                )
+                                            ],
+                                        ]
+                                    }
+                                },
+                            },
+                        },
+                        {
+                            "nested": {
+                                "path": "tracklist",
+                                "query": {
+                                    "nested": {
+                                        "path": "tracklist.artists",
+                                        "query": {
+                                            "terms": {
+                                                "tracklist.artists.id": [
+                                                    artist_id,
+                                                    *[
+                                                        g["id"]
+                                                        for g in (
+                                                            artist.get(
+                                                                "groups", []
+                                                            )
+                                                        )
+                                                    ],
+                                                    *[
+                                                        a["id"]
+                                                        for a in artist.get(
+                                                            "aliases", []
+                                                        )
+                                                    ],
+                                                ]
+                                            }
+                                        },
+                                    }
+                                },
+                            },
+                        },
+                        {
+                            "nested": {
+                                "path": "tracklist",
+                                "query": {
+                                    "nested": {
+                                        "path": "tracklist.extraartists",
+                                        "query": {
+                                            "terms": {
+                                                "tracklist.extraartists.id": [
+                                                    artist_id,
+                                                    *[
+                                                        g["id"]
+                                                        for g in (
+                                                            artist.get(
+                                                                "groups", []
+                                                            )
+                                                        )
+                                                    ],
+                                                    *[
+                                                        a["id"]
+                                                        for a in artist.get(
+                                                            "aliases", []
+                                                        )
+                                                    ],
+                                                ]
+                                            }
+                                        },
+                                    }
+                                },
+                            },
+                        },
+                    ]
                 }
             },
             "sort": [{"released": {"order": "asc"}}],
         },
         size=500,
     )
+
+    releases = releases["hits"]["hits"]
+    bitmap = db.session.scalar(
+        db.select(User.wantlist).where(
+            User.discogs_user_id == session.get("user").get("id")
+        )
+    )
+    wants = []
+    if bitmap:
+        wants = BitMap.deserialize(bitmap)
+
+    print(wants)
+    releases = [
+        {
+            "id": r["_id"],
+            **r["_source"],
+            "wanted": int(r["_id"]) in wants,
+        }
+        for r in releases
+    ]
+
     return render_template(
         "by_artist/releases.jinja",
         releases=releases,
@@ -712,19 +848,39 @@ def get_price(release_id):
     )
 
 
-@app.route("/wants")
+@app.post("/wants")
 def wantlist():
     username = session["user"]["username"]
-    wants = oauth.discogs.get(
-        f"https://api.discogs.com/users/{username}/wants",
-        timeout=5,
+    bitmap = BitMap()
+    url = f"https://api.discogs.com/users/{username}/wants?per_page=100&page=1"
+
+    while url:
+        print("Requesting", url)
+        wants = oauth.discogs.get(
+            url,
+            timeout=60,
+        )
+        try:
+            wants.raise_for_status()
+        except Exception as e:
+            print("Timeout, retrying", e)
+            sleep(5)
+            continue
+        wants = wants.json()
+        bitmap.update(w["id"] for w in wants["wants"])
+        url = wants["pagination"]["urls"].get("next", None)
+
+    print(bitmap)
+
+    stmt = (
+        update(User)
+        .where(User.discogs_user_id == session.get("user").get("id"))
+        .values(wantlist=BitMap.serialize(bitmap))
     )
-    wants.raise_for_status()
-    wants = wants.json()
-    return render_template(
-        "wants.jinja",
-        **{"pageSize": 25, "wants": wants, **request.args},
-    )
+    db.session.execute(stmt)
+    db.session.commit()
+
+    return ""
 
 
 @app.route("/login")

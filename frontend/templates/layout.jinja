@@ -55,6 +55,7 @@
                 <div class="flex-grow"></div>
                 <div class="flex items-center relative group">
                     <a href="#help">
+                        {# help symbol #}
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-8">
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -65,6 +66,7 @@
                         class="hidden group-hover:block group-hover:z-10 group-focus-within:block absolute top-full right-0 bg-white shadow-lg p-4 min-w-32">
                         <p>Would love to hear from you:</p>
                         <a class="flex items-center underline text-blue-600" href="mailto:emory+acetate@onlyfor.us">
+                            {# email symbol #}
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor" class="size-6 mr-2">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -73,6 +75,7 @@
                         </a>
                         <a class="flex items-center underline text-blue-600"
                             href="https://wa.me/12404463513?text=Help%20me%20with%20Acetate">
+                            {# whatsapp symbol #}
                             <svg fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" class="size-5 mr-2"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <title>WhatsApp</title>
@@ -82,6 +85,79 @@
                         </a>
                     </div>
                 </div>
+
+                <button class="flex items-center border rounded my-2 px-2 hover:bg-slate-300 shadow" hx-post="/wants"
+                    hx-swap="none">
+                    Refresh Wantlist
+                    {# spinner #}
+                    <svg class="ml-2 htmx-indicator size-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <style>
+                            .spinner_Wezc {
+                                transform-origin: center;
+                                animation: spinner_Oiah .75s step-end infinite
+                            }
+
+                            @keyframes spinner_Oiah {
+                                8.3% {
+                                    transform: rotate(30deg)
+                                }
+
+                                16.6% {
+                                    transform: rotate(60deg)
+                                }
+
+                                25% {
+                                    transform: rotate(90deg)
+                                }
+
+                                33.3% {
+                                    transform: rotate(120deg)
+                                }
+
+                                41.6% {
+                                    transform: rotate(150deg)
+                                }
+
+                                50% {
+                                    transform: rotate(180deg)
+                                }
+
+                                58.3% {
+                                    transform: rotate(210deg)
+                                }
+
+                                66.6% {
+                                    transform: rotate(240deg)
+                                }
+
+                                75% {
+                                    transform: rotate(270deg)
+                                }
+
+                                83.3% {
+                                    transform: rotate(300deg)
+                                }
+
+                                91.6% {
+                                    transform: rotate(330deg)
+                                }
+
+                                100% {
+                                    transform: rotate(360deg)
+                                }
+                            }
+                        </style>
+                        <g class="spinner_Wezc">
+                            <circle cx="12" cy="2.5" r="1.5" opacity=".14" />
+                            <circle cx="16.75" cy="3.77" r="1.5" opacity=".29" />
+                            <circle cx="20.23" cy="7.25" r="1.5" opacity=".43" />
+                            <circle cx="21.50" cy="12.00" r="1.5" opacity=".57" />
+                            <circle cx="20.23" cy="16.75" r="1.5" opacity=".71" />
+                            <circle cx="16.75" cy="20.23" r="1.5" opacity=".86" />
+                            <circle cx="12" cy="21.5" r="1.5" />
+                        </g>
+                    </svg>
+                </button>
 
                 {# <li class="cursor-pointer px-2 flex items-center hover:bg-gray-200">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"

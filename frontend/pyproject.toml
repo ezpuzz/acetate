@@ -21,6 +21,7 @@ httpx = {version = "^0.27.0", extras = ["http2"]}
 requests = "^2.32.3"
 colorhash = "^2.0.0"
 elasticsearch = {version = "^8.15.0", extras = ["async"]}
+roaringbitmap = "^0.7.2"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.5"

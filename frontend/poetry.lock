@@ -1259,6 +1259,16 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
+name = "roaringbitmap"
+version = "0.7.2"
+description = "Roaring Bitmap"
+optional = false
+python-versions = "*"
+files = [
+    {file = "roaringbitmap-0.7.2.tar.gz", hash = "sha256:bfe049fd9f200a011081ea5e4b2746d0c35256c755cd78886e375a0ef473fa0d"},
+]
+
+[[package]]
 name = "ruff"
 version = "0.5.4"
 description = "An extremely fast Python linter and code formatter, written in Rust."
@@ -1613,4 +1623,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "c01902d453d85d02d5e10c5e51abc834f36714bdcbcc3f57d24dfa951186e624"
+content-hash = "ff2ab1d2994229a3203401f24e0ccece4cc135a2a6cabdb0b03c02aa53364c53"

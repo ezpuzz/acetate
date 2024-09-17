@@ -1,11 +1,16 @@
-{% for release in releases['hits']['hits'] %}
-<div class="hover:bg-slate-200 rounded p-2 cursor-pointer" hx-get="/release/{{release['_id']}}" hx-target="#release">
+{% for release in releases %}
+<div class="hover:bg-slate-200 rounded p-2 cursor-pointer" hx-get="/release/{{release['id']}}" hx-target="#release">
     <div class="text-xl">
-        {% if release['_source']['released'] is defined %}
-        <div class="rounded bg-slate-200 float-right p-1 leading-none">{{release['_source']['released']}}</div>
+        {% if release['released'] is defined %}
+        <div class="rounded bg-slate-200 float-right p-1 leading-none">{{release['released']}}</div>
         {% endif %}
-        {{release['_source']['title']}}
+
+        {% if release['wanted'] %}
+        <div class="rounded bg-slate-200 float-right p-1 leading-none">Wanted</div>
+        {% endif %}
+
+        {{release['title']}}
     </div>
-    <div>{{release['_source']['artists']|map(attribute="name")|join(', ')}}</div>
+    <div>{{release['artists']|map(attribute="name")|join(', ')}}</div>
 </div>
 {% endfor %}
