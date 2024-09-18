@@ -67,7 +67,7 @@
 
         </div>
         <div class="shrink-0 sm:w-1/3 space-y-2">
-            <div class="text-xs sm:text-sm grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="text-xs sm:text-sm space-y-2">
                 <div class="col-span-2 flex items-center gap-2">
                     <a target="_blank"
                         href="https://youtube.com/search?q={{release.title}} {{release.artists|map(attribute='name')|join(' ')}}">
@@ -97,15 +97,15 @@
                         </svg>
                     </a>
                 </div>
-                <input type="hidden" name="release_id" value="{{release.id}}" />
-
-                {% if release['wanted']|d(false) %}
-                {% include 'discover/wanted.jinja' %}
-                {% else %}
-                {% include 'discover/unwanted.jinja' %}
-                {% endif %}
-
-                {% include 'discover/hide.jinja' %}
+                <div class="flex flex-wrap gap-2">
+                    <input type="hidden" name="release_id" value="{{release.id}}" />
+                    {% if release['wanted']|d(false) %}
+                    {% include 'discover/wanted.jinja' %}
+                    {% else %}
+                    {% include 'discover/unwanted.jinja' %}
+                    {% endif %}
+                    {% include 'discover/hide.jinja' %}
+                </div>
             </div>
             <div class="hidden sm:block">
                 <dt class="text-xs text-slate-700">Notes</dt>
