@@ -126,7 +126,7 @@ def old_releases_endpoint():
 @app.route("/")
 @app.route("/discover")
 async def discover():
-    extra_args = {}
+    extra_args = {"pageSize": 10}
 
     if "videos_only" not in request.args:
         extra_args["videos_only"] = "on"
@@ -151,21 +151,10 @@ async def discover():
         )
 
     filters = await get_filters()
-    page_size = int(request.args.get("pageSize", 5))
-    offset = int(
-        request.args.get(
-            "offset", (int(request.args.get("page", 1)) - 1) * page_size
-        )
-    )
-    page = 1 + offset // page_size
 
     return render_template(
         "discover.jinja",
         **{
-            "pageSize": page_size,
-            "hits": 0,
-            "page": page,
-            "from": offset,
             "filters": filters,
             "htmx": htmx,
             **request.args,
@@ -851,19 +840,11 @@ def artist_releases(artist_id):
 @app.route("/release/<release_id>")
 def release(release_id):
     release = es_client.get(index="releases", id=release_id)
-    bitmap = db.session.scalar(
-        db.select(User.wantlist).where(
-            User.discogs_user_id == session.get("user").get("id")
-        )
-    )
-    wants = []
-    if bitmap:
-        wants = BitMap.deserialize(bitmap)
 
     release = {
         **release["_source"],
         "id": release["_id"],
-        "wanted": int(release["_id"]) in wants,
+        "wanted": int(release["_id"]) in load_wantlist(),
     }
     return render_template(
         "discover/release.jinja",
