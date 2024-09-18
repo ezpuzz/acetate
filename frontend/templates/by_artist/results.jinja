@@ -1,7 +1,8 @@
 <div id="results" class="overflow-auto space-y-2">
     {% for artist in artists|d([]) %}
-    <a id="artist{{artist.id}}" class="block hover:bg-slate-200 rounded p-2 cursor-pointer target:bg-slate-300"
-        hx-get="/artist/{{artist.id}}" hx-target="#details" hx-include="#search">
+    <a id="artist{{artist.id}}" href="#column-2"
+        class="block hover:bg-slate-200 rounded p-2 cursor-pointer target:bg-slate-300" hx-get="/artist/{{artist.id}}"
+        hx-target="#details" hx-include="#search">
         <div class="text-xl">
             {{artist.name}}
         </div>

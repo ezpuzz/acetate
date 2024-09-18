@@ -1,6 +1,7 @@
 {% macro release_small(release, swapoob=false) %}
-<div id="release-small-{{release.id}}" {% if swapoob %} hx-swap-oob="morph" {% endif %}
-    class="hover:bg-slate-200 rounded p-2 cursor-pointer" hx-get="/release/{{release['id']}}" hx-target="#release">
+<a id="release-small-{{release.id}}" {% if swapoob %} hx-swap-oob="morph" {% endif %}
+    class="block hover:bg-slate-200 rounded p-2 cursor-pointer" hx-get="/release/{{release['id']}}" hx-target="#release"
+    href="#column-3">
     <div class="text-xl">
         {% if release['released'] is defined %}
         <div class="rounded bg-slate-200 float-right p-1 leading-none">{{release['released']}}</div>
@@ -19,5 +20,5 @@
         {{release['title']}}
     </div>
     <div>{{release['artists']|map(attribute="name")|join(', ')}}</div>
-</div>
+</a>
 {% endmacro %}

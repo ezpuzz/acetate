@@ -41,6 +41,7 @@
     <div>
         <dt class="text-xs text-slate-700">Releases</dt>
         <div class="space-y-1" hx-get="/artist/{{artist.id}}/releases" hx-include="#search" hx-trigger="load">
+            {% include 'components/loader.jinja' %}
         </div>
     </div>
 </dl>
