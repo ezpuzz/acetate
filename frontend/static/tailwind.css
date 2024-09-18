@@ -1391,6 +1391,14 @@ video {
     top: 6rem;
   }
 
+  .md\:top-12 {
+    top: 3rem;
+  }
+
+  .md\:top-14 {
+    top: 3.5rem;
+  }
+
   .md\:mr-0 {
     margin-right: 0px;
   }
