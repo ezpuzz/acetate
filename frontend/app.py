@@ -351,23 +351,26 @@ async def filter_view():
     )
 
 
-def enrich_releases(releases):
-    bitmap = db.session.scalar(
-        db.select(User.wantlist).where(
-            User.discogs_user_id == session.get("user").get("id")
+def load_wantlist():
+    if "user" in session:
+        bitmap = db.session.scalar(
+            db.select(User.wantlist).where(
+                User.discogs_user_id == session.get("user").get("id")
+            )
         )
-    )
-    wants = []
-    if bitmap:
-        wants = BitMap.deserialize(bitmap)
+        if bitmap:
+            return BitMap.deserialize(bitmap)
+    return []
 
+
+def enrich_releases(releases):
     return (
         [
             {
                 **r["_source"],
                 "id": r["_id"],
                 "sort": r.get("sort"),
-                "wanted": int(r["_id"]) in wants,
+                "wanted": int(r["_id"]) in load_wantlist(),
             }
             for r in releases["hits"]["hits"]
         ]
@@ -440,6 +443,7 @@ def by_artist():
 @app.post("/want")
 def want():
     release_id = request.form.get("release_id")
+
     if not release_id or "user" not in session:
         return flask_htmx.make_response(redirect="/login")
 
@@ -451,14 +455,7 @@ def want():
     )
     wants.raise_for_status()
 
-    bitmap = db.session.scalar(
-        db.select(User.wantlist).where(
-            User.discogs_user_id == session.get("user").get("id")
-        )
-    )
-    wants = []
-    if bitmap:
-        wants = BitMap.deserialize(bitmap)
+    wants = load_wantlist()
 
     wants.add(int(release_id))
 
@@ -482,6 +479,7 @@ def want():
 @app.post("/unwant")
 def unwant():
     release_id = request.form.get("release_id")
+
     if not release_id or "user" not in session:
         return flask_htmx.make_response(redirect="/login")
 
@@ -493,14 +491,7 @@ def unwant():
     )
     wants.raise_for_status()
 
-    bitmap = db.session.scalar(
-        db.select(User.wantlist).where(
-            User.discogs_user_id == session.get("user").get("id")
-        )
-    )
-    wants = []
-    if bitmap:
-        wants = BitMap.deserialize(bitmap)
+    wants = load_wantlist()
 
     wants.remove(int(release_id))
 
@@ -666,19 +657,6 @@ async def get_releases(
         }
 
 
-async def hide_release(release_id):
-    action = Action(
-        user_id=db.select(User.user_id)
-        .scalar_subquery()
-        .where(User.discogs_user_id == session.get("user").get("id")),
-        action="HIDE",
-        identifier=release_id,
-    )
-
-    db.session.add(action)
-    db.session.commit()
-
-
 @app.post("/hide")
 async def hide():
     if not request.form.get("release_id") or "user" not in session:
@@ -692,8 +670,16 @@ async def hide():
         - 1,
     )
 
-    async with asyncio.TaskGroup() as tg:
-        tg.create_task(hide_release(request.form.get("release_id")))
+    action = Action(
+        user_id=db.select(User.user_id)
+        .scalar_subquery()
+        .where(User.discogs_user_id == session.get("user").get("id")),
+        action="HIDE",
+        identifier=request.form.get("release_id"),
+    )
+
+    db.session.add(action)
+    db.session.commit()
 
     return ""
 
