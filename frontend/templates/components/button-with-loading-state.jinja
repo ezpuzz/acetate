@@ -1,7 +1,7 @@
-{% macro button_with_loading_state(label, target, swap="none") %}
-<button class="flex items-center border rounded my-2 px-2 hover:bg-slate-300 shadow" hx-post="{{target}}"
-    hx-swap="{{swap}}" hx-swap="none" hx-trigger="click" hx-on::after-swap="event.stopPropagation()"
-    hx-include="closest div">
+{% macro button_with_loading_state(label, post, swap="none", target="this") %}
+<button class="flex items-center border rounded my-2 px-2 hover:bg-slate-300 shadow" hx-post="{{post}}"
+    hx-swap="{{swap}}" hx-trigger="click" hx-on::after-swap="event.stopPropagation()" hx-target="{{target}}"
+    hx-include="closest div, #search, #filters, #pagination">
     {# spinner #}
     <svg class="hidden-indicator size-6 sm:size-4 sm:mr-1 flex-none" viewBox="0 0 24 24"
         xmlns="http://www.w3.org/2000/svg">
