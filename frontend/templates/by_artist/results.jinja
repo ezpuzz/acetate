@@ -1,12 +1,11 @@
 <div id="results" class="overflow-auto space-y-2">
     {% for artist in artists|d([]) %}
-    <a id="result{{artist.id}}" href="#result{{artist.id}}"
-        class="block hover:bg-slate-200 rounded p-2 cursor-pointer target:bg-slate-300" hx-get="/artist/{{artist.id}}"
-        hx-target="#details">
+    <a id="artist{{artist.id}}" class="block hover:bg-slate-200 rounded p-2 cursor-pointer target:bg-slate-300"
+        hx-get="/artist/{{artist.id}}" hx-target="#details" hx-include="#search">
         <div class="text-xl">
             {{artist.name}}
         </div>
-        <div>{{artist.profile|d()}}</div>
+        <div class="line-clamp-2">{{artist.profile|d()}}</div>
     </a>
     {% endfor %}
 </div>

@@ -140,27 +140,17 @@ async def discover():
             filters = tg.create_task(get_filters())
             releases = tg.create_task(get_releases(args))
 
-        filters = filters.result()
-        releases, page, page_size, offset, hits = releases.result()
-
         return render_template(
             "discover/results.jinja",
             **{
-                "pageSize": page_size,
-                "releases": releases,
-                "hits": hits,
-                "page": page,
-                "from": offset,
-                "filters": filters,
+                **releases.result(),
+                "filters": filters.result(),
                 "htmx": htmx,
                 **request.args,
             },
         )
 
-    async with asyncio.TaskGroup() as tg:
-        filters = tg.create_task(get_filters())
-
-    filters = filters.result()
+    filters = await get_filters()
     page_size = int(request.args.get("pageSize", 5))
     offset = int(
         request.args.get(
@@ -193,16 +183,11 @@ async def dig():
             )
 
         filters = filters.result()
-        releases, page, page_size, offset, hits = releases.result()
 
         return render_template(
             "dig/results.jinja",
             **{
-                "pageSize": page_size,
-                "releases": releases,
-                "hits": hits,
-                "page": page,
-                "from": offset,
+                **releases.result(),
                 "filters": filters,
                 **request.args,
             },
@@ -210,6 +195,7 @@ async def dig():
 
     async with asyncio.TaskGroup() as tg:
         filters = tg.create_task(get_filters())
+
     filters = filters.result()
     page_size = int(request.args.get("pageSize", 5))
     offset = int(
@@ -351,10 +337,7 @@ async def filter_view():
         return render_template(
             "search.jinja",
             **{
-                "releases": [
-                    {"id": r["_id"], **r["_source"]}
-                    for r in releases["hits"]["hits"]
-                ],
+                "releases": enrich_releases(releases),
                 **request.args,
             },
         )
@@ -362,14 +345,34 @@ async def filter_view():
     return render_template(
         "filter.jinja",
         **{
-            "releases": [
-                {"id": r["_id"], **r["_source"]}
-                for r in releases["hits"]["hits"]
-            ]
-            if releases
-            else [],
+            "releases": enrich_releases(releases),
             **request.args,
         },
+    )
+
+
+def enrich_releases(releases):
+    bitmap = db.session.scalar(
+        db.select(User.wantlist).where(
+            User.discogs_user_id == session.get("user").get("id")
+        )
+    )
+    wants = []
+    if bitmap:
+        wants = BitMap.deserialize(bitmap)
+
+    return (
+        [
+            {
+                **r["_source"],
+                "id": r["_id"],
+                "sort": r.get("sort"),
+                "wanted": int(r["_id"]) in wants,
+            }
+            for r in releases["hits"]["hits"]
+        ]
+        if releases
+        else []
     )
 
 
@@ -383,20 +386,26 @@ def by_artist():
             index="artists",
             body={
                 "query": {
-                    "multi_match": {
-                        "type": "bool_prefix",
-                        "operator": "and",
-                        "max_expansions": 200,
-                        "fields": [
-                            "name",
-                            "name.folded",
-                            "namevariations",
-                            "namevariations.folded",
-                            "realname",
-                            "realname.folded",
+                    "bool": {
+                        "must": [
+                            {
+                                "multi_match": {
+                                    "type": "bool_prefix",
+                                    "operator": "and",
+                                    "max_expansions": 200,
+                                    "fields": [
+                                        "name",
+                                        "name.folded",
+                                        "namevariations",
+                                        "namevariations.folded",
+                                        "realname",
+                                        "realname.folded",
+                                    ],
+                                    "query": query,
+                                }
+                            }
                         ],
-                        "query": query,
-                    },
+                    }
                 },
                 "size": 100,
             },
@@ -466,6 +475,7 @@ def want():
     return render_template(
         "discover/wanted.jinja",
         release={**release["_source"], "id": release["_id"], "wanted": True},
+        update_small=True,
     )
 
 
@@ -507,6 +517,7 @@ def unwant():
     return render_template(
         "discover/unwanted.jinja",
         release={**release["_source"], "id": release["_id"], "wanted": False},
+        update_small=True,
     )
 
 
@@ -644,12 +655,15 @@ async def get_releases(
 
         hits = int(releases["hits"]["total"]["value"])
 
-        releases = [
-            {**r["_source"], "id": r["_id"], "sort": r["sort"]}
-            for r in releases["hits"]["hits"]
-        ]
+        releases = enrich_releases(releases)
 
-        return releases, page, page_size, offset, hits
+        return {
+            "releases": releases,
+            "page": page,
+            "pageSize": page_size,
+            "from": offset,
+            "hits": hits,
+        }
 
 
 async def hide_release(release_id):
@@ -815,7 +829,26 @@ def artist_releases(artist_id):
                                 },
                             },
                         },
-                    ]
+                    ],
+                    "must_not": [
+                        c
+                        for c in [
+                            {"term": {"master_id.is_main_release": "false"}}
+                            if request.args.get("masters_only")
+                            else None,
+                            None
+                            if request.args.get("include_compilations")
+                            else {
+                                "terms": {
+                                    "formats.descriptions": [
+                                        "Compilation",
+                                        "Mixed",
+                                    ]
+                                }
+                            },
+                        ]
+                        if c is not None
+                    ],
                 }
             },
             "sort": [{"released": {"order": "asc"}}],
@@ -823,29 +856,9 @@ def artist_releases(artist_id):
         size=500,
     )
 
-    releases = releases["hits"]["hits"]
-    bitmap = db.session.scalar(
-        db.select(User.wantlist).where(
-            User.discogs_user_id == session.get("user").get("id")
-        )
-    )
-    wants = []
-    if bitmap:
-        wants = BitMap.deserialize(bitmap)
-
-    # print(wants)
-    releases = [
-        {
-            "id": r["_id"],
-            **r["_source"],
-            "wanted": int(r["_id"]) in wants,
-        }
-        for r in releases
-    ]
-
     return render_template(
         "by_artist/releases.jinja",
-        releases=releases,
+        releases=enrich_releases(releases),
     )
 
 
@@ -877,17 +890,18 @@ def thumb(release_id):
     if "user" not in session:
         raise LoggedOutError
 
+    req = oauth.discogs.get(
+        f"https://api.discogs.com/releases/{release_id}",
+        timeout=3,
+    )
+
+    req.raise_for_status()
+    print(req)
+
     return render_template(
         "image.jinja",
         release_id=release_id,
-        src=(
-            oauth.discogs.get(
-                f"https://api.discogs.com/releases/{release_id}",
-                timeout=5,
-            )
-            .json()
-            .get("thumb")
-        ),
+        src=(req.json().get("thumb")),
     )
 
 

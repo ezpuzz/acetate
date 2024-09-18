@@ -2,7 +2,7 @@
 
 {% set expandable = expandable|d(false) %}
 
-{% if values %}
+{% if values is defined %}
 <div>
     {% if not expandable %}
 

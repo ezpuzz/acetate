@@ -1,5 +1,5 @@
 {% from "components/button-with-loading-state.jinja" import button_with_loading_state %}
-{% call button_with_loading_state("Add to Wantlist", "/want", "outerHTML") %}
+{% call button_with_loading_state("Want", "/want", "outerHTML") %}
 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
     class="size-6 sm:size-4 sm:mr-1 flex-none">
     <path stroke-linecap="round" stroke-linejoin="round"
@@ -7,5 +7,7 @@
 </svg>
 {% endcall %}
 
+{% if update_small is defined and update_small %}
 {% from "components/release-small.jinja" import release_small %}
 {{release_small(release, true)}}
+{% endif%}

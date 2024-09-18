@@ -1,5 +1,5 @@
 {% macro release_small(release, swapoob=false) %}
-<div id="release-small-{{release.id}}" {% if swapoob %}hx-swap-oob="morph" {% endif %}
+<div id="release-small-{{release.id}}" {% if swapoob %} hx-swap-oob="morph" {% endif %}
     class="hover:bg-slate-200 rounded p-2 cursor-pointer" hx-get="/release/{{release['id']}}" hx-target="#release">
     <div class="text-xl">
         {% if release['released'] is defined %}

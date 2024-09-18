@@ -11,5 +11,5 @@
     "python.analysis.include": [
         "frontend/"
     ],
-    "python.analysis.inlayHints.callArgumentNames": "all",
+    "python.analysis.typeCheckingMode": "off",
 }
