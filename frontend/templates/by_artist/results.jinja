@@ -2,7 +2,8 @@
     {% for artist in artists|d([]) %}
     <a id="artist{{artist.id}}" href="#column-2"
         class="block hover:bg-slate-200 rounded p-2 cursor-pointer target:bg-slate-300" hx-get="/artist/{{artist.id}}"
-        hx-target="#details" hx-include="#search">
+        hx-target="#details" hx-include="#artist{{artist.id}}, #search">
+        <input name="selected" value="{{artist.id}}" type="hidden" />
         <div class="text-xl">
             {{artist.name}}
         </div>

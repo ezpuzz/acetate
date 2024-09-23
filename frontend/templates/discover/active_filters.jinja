@@ -11,8 +11,8 @@
     </div>
     <div class="flex flex-wrap gap-1">
         {% for f in filters %}
-        {% if filters[f]['meta']['field'] in request.args %}
-        {% for v in request.args.getlist(filters[f]['meta']['field']) %}
+        {% if filters[f]['meta']['field'] in params %}
+        {% for v in params.getlist(filters[f]['meta']['field']) %}
         <div class="rounded px-1 text-xs bg-slate-400">{{v}}</div>
         {% endfor %}
         {% endif %}

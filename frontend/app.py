@@ -3,11 +3,11 @@ import base64
 import os
 import re
 from time import sleep
+from urllib.parse import parse_qsl, urlparse
 
 import flask
 import flask_htmx
 import httpx
-from sqlalchemy import update
 import werkzeug
 import werkzeug.datastructures
 from authlib.integrations.flask_client import OAuth
@@ -16,10 +16,11 @@ from dotenv import load_dotenv
 from elasticapm.contrib.flask import ElasticAPM
 from elasticsearch import Elasticsearch
 from flask import Flask, redirect, render_template, request, session, url_for
-from flask_htmx import HTMX
+from flask_htmx import HTMX, make_response
 from flask_sqlalchemy import SQLAlchemy
 from jinja2 import StrictUndefined
 from pyroaring import BitMap
+from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert
 
 from exeptions import LoggedOutError
@@ -128,11 +129,15 @@ def old_releases_endpoint():
 async def discover():
     extra_args = {"pageSize": 10}
 
+    if htmx:
+        q = str(urlparse(htmx.current_url).query)
+        orig_args = request.parameter_storage_class(parse_qsl(q))
+        extra_args.update(orig_args)
+
     if "videos_only" not in request.args:
         extra_args["videos_only"] = "on"
 
     args = request.args.copy()
-
     args.update(extra_args)
 
     if htmx and not htmx.boosted:
@@ -146,18 +151,17 @@ async def discover():
                 **releases.result(),
                 "filters": filters.result(),
                 "htmx": htmx,
-                **request.args,
+                "params": args,
+                **args,
             },
         )
-
-    filters = await get_filters()
 
     return render_template(
         "discover.jinja",
         **{
-            "filters": filters,
             "htmx": htmx,
-            **request.args,
+            "params": args,
+            **args,
         },
     )
 
@@ -558,9 +562,7 @@ async def get_releases(
             (
                 (
                     "value",
-                    re.sub(
-                        r"(.*?)\s*-?\s*(\d+)", r"\1*\2", params.get("catno")
-                    ),
+                    re.sub(r"(.*?)\s*-?\s*(\d+)", r"\1*\2", params["catno"]),
                 )
                 if params.get("catno")
                 else None
@@ -622,7 +624,7 @@ async def get_releases(
             ],
         ]
         if p
-    ]
+    ]  # type: ignore
 
     async with httpx.AsyncClient() as client:
         releases = await client.get(
@@ -863,13 +865,20 @@ def thumb(release_id):
     )
 
     req.raise_for_status()
-    print(req)
 
-    return render_template(
+    thumb = req.json().get("thumb")
+    if not thumb:
+        return "", 404
+
+    html = render_template(
         "image.jinja",
         release_id=release_id,
-        src=(req.json().get("thumb")),
+        src=thumb,
     )
+    resp = make_response(html)
+    resp.headers["Cache-Control"] = "max-age=86400"
+    resp.headers["ETag"] = "thumb" + release_id
+    return resp
 
 
 @app.route("/prices/<release_id>")
@@ -879,7 +888,7 @@ def get_price(release_id):
 
     prices = oauth.discogs.get(
         f"https://api.discogs.com/marketplace/price_suggestions/{release_id}",
-        timeout=5,
+        timeout=10,
     ).json()
 
     if prices == {}:
@@ -896,6 +905,9 @@ def get_price(release_id):
                 timeout=5,
             ).json()
 
+    if prices == {}:
+        return "", 404
+
     if "message" in prices:
         return prices["message"]
 
@@ -903,10 +915,15 @@ def get_price(release_id):
     for k in prices:
         short_prices[k[k.index("(") + 1 : -1]] = prices[k]
 
-    return render_template(
+    html = render_template(
         "prices.jinja",
         prices=short_prices,
     )
+
+    resp = make_response(html)
+    resp.headers["Cache-Control"] = "max-age=86400"
+    resp.headers["ETag"] = "thumb" + release_id
+    return resp
 
 
 @app.post("/wants")
