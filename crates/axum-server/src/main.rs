@@ -4,7 +4,7 @@ use roaring::RoaringBitmap;
 mod config;
 mod error;
 
-use serde_json::{json, to_string_pretty, Value};
+use serde_json::{json, Value};
 
 use axum::{
     body::Body, debug_handler, extract::Extension, response::Response, routing::get, Router,
