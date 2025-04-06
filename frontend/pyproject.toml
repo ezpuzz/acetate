@@ -1,34 +1,34 @@
-[tool.poetry]
-name = "acetate"
-version = "0.1.0"
+[project]
+name = "acetate-py"
+version = "0.0.0"
 description = ""
-authors = ["Emory Petermann <emory@onlyfor.us>"]
+authors = [{ name = "Emory Petermann", email = "emory@onlyfor.us" }]
+requires-python = "~=3.11"
 readme = "README.md"
+dependencies = [
+    "Flask[async]>=3.0.3,<4",
+    "flask-htmx>=0.3.2,<0.4",
+    "authlib>=1.3.1,<2",
+    "gunicorn>=22.0.0,<23",
+    "flask-sqlalchemy>=3.1.1,<4",
+    "psycopg2>=2.9.9,<3",
+    "python-dotenv>=1.0.1,<2",
+    "pyroaring>=0.4.5,<0.5",
+    "elastic-apm[flask]>=6.22.3,<7",
+    "psutil>=6.0.0,<7",
+    "httpx[http2]>=0.27.0,<0.28",
+    "requests>=2.32.3,<3",
+    "colorhash>=2.0.0,<3",
+    "elasticsearch[async]>=8.15.0,<9",
+    "roaringbitmap>=0.7.2,<0.8",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-Flask = {extras = ["async"], version = "^3.0.3"}
-flask-htmx = "^0.3.2"
-authlib = "^1.3.1"
-gunicorn = "^22.0.0"
-flask-sqlalchemy = "^3.1.1"
-psycopg2 = "^2.9.9"
-python-dotenv = "^1.0.1"
-pyroaring = "^0.4.5"
-elastic-apm = {version = "^6.22.3", extras = ["flask"]}
-psutil = "^6.0.0"
-httpx = {version = "^0.27.0", extras = ["http2"]}
-requests = "^2.32.3"
-colorhash = "^2.0.0"
-elasticsearch = {version = "^8.15.0", extras = ["async"]}
-roaringbitmap = "^0.7.2"
-
-[tool.poetry.group.dev.dependencies]
-ruff = "^0.5"
+[dependency-groups]
+dev = ["ruff>=0.5,<0.6"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.pyright]
 venv = ".venv"

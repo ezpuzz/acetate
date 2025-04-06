@@ -1,5 +1,5 @@
 {
-  "name": "risk",
+  "name": "acetate-frontend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,6 +11,5 @@
   "devDependencies": {
     "browser-sync": "^3",
     "tailwindcss": "^3.4"
-  },
-  "packageManager": "yarn@4.8.1"
+  }
 }

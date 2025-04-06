@@ -11,14 +11,14 @@ const RAW_RUNTIME_STATE =
   ],\
   "dependencyTreeRoots": [\
     {\
-      "name": "risk",\
+      "name": "acetate-frontend",\
       "reference": "workspace:."\
     }\
   ],\
   "enableTopLevelFallback": true,\
   "ignorePatternData": "(^(?:\\\\.yarn\\\\/sdks(?:\\\\/(?!\\\\.{1,2}(?:\\\\/|$))(?:(?:(?!(?:^|\\\\/)\\\\.{1,2}(?:\\\\/|$)).)*?)|$))$)",\
   "fallbackExclusionList": [\
-    ["risk", ["workspace:."]]\
+    ["acetate-frontend", ["workspace:."]]\
   ],\
   "fallbackPool": [\
   ],\
@@ -27,8 +27,8 @@ const RAW_RUNTIME_STATE =
       [null, {\
         "packageLocation": "./",\
         "packageDependencies": [\
+          ["acetate-frontend", "workspace:."],\
           ["browser-sync", "npm:3.0.4"],\
-          ["risk", "workspace:."],\
           ["tailwindcss", "npm:3.4.17"]\
         ],\
         "linkType": "SOFT"\
@@ -238,6 +238,17 @@ const RAW_RUNTIME_STATE =
           ["negotiator", "npm:0.6.3"]\
         ],\
         "linkType": "HARD"\
+      }]\
+    ]],\
+    ["acetate-frontend", [\
+      ["workspace:.", {\
+        "packageLocation": "./",\
+        "packageDependencies": [\
+          ["acetate-frontend", "workspace:."],\
+          ["browser-sync", "npm:3.0.4"],\
+          ["tailwindcss", "npm:3.4.17"]\
+        ],\
+        "linkType": "SOFT"\
       }]\
     ]],\
     ["agent-base", [\
@@ -2196,17 +2207,6 @@ const RAW_RUNTIME_STATE =
           ["reusify", "npm:1.1.0"]\
         ],\
         "linkType": "HARD"\
-      }]\
-    ]],\
-    ["risk", [\
-      ["workspace:.", {\
-        "packageLocation": "./",\
-        "packageDependencies": [\
-          ["browser-sync", "npm:3.0.4"],\
-          ["risk", "workspace:."],\
-          ["tailwindcss", "npm:3.4.17"]\
-        ],\
-        "linkType": "SOFT"\
       }]\
     ]],\
     ["run-parallel", [\
