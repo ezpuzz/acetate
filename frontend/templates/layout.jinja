@@ -49,6 +49,13 @@
                         By Artist
                     </a>
                 </li>
+                <li
+                    class="cursor-pointer flex items-center hover:bg-gray-200 {% if not url_for(request.endpoint) == '/by_label' %}underline text-blue-500{% endif %}">
+                    <a href="/by_label"
+                        class="border-b-4 {% if url_for(request.endpoint) == '/by_label' %}border-b-orange-500{%else%}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">
+                        By Label
+                    </a>
+                </li>
 
                 {# <li class="relative hover:bg-gray-200">
                     <a href="/wanted"

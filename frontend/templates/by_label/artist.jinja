@@ -1,0 +1,47 @@
+{% from "by_artist/artist-property.jinja" import property %}
+
+<h2 class="text-xl">{{artist.name}}</h2>
+<details class="text-sm text-slate-500 cursor-pointer mb-2">
+    <summary class="text-sm text-slate-500 cursor-pointer">
+        JSON
+    </summary>
+    {{artist|tojson(indent=4)}}
+</details>
+<dl class="space-y-2">
+    {% call(v) property("Profile", [artist.profile|d()], true) %}
+    {{ v }}
+    {% endcall%}
+
+    {% call(v) property("Real Name", [artist.realname|d()], true) %}
+    {{ v }}
+    {% endcall%}
+
+    {% call(v) property("Name Variations", artist.namevariations|d(), true) %}
+    <span class="rounded-full px-2 bg-gray-300 text-xs">{{v}}</span>
+    {% endcall%}
+
+    {% call(v) property("Aliases", artist.aliases|d()) %}
+    <span class="rounded-full px-2 bg-gray-300 text-xs">
+        <a href="/by_artist?search={{v['#text']}}" class="text-blue-500 underline">{{v['#text']}}</a>
+    </span>
+    {% endcall%}
+
+    {% call(v) property("Groups", artist.groups|d()) %}
+    <span class="rounded-full px-2 bg-gray-300 text-xs">
+        <a href="/by_artist?search={{v['#text']}}" class="text-blue-500 underline">{{v['#text']}}</a>
+    </span>
+    {% endcall%}
+
+    {% call(v) property("Members", (artist.members|d()).name|d()) %}
+    <span class="rounded-full px-2 bg-gray-300 text-xs">
+        <a href="/by_artist?search={{v['#text']}}" class="text-blue-500 underline">{{v['#text']}}</a>
+    </span>
+    {% endcall%}
+
+    <div>
+        <dt class="text-xs text-slate-700">Releases</dt>
+        <div class="space-y-1" hx-get="/artist/{{artist.id}}/releases" hx-include="#search" hx-trigger="load">
+            {% include 'components/loader.jinja' %}
+        </div>
+    </div>
+</dl>

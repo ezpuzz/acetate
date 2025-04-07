@@ -1,0 +1,4 @@
+{% from "components/release-small.jinja" import release_small %}
+{% for release in releases %}
+{{release_small(release)}}
+{% endfor %}

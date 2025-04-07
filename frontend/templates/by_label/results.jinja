@@ -1,0 +1,13 @@
+<div id="results" class="space-y-2">
+    {% for label in labels|d([]) %}
+    <a id="label{{label.id}}" href="#column-2"
+        class="block hover:bg-slate-200 rounded p-2 cursor-pointer target:bg-slate-300" hx-get="/label/{{label.id}}"
+        hx-target="#details" hx-include="this, #search">
+        <input name="selected" value="{{label.id}}" type="hidden" />
+        <div class="text-xl">
+            {{label.key}}
+        </div>
+        <div class="line-clamp-2">{{label.profile|d()}}</div>
+    </a>
+    {% endfor %}
+</div>

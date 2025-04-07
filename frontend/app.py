@@ -1,6 +1,8 @@
 import asyncio
 import base64
+import json
 import os
+import pprint
 import re
 from time import sleep
 from urllib.parse import parse_qsl, urlparse
@@ -369,6 +371,128 @@ def enrich_releases(releases):
         ]
         if releases
         else []
+    )
+
+
+@app.route("/by_label")
+def by_label():
+    query = request.args.get("search")
+    labels = []
+
+    if query:
+        labels = es_client.search(
+            index="releases_test",
+            body={
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "nested": {
+                                    "path": "labels",
+                                    "query": {
+                                        "multi_match": {
+                                            "query": query,
+                                            "fields": [
+                                                "labels.name",
+                                            ],
+                                        }
+                                    },
+                                }
+                            },
+                        ],
+                    }
+                },
+                "aggs": {
+                    "labels": {
+                        "nested": {
+                            "path": "labels",
+                        },
+                        "aggs": {
+                            "name": {
+                                "terms": {
+                                    "field": "labels.name.keyword",
+                                    "size": 50,
+                                },
+                                "aggs": {
+                                    "id": {
+                                        "top_hits": {
+                                            "size": 1,
+                                            "_source": {
+                                                "includes": ["labels.id"],
+                                            },
+                                        },
+                                    },
+                                },
+                            }
+                        },
+                    }
+                },
+                "size": 100,
+            },
+        )
+
+    results = (
+        (
+            {
+                "doc_count": label["doc_count"],
+                "key": label["key"],
+                "id": label["id"]["hits"]["hits"][0]["_source"]["id"],
+            }
+            for label in labels["aggregations"]["labels"]["name"]["buckets"]
+        )
+        if labels
+        else []
+    )
+
+    if htmx and not htmx.boosted:
+        return render_template(
+            "by_label/results.jinja",
+            **{
+                "labels": results,
+                **request.args,
+            },
+        )
+
+    return render_template(
+        "by_label.jinja",
+        **{
+            "labels": results,
+            **request.args,
+        },
+    )
+
+
+@app.route("/label/<label_id>")
+def label(label_id):
+    releases = es_client.search(
+        index="releases",
+        body={
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "nested": {
+                                "path": "labels",
+                                "query": {
+                                    "terms": {
+                                        "labels.id": [
+                                            label_id,
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                }
+            },
+            "sort": [{"released": {"order": "asc"}}],
+        },
+        size=500,
+    )
+
+    return render_template(
+        "by_artist/releases.jinja",
+        releases=enrich_releases(releases),
     )
 
 

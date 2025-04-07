@@ -356,7 +356,7 @@ async fn releases(
     // println!("{}", to_string_pretty(&json).unwrap());
 
     let search = client
-        .search(elasticsearch::SearchParts::Index(&["releases"]))
+        .search(elasticsearch::SearchParts::Index(&["releases_test"]))
         .size(params.0.size.unwrap_or(10))
         .from(params.0.from.unwrap_or(0))
         .body(json)
