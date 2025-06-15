@@ -4,7 +4,7 @@ use roaring::RoaringBitmap;
 mod config;
 mod error;
 
-use serde_json::{json, Value};
+use serde_json::{json, Value, to_string_pretty};
 
 use axum::{
     body::Body, debug_handler, extract::Extension, response::Response, routing::get, Router,
@@ -356,7 +356,7 @@ async fn releases(
     // println!("{}", to_string_pretty(&json).unwrap());
 
     let search = client
-        .search(elasticsearch::SearchParts::Index(&["releases_test"]))
+        .search(elasticsearch::SearchParts::Index(&["releases"]))
         .size(params.0.size.unwrap_or(10))
         .from(params.0.from.unwrap_or(0))
         .body(json)

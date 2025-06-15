@@ -1,27 +1,32 @@
 {% if search_after is not defined %}
 <div id="results-wrapper" class="grow overflow-auto [overflow-anchor:none]">
-    {% endif %}
 
-    <div id="results" hx-include="" {% if search_after is defined %} hx-swap-oob="beforebegin:#sentinel" {% endif %}
-        class="relative px-2 pb-2 space-y-2 lg:space-y-0 gap-2 lg:grid grid-cols-2 2xl:grid-cols-3">
+    <div id="results" class="relative px-2 pb-2 space-y-2 lg:space-y-0 gap-2 lg:grid grid-cols-2 2xl:grid-cols-3">
+        {% endif %}
+
         {% for release in releases %}
+
         {% include 'discover/release.jinja' %}
+
         {% if loop.last and search_after is not defined %}
         <form id="sentinel" class="absolute size-2 border border-red-600 bottom-[400px]" hx-trigger="intersect"
-            hx-include="#search_after, #search, #filters, #pagination" hx-get="/discover" hx-swap="none">
+            hx-include="#search_after, #search, #filters, #pagination" hx-get="/discover" hx-swap="beforebegin">
         </form>
         <div id="loader" class="flex items-center justify-center">{% include 'components/loader.jinja' %}</div>
         {% endif %}
+
         {% endfor %}
+
+        {% if search_after is not defined %}
     </div>
 
-    <input type="hidden" id="search_after" {% if search_after is defined %} hx-swap-oob="true" {% endif %}
-        name="search_after" value="{{releases[-1].sort}}" />
 
-
-    {% if search_after is not defined %}
 </div>
 {% endif %}
+
+<!-- sets where to start next page -->
+<input type="hidden" id="search_after" {% if search_after is defined %} hx-swap-oob="true" {% endif %}
+    name="search_after" value="{{releases[-1].sort}}" />
 
 
 {# {% include 'discover/pagination.jinja' %} #}

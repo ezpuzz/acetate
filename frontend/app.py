@@ -147,6 +147,8 @@ async def discover():
             filters = tg.create_task(get_filters())
             releases = tg.create_task(get_releases(args))
 
+        # print(filters)
+        # print(releases)
         return render_template(
             "discover/results.jinja",
             **{
@@ -381,7 +383,7 @@ def by_label():
 
     if query:
         labels = es_client.search(
-            index="releases_test",
+            index="releases",
             body={
                 "query": {
                     "bool": {
@@ -1057,7 +1059,7 @@ def wantlist():
     url = f"https://api.discogs.com/users/{username}/wants?per_page=100&page=1"
 
     while url:
-        print("Requesting", url)
+        # print("Requesting", url)
         wants = oauth.discogs.get(
             url,
             timeout=60,
@@ -1065,14 +1067,14 @@ def wantlist():
         try:
             wants.raise_for_status()
         except Exception as e:
-            print("Timeout, retrying", e)
+            # print("Timeout, retrying", e)
             sleep(5)
             continue
         wants = wants.json()
         bitmap.update(w["id"] for w in wants["wants"])
         url = wants["pagination"]["urls"].get("next", None)
 
-    print(bitmap)
+    # print(bitmap)
 
     stmt = (
         update(User)

@@ -17,10 +17,11 @@
             <div class="">
                 <div class="rounded bg-slate-200 float-right p-1 leading-none">{{release.released|d()}}</div>
                 <h2 class="text-lg leading-none"><a target="_blank" href="https://discogs.com/release/{{release.id}}"
-                        class="hover:underline line-clamp-3">{{release.title}}</a></h2>
+                        class="hover:underline line-clamp-3">{{release.title|e}}</a></h2>
                 <span class="text-slate-500 text-xs">by</span>
                 {% for artist in release.artists %}
-                <a href="https://discogs.com/artist/{{artist.id}}" class="hover:underline">{{artist.name}}</a>{% if not
+                <a href="https://discogs.com/artist/{{artist.id}}" class="hover:underline">{{artist.name|e}}</a>{% if
+                not
                 loop.last %}, {% endif %}
                 {% endfor %}
             </div>
@@ -35,8 +36,8 @@
                     {% for label in release.labels %}
                     <dd>
                         <a href="https://discogs.com/label/{{label.id}}"
-                            class="hover:underline block -mb-1">{{label.name}}</a>
-                        <span class="text-slate-400 text-xs leading-none">{{label.catno}}</span>
+                            class="hover:underline block -mb-1">{{label.name|e}}</a>
+                        <span class="text-slate-400 text-xs leading-none">{{label.catno|e}}</span>
                     </dd>
                     {% endfor %}
                 </div>
@@ -44,15 +45,15 @@
                     <dt class="text-xs text-slate-700">Format</dt>{% if release.formats is defined %}
                     {% for f in release.formats %}
                     <dd>
-                        {{f.text|d()}}
-                        {{f.descriptions|d()|join(' ')}} {{f.name|d()}}
+                        {{f.text|d()|e}}
+                        {{f.descriptions|d()|join(' ')|e}} {{f.name|d()|e}}
                     </dd>{% endfor %} {% endif %}
                 </div>
                 <div class="w-full hidden sm:block">
                     <dt class="text-xs text-slate-700">Tracks</dt>
                     {% for track in release.tracklist %}
                     <dd class="text-xs flex gap-2">
-                        <div class="text-slate-400">{{track.position|d()}}</div> {{track.title|d('Untitled')}}
+                        <div class="text-slate-400">{{track.position|d()}}</div> {{track.title|d('Untitled')|e}}
                         <div class="grow"></div> {{track.duration|d('')}}
                     </dd>
                     {% endfor %}
@@ -62,7 +63,7 @@
                 <summary class="text-sm text-slate-500 cursor-pointer">
                     JSON
                 </summary>
-                {{release|tojson(indent=4)}}
+                {{release|tojson(indent=4)|e}}
             </details>
 
         </div>
@@ -70,7 +71,7 @@
             <div class="text-xs sm:text-sm space-y-2">
                 <div class="col-span-2 flex items-center gap-2">
                     <a target="_blank"
-                        href="https://youtube.com/search?q={{release.title}} {{release.artists|map(attribute='name')|join(' ')}}">
+                        href="https://youtube.com/search?q={{release.title|e}} {{release.artists|map(attribute='name')|join(' ')|e}}">
                         <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
                             class="size-6 text-red-600 fill-current">
                             <title>YouTube</title>
@@ -79,7 +80,7 @@
                         </svg> </a>
 
                     <a target="_blank"
-                        href="https://music.youtube.com/search?q={{release.title}} {{release.artists|map(attribute='name')|join(' ')}}">
+                        href="https://music.youtube.com/search?q={{release.title|e}} {{release.artists|map(attribute='name')|join(' ')|e}}">
                         <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
                             class="size-6 text-red-600 fill-current">
                             <title>YouTube Music</title>
@@ -89,7 +90,7 @@
                     </a>
 
                     <a target="_blank"
-                        href="https://bandcamp.com/search?q={{release.title}} {{release.artists|map(attribute='name')|join(' ')}}">
+                        href="https://bandcamp.com/search?q={{release.title|e}} {{release.artists|map(attribute='name')|join(' ')|e}}">
                         <svg class="size-6 text-[#408294] fill-current" role="img" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
                             <title>Bandcamp</title>
@@ -111,7 +112,7 @@
                 <dt class="text-xs text-slate-700">Notes</dt>
                 <dd>
                     <pre
-                        class="text-[10px] leading-tight text-wrap overflow-ellipsis overflow-hidden">{{release.notes|d('')}}</pre>
+                        class="text-[10px] leading-tight text-wrap overflow-ellipsis overflow-hidden">{{release.notes|d('')|e}}</pre>
                 </dd>
             </div>
         </div>
