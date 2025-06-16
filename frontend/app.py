@@ -814,6 +814,12 @@ def artist_releases(artist_id):
     artist = es_client.get(index="artists", id=artist_id)
     artist = {**artist["_source"], "id": artist["_id"]}
 
+    all_possible_ids = [
+        artist_id,
+        *[g["id"] for g in artist.get("groups", [])],
+        *[a["id"] for a in artist.get("aliases", [])],
+    ]
+
     releases = es_client.search(
         index="releases",
         body={
@@ -825,21 +831,7 @@ def artist_releases(artist_id):
                                 "path": "artists",
                                 "query": {
                                     "terms": {
-                                        "artists.id": [
-                                            artist_id,
-                                            *[
-                                                g["id"]
-                                                for g in (
-                                                    artist.get("groups", [])
-                                                )
-                                            ],
-                                            *[
-                                                a["id"]
-                                                for a in artist.get(
-                                                    "aliases", []
-                                                )
-                                            ],
-                                        ]
+                                        "artists.id": all_possible_ids,
                                     }
                                 },
                             },
@@ -849,21 +841,7 @@ def artist_releases(artist_id):
                                 "path": "extraartists",
                                 "query": {
                                     "terms": {
-                                        "extraartists.id": [
-                                            artist_id,
-                                            *[
-                                                g["id"]
-                                                for g in (
-                                                    artist.get("groups", [])
-                                                )
-                                            ],
-                                            *[
-                                                a["id"]
-                                                for a in artist.get(
-                                                    "aliases", []
-                                                )
-                                            ],
-                                        ]
+                                        "extraartists.id": all_possible_ids
                                     }
                                 },
                             },
@@ -876,23 +854,7 @@ def artist_releases(artist_id):
                                         "path": "tracklist.artists",
                                         "query": {
                                             "terms": {
-                                                "tracklist.artists.id": [
-                                                    artist_id,
-                                                    *[
-                                                        g["id"]
-                                                        for g in (
-                                                            artist.get(
-                                                                "groups", []
-                                                            )
-                                                        )
-                                                    ],
-                                                    *[
-                                                        a["id"]
-                                                        for a in artist.get(
-                                                            "aliases", []
-                                                        )
-                                                    ],
-                                                ]
+                                                "tracklist.artists.id": all_possible_ids
                                             }
                                         },
                                     }
@@ -907,23 +869,7 @@ def artist_releases(artist_id):
                                         "path": "tracklist.extraartists",
                                         "query": {
                                             "terms": {
-                                                "tracklist.extraartists.id": [
-                                                    artist_id,
-                                                    *[
-                                                        g["id"]
-                                                        for g in (
-                                                            artist.get(
-                                                                "groups", []
-                                                            )
-                                                        )
-                                                    ],
-                                                    *[
-                                                        a["id"]
-                                                        for a in artist.get(
-                                                            "aliases", []
-                                                        )
-                                                    ],
-                                                ]
+                                                "tracklist.extraartists.id": all_possible_ids
                                             }
                                         },
                                     }
@@ -934,7 +880,7 @@ def artist_releases(artist_id):
                     "must_not": [
                         c
                         for c in [
-                            {"term": {"master_id.is_main_release": "false"}}
+                            {"term": {"master_id.is_main_release": False}}
                             if request.args.get("masters_only")
                             else None,
                             None
@@ -954,7 +900,7 @@ def artist_releases(artist_id):
             },
             "sort": [{"released": {"order": "asc"}}],
         },
-        size=500,
+        size=100,
     )
 
     return render_template(
