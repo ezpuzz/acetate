@@ -1,14 +1,17 @@
 {% extends "layout.jinja" %}
-
 {% block content %}
-<div class="m-2">
-    Upload your collection or wantlist exports to choose songs for your playlists.
-
-    <form id="upload" action="/playlist" method="post" hx-push-url="true"
-        class="flex-none grid grid-cols-2 sm:flex sm:flex-wrap items-stretch gap-1 m-2">
-        <input type="file" name="file" />
-        <input type="button" hx-post="/playlist" value="Upload"
-            class="text-xs cursor-pointer p-1 border rounded bg-slate-200" />
-    </form>
-</div>
-{% endblock%}
+    <div class="m-2">
+        Upload your collection or wantlist exports to choose songs for your playlists.
+        <form id="upload"
+              action="/playlist"
+              method="post"
+              hx-push-url="true"
+              class="flex-none grid grid-cols-2 sm:flex sm:flex-wrap items-stretch gap-1 m-2">
+            <input type="file" name="file" />
+            <input type="button"
+                   hx-post="/playlist"
+                   value="Upload"
+                   class="text-xs cursor-pointer p-1 border rounded bg-slate-200" />
+        </form>
+    </div>
+{% endblock %}

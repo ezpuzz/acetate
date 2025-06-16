@@ -1,131 +1,129 @@
 {% from "components/youtube.jinja" import youtube %}
 {% from "components/thumb.jinja" import thumb %}
 {% from "components/tags.jinja" import tags %}
-
-<div id="release{{release.id}}" class="release rounded border bg-slate-100 shadow"
-    hx-on::after-swap="event.stopPropagation()">
-    <div id="videos{{release.id}}" class="w-full">
-        {{ youtube(release.videos) }}
-    </div>
-
+<div id="release{{ release.id }}"
+     class="release rounded border bg-slate-100 shadow"
+     hx-on::after-swap="event.stopPropagation()">
+    <div id="videos{{ release.id }}" class="w-full">{{ youtube(release.videos) }}</div>
     <div class="flex space-x-2 p-2">
         <div class="flex-grow sm:w-2/3 *:mb-2 last:mb-0">
             {# Thumbnail #}
             <div class="float-right ml-2">{{ thumb(release.id) }}</div>
-
             {# Title and Year #}
             <div class="">
-                <div class="rounded bg-slate-200 float-right p-1 leading-none">{{release.released|d()}}</div>
-                <h2 class="text-lg leading-none"><a target="_blank" href="https://discogs.com/release/{{release.id}}"
-                        class="hover:underline line-clamp-3">{{release.title|e}}</a></h2>
+                <div class="rounded bg-slate-200 float-right p-1 leading-none">{{ release.released|d() }}</div>
+                <h2 class="text-lg leading-none">
+                    <a target="_blank"
+                       href="https://discogs.com/release/{{ release.id }}"
+                       class="hover:underline line-clamp-3">{{ release.title|e }}</a>
+                </h2>
                 <span class="text-slate-500 text-xs">by</span>
                 {% for artist in release.artists %}
-                <a href="https://discogs.com/artist/{{artist.id}}" class="hover:underline">{{artist.name|e}}</a>{% if
-                not
-                loop.last %}, {% endif %}
+                    <a href="https://discogs.com/artist/{{ artist.id }}"
+                       class="hover:underline">{{ artist.name|e }}</a>
+                    {% if
+                        not
+                        loop.last %}
+                        ,
+                    {% endif %}
                 {% endfor %}
             </div>
-
             {# Styles #}
             {{ tags(release.styles) }}
-
             {# Data #}
             <dl class="space-y-2">
                 <div class="w-full hidden sm:block max-h-96 overflow-auto">
                     <dt class="text-xs text-slate-700">Tracks</dt>
                     {% for track in release.tracklist %}
-                    <dd class="text-xs flex gap-2">
-                        <div class="text-slate-400">{{track.position|d()}}</div> {{track.title|d('Untitled')|e}}
-                        <div class="grow"></div> {{track.duration|d('')}}
-                    </dd>
+                        <dd class="text-xs flex gap-2">
+                            <div class="text-slate-400">{{ track.position|d() }}</div>
+                            {{ track.title|d("Untitled") |e }}
+                            <div class="grow"></div>
+                            {{ track.duration|d("") }}
+                        </dd>
                     {% endfor %}
                 </div>
             </dl>
             <details class="text-sm text-slate-500 cursor-pointer mb-2">
-                <summary class="text-sm text-slate-500 cursor-pointer">
-                    JSON
-                </summary>
-                {{release|tojson(indent=4)|e}}
+                <summary class="text-sm text-slate-500 cursor-pointer">JSON</summary>
+                {{ release|tojson(indent=4) |e }}
             </details>
-
         </div>
         <div class="shrink-0 sm:w-1/3 space-y-2">
             <div class="text-xs sm:text-sm space-y-2">
                 <div class="col-span-2 flex items-center gap-2">
                     <a target="_blank"
-                        href="https://youtube.com/search?q={{release.title|e}} {{release.artists|map(attribute='name')|join(' ')|e}}">
-                        <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
-                            class="size-6 text-red-600 fill-current">
+                       href="https://youtube.com/search?q={{ release.title|e }} {{ release.artists|map(attribute='name') |join(' ')|e }}">
+                        <svg role="img"
+                             viewBox="0 0 24 24"
+                             xmlns="http://www.w3.org/2000/svg"
+                             class="size-6 text-red-600 fill-current">
                             <title>YouTube</title>
-                            <path
-                                d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                        </svg> </a>
-
-                    <a target="_blank"
-                        href="https://music.youtube.com/search?q={{release.title|e}} {{release.artists|map(attribute='name')|join(' ')|e}}">
-                        <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
-                            class="size-6 text-red-600 fill-current">
-                            <title>YouTube Music</title>
-                            <path
-                                d="M12 0C5.376 0 0 5.376 0 12s5.376 12 12 12 12-5.376 12-12S18.624 0 12 0zm0 19.104c-3.924 0-7.104-3.18-7.104-7.104S8.076 4.896 12 4.896s7.104 3.18 7.104 7.104-3.18 7.104-7.104 7.104zm0-13.332c-3.432 0-6.228 2.796-6.228 6.228S8.568 18.228 12 18.228s6.228-2.796 6.228-6.228S15.432 5.772 12 5.772zM9.684 15.54V8.46L15.816 12l-6.132 3.54z" />
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                         </svg>
                     </a>
-
                     <a target="_blank"
-                        href="https://bandcamp.com/search?q={{release.title|e}} {{release.artists|map(attribute='name')|join(' ')|e}}">
-                        <svg class="size-6 text-[#408294] fill-current" role="img" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
+                       href="https://music.youtube.com/search?q={{ release.title|e }} {{ release.artists|map(attribute='name') |join(' ')|e }}">
+                        <svg role="img"
+                             viewBox="0 0 24 24"
+                             xmlns="http://www.w3.org/2000/svg"
+                             class="size-6 text-red-600 fill-current">
+                            <title>YouTube Music</title>
+                            <path d="M12 0C5.376 0 0 5.376 0 12s5.376 12 12 12 12-5.376 12-12S18.624 0 12 0zm0 19.104c-3.924 0-7.104-3.18-7.104-7.104S8.076 4.896 12 4.896s7.104 3.18 7.104 7.104-3.18 7.104-7.104 7.104zm0-13.332c-3.432 0-6.228 2.796-6.228 6.228S8.568 18.228 12 18.228s6.228-2.796 6.228-6.228S15.432 5.772 12 5.772zM9.684 15.54V8.46L15.816 12l-6.132 3.54z" />
+                        </svg>
+                    </a>
+                    <a target="_blank"
+                       href="https://bandcamp.com/search?q={{ release.title|e }} {{ release.artists|map(attribute='name') |join(' ')|e }}">
+                        <svg class="size-6 text-[#408294] fill-current"
+                             role="img"
+                             viewBox="0 0 24 24"
+                             xmlns="http://www.w3.org/2000/svg">
                             <title>Bandcamp</title>
                             <path d="M0 18.75l7.437-13.5H24l-7.438 13.5H0z" />
                         </svg>
                     </a>
                 </div>
                 <div class="flex flex-wrap gap-2">
-                    <input type="hidden" name="release_id" value="{{release.id}}" />
+                    <input type="hidden" name="release_id" value="{{ release.id }}" />
                     {% if release['wanted']|d(false) %}
-                    {% include 'discover/wanted.jinja' %}
+                        {% include 'discover/wanted.jinja' %}
                     {% else %}
-                    {% include 'discover/unwanted.jinja' %}
+                        {% include 'discover/unwanted.jinja' %}
                     {% endif %}
                     {% include 'discover/hide.jinja' %}
                 </div>
             </div>
-
             {% if release.labels is defined %}
-            <div class="hidden sm:block">
-                <dt class="text-xs text-slate-700">Label</dt>
-                {% for label in release.labels %}
-                <dd>
-                    <a href="https://discogs.com/label/{{label.id}}"
-                        class="hover:underline block -mb-1">{{label.name|e}}</a>
-                    <span class="text-slate-400 text-xs leading-none">{{label.catno|e}}</span>
-                </dd>
-                {% endfor %}
-            </div>
+                <div class="hidden sm:block">
+                    <dt class="text-xs text-slate-700">Label</dt>
+                    {% for label in release.labels %}
+                        <dd>
+                            <a href="https://discogs.com/label/{{ label.id }}"
+                               class="hover:underline block -mb-1">{{ label.name|e }}</a>
+                            <span class="text-slate-400 text-xs leading-none">{{ label.catno|e }}</span>
+                        </dd>
+                    {% endfor %}
+                </div>
             {% endif %}
-
             {% if release.formats is defined %}
-            <div>
-                <dt class="text-xs text-slate-700">Format</dt>
-                {% for f in release.formats %}
-                <dd class="text-xs">
-                    {{f.text|d()|e}}
-                    {{f.descriptions|d()|join(' ')|e}} {{f.name|d()|e}}
-                </dd>
-                {% endfor %}
-            </div>
+                <div>
+                    <dt class="text-xs text-slate-700">Format</dt>
+                    {% for f in release.formats %}
+                        <dd class="text-xs">
+                            {{ f.text|d() |e }}
+                            {{ f.descriptions|d() |join(' ')|e }} {{ f.name|d() |e }}
+                        </dd>
+                    {% endfor %}
+                </div>
             {% endif %}
-
             {% if release.notes is defined %}
-            <div class="hidden sm:block overflow-auto">
-                <dt class="text-xs text-slate-700">Notes</dt>
-                <dd>
-                    <pre
-                        class="text-[10px] leading-tight text-wrap break-words overflow-auto max-h-96">{{release.notes|d('')|e}}</pre>
-                </dd>
-            </div>
+                <div class="hidden sm:block overflow-auto">
+                    <dt class="text-xs text-slate-700">Notes</dt>
+                    <dd>
+                        <pre class="text-[10px] leading-tight text-wrap break-words overflow-auto max-h-96">{{release.notes|d('')|e}}</pre>
+                    </dd>
+                </div>
             {% endif %}
         </div>
     </div>
-
 </div>

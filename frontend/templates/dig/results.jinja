@@ -1,9 +1,10 @@
-<div id="results" class="flex flex-col min-w-0 flex-grow" hx-on::after-swap="this.firstElementChild.scrollTo(0,0)">
+<div id="results"
+     class="flex flex-col min-w-0 flex-grow"
+     hx-on::after-swap="this.firstElementChild.scrollTo(0,0)">
     <div class="px-2 pb-2 space-y-2 lg:space-y-0 gap-2 min-h-0 overflow-auto lg:grid grid-cols-2 2xl:grid-cols-3">
         {% for release in releases %}
-        {% include 'dig/release.jinja' %}
+            {% include 'dig/release.jinja' %}
         {% endfor %}
     </div>
     {% include 'dig/pagination.jinja' %}
-
 </div>

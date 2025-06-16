@@ -2,96 +2,83 @@
 {% from "components/youtube.jinja" import youtube %}
 {% from "components/thumb.jinja" import thumb %}
 {% from "components/tags.jinja" import tags %}
-
-<div id="release{{release.id}}" class="rounded border bg-slate-100 shadow">
-    <div id="videos{{release.id}}" class="w-full">
-        {{ youtube(release.videos) }}
-    </div>
-
+<div id="release{{ release.id }}"
+     class="rounded border bg-slate-100 shadow">
+    <div id="videos{{ release.id }}" class="w-full">{{ youtube(release.videos) }}</div>
     <div class="flex space-x-2 p-2">
         <div class="w-full flex-grow *:mb-2 last:mb-0">
             {# Thumbnail #}
             <div class="float-right ml-2">{{ thumb(release.id) }}</div>
-
             {# Title and Year #}
             <div class="leading-none">
                 <div class="float-right text-xs flex flex-col gap-1 md:gap-2 items-end -mr-2 md:mr-0">
-                    <div class="rounded max-md:rounded-r-none bg-slate-200 p-1 leading-none">{{release.released|d()}}
-                    </div>
-                    <div class="rounded max-md:rounded-r-none bg-slate-200 p-1 leading-none">{{release.country|d()}}
-                    </div>
+                    <div class="rounded max-md:rounded-r-none bg-slate-200 p-1 leading-none">{{ release.released|d() }}</div>
+                    <div class="rounded max-md:rounded-r-none bg-slate-200 p-1 leading-none">{{ release.country|d() }}</div>
                 </div>
-
-                <h2 class="text-md md:text-lg"><a target="_blank" href="https://discogs.com/release/{{release.id}}"
-                        class="hover:underline line-clamp-3 leading-none">{{release.title}}</a></h2>
+                <h2 class="text-md md:text-lg">
+                    <a target="_blank"
+                       href="https://discogs.com/release/{{ release.id }}"
+                       class="hover:underline line-clamp-3 leading-none">{{ release.title }}</a>
+                </h2>
                 <div class="text-xs md:text-md leading-none">
                     <span class="text-slate-500 text-xs">by</span>
-                    {{release.artists|map(attribute="name")|join(', ')}}
+                    {{ release.artists|map(attribute="name") |join(', ') }}
                 </div>
             </div>
-
             {# Styles #}
             {{ tags(release.styles) }}
-
             {# Data #}
             <dl class="space-y-2 max-sm:mb-0">
                 <div>
                     {% call(f) property("Format", release.formats) %}
-                    <span class="leading-none text-xs">{{f.text|d()}} {{f.descriptions|d()|join(' ')}}
-                        {{f.name|d()}}</span>
-                    {% endcall%}
+                        <span class="leading-none text-xs">{{ f.text|d() }} {{ f.descriptions|d() |join(' ') }}
+                        {{ f.name|d() }}</span>
+                    {% endcall %}
                 </div>
-
                 <div class="hidden sm:block">
                     <dt class="text-xs text-slate-700">Label</dt>
                     {% for label in release.labels %}
-                    <dd>
-                        <a href="https://discogs.com/label/{{label.id}}"
-                            class="hover:underline block -mb-1">{{label.name}}</a>
-                        <span class="text-slate-400 text-xs leading-none">{{label.catno}}</span>
-                    </dd>
+                        <dd>
+                            <a href="https://discogs.com/label/{{ label.id }}"
+                               class="hover:underline block -mb-1">{{ label.name }}</a>
+                            <span class="text-slate-400 text-xs leading-none">{{ label.catno }}</span>
+                        </dd>
                     {% endfor %}
                 </div>
-
                 {% if release.identifiers is defined %}
-                <div>
-                    {% call(id) property("Other Identifiers", release.identifiers, true) %}
-                    <span class="block w-full text-ellipsis overflow-hidden text-nowrap">
-                        <span class="text-slate-400 text-xs leading-none">{{id.type}}</span>
-                        {{id.value}}</span>
-                    {% endcall %}
-                </div>
+                    <div>
+                        {% call(id) property("Other Identifiers", release.identifiers, true) %}
+                            <span class="block w-full text-ellipsis overflow-hidden text-nowrap">
+                                <span class="text-slate-400 text-xs leading-none">{{ id.type }}</span>
+                            {{ id.value }}</span>
+                        {% endcall %}
+                    </div>
                 {% endif %}
-
-                <div id="prices{{release.id}}" {% if 'user' in session %}hx-get="/prices/{{release.id}}"
-                    hx-trigger="intersect once" hx-on::after-swap="event.stopPropagation()" {% endif%}>
-                    {{property("Prices")}}
-                    {%if 'user' not in session %}
-                    Log in to see prices.
-                    {% endif %}
+                <div id="prices{{ release.id }}"
+                     {% if 'user' in session %}hx-get="/prices/{{ release.id }}" hx-trigger="intersect once" hx-on::after-swap="event.stopPropagation()" {% endif %}>
+                    {{ property("Prices") }}
+                    {% if 'user' not in session %}Log in to see prices.{% endif %}
                 </div>
-
                 <div class="w-full hidden sm:block">
                     <dt class="text-xs text-slate-700">Tracks</dt>
                     {% for track in release.tracklist %}
-                    <dd class="text-xs flex gap-2">
-                        <div class="text-slate-400">{{track.position|d()}}</div> {{track.title|d('Untitled')}}
-                        <div class="grow"></div> {{track.duration|d('')}}
-                    </dd>
+                        <dd class="text-xs flex gap-2">
+                            <div class="text-slate-400">{{ track.position|d() }}</div>
+                            {{ track.title|d("Untitled") }}
+                            <div class="grow"></div>
+                            {{ track.duration|d("") }}
+                        </dd>
                     {% endfor %}
                 </div>
             </dl>
-
             <div class="hidden sm:block">
                 <dt class="text-xs text-slate-700">Notes</dt>
                 <dd>
                     <pre class="text-wrap">{{release.notes|d('')}}</pre>
                 </dd>
             </div>
-
             {#
             <pre class="w-full text-wrap overflow-auto h-64 text-slate-400">{{release}}</pre> #}
         </div>
     </div>
-
 </div>

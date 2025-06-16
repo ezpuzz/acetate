@@ -1,12 +1,16 @@
 {% macro button_with_loading_state(label, post, swap="none", target="this") %}
-<button
-    class="flex items-center font-semibold leading-tight border border-slate-500 rounded px-2 py-1 hover:bg-slate-300 bg-slate-200 shadow-md"
-    hx-post="{{post}}" hx-swap="{{swap}}" hx-trigger="click" hx-on::after-swap="event.stopPropagation()"
-    hx-target="{{target}}" hx-include="closest div, #search, #filters, #pagination">
-    {# spinner #}
-    <svg class="hidden-indicator size-6 sm:size-4 sm:mr-1 flex-none" viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg">
-        <style>
+    <button class="flex items-center font-semibold leading-tight border border-slate-500 rounded px-2 py-1 hover:bg-slate-300 bg-slate-200 shadow-md"
+            hx-post="{{ post }}"
+            hx-swap="{{ swap }}"
+            hx-trigger="click"
+            hx-on::after-swap="event.stopPropagation()"
+            hx-target="{{ target }}"
+            hx-include="closest div, #search, #filters, #pagination">
+        {# spinner #}
+        <svg class="hidden-indicator size-6 sm:size-4 sm:mr-1 flex-none"
+             viewBox="0 0 24 24"
+             xmlns="http://www.w3.org/2000/svg">
+            <style>
             .spinner_Wezc {
                 transform-origin: center;
                 animation: spinner_Oiah .75s step-end infinite
@@ -61,8 +65,8 @@
                     transform: rotate(360deg)
                 }
             }
-        </style>
-        <g class="spinner_Wezc">
+            </style>
+            <g class="spinner_Wezc">
             <circle cx="12" cy="2.5" r="1.5" opacity=".14" />
             <circle cx="16.75" cy="3.77" r="1.5" opacity=".29" />
             <circle cx="20.23" cy="7.25" r="1.5" opacity=".43" />
@@ -70,9 +74,9 @@
             <circle cx="20.23" cy="16.75" r="1.5" opacity=".71" />
             <circle cx="16.75" cy="20.23" r="1.5" opacity=".86" />
             <circle cx="12" cy="21.5" r="1.5" />
-        </g>
-    </svg>
-    <div class="button-icon">{{caller()}}</div>
-    {{label}}
-</button>
+            </g>
+        </svg>
+        <div class="button-icon">{{ caller() }}</div>
+        {{ label }}
+    </button>
 {% endmacro %}

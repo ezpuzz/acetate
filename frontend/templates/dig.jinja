@@ -1,49 +1,53 @@
 {% extends "layout.jinja" %}
 {% from "components/active-search.jinja" import activesearch as activesearch %}
-
 {% block content %}
-<form id="search" action="/dig" method="get" hx-push-url="true" hx-vals='{"page": "1"}'
-    class="flex-none grid grid-cols-2 sm:flex sm:flex-wrap items-stretch gap-1 m-2">
-
-    {{ activesearch("/dig", "label", "Label", label, "Defected") }}
-    {{ activesearch("/dig", "artist", "Artist", artist, "Acen") }}
-    {{ activesearch("/dig", "title", "Title", title, "Phantom Power") }}
-    {{ activesearch("/dig", "catno", "Catalog Number", catno, "BREAKS001") }}
-    {{ activesearch("/dig", "identifier", "Identifiers", identifier, "12345") }}
-    <div class="flex flex-col justify-end">
-        {# <label class="text-xs">&nbsp</label> #}
-        <input type="button" hx-on:click="document.querySelectorAll('.activesearch').forEach((i) => i.value = '')"
-            value="Reset" class="text-xs cursor-pointer p-1 border rounded bg-slate-200" />
-    </div>
-
-</form>
-
-<div class="flex grow min-h-0">
-    <div id="filters" class="w-24 sm:w-48 shrink-0 h-full flex flex-col">
-        <h2 class="text-xl px-2 bg-slate-100">Filters</h2>
-        <div class="overflow-auto grow px-2 pb-2">
-            {% for f in filters %}
-            {% set field = filters[f]['meta']['field']%}
-
-            <h3 class="text-lg">{{f}}</h3>
-            {% for v in filters[f]["buckets"] %}
-            <label class="border p-1 sm:p-px rounded-lg sm:border-none has-[:checked]:bg-blue-400 flex
-                mb-1 sm:mb-0 items-center leading-tight hyphens-auto break-normal text-ellipsis overflow-hidden"><input
-                    class="peer hidden sm:block mr-1" hx-get="/dig" hx-target="#results" hx-swap="morph"
-                    hx-sync="#results:replace" hx-include="#search, #filters, #pagination" type="checkbox"
-                    hx-vals='{"page": "1"}' name="{{field}}" value='{{v["key"]}}' hx-push-url="true" {% if v["key"] in
-                    request.args.getlist(field) %}checked{% endif %} />
-                {{v["key"]}}
-            </label>
-            {% endfor %}
-            {% endfor %}
+    <form id="search"
+          action="/dig"
+          method="get"
+          hx-push-url="true"
+          hx-vals='{"page": "1"}'
+          class="flex-none grid grid-cols-2 sm:flex sm:flex-wrap items-stretch gap-1 m-2">
+        {{ activesearch("/dig", "label", "Label", label, "Defected") }}
+        {{ activesearch("/dig", "artist", "Artist", artist, "Acen") }}
+        {{ activesearch("/dig", "title", "Title", title, "Phantom Power") }}
+        {{ activesearch("/dig", "catno", "Catalog Number", catno, "BREAKS001") }}
+        {{ activesearch("/dig", "identifier", "Identifiers", identifier, "12345") }}
+        <div class="flex flex-col justify-end">
+            {# <label class="text-xs">&nbsp</label> #}
+            <input type="button"
+                   hx-on:click="document.querySelectorAll('.activesearch').forEach((i) => i.value = '')"
+                   value="Reset"
+                   class="text-xs cursor-pointer p-1 border rounded bg-slate-200" />
         </div>
-    </div>
-
-    <div id="results" class="flex flex-col min-w-0 grow items-center" hx-get="/dig" hx-trigger="load"
-        hx-swap="outerHTML" hx-include="#search, #filters, #pagination">
-        {% include 'components/loader.jinja' %}
-        {% include 'dig/pagination.jinja' %}
-    </div>
-</div>
-{% endblock %}
+    </form>
+    <div class="flex grow min-h-0">
+        <div id="filters" class="w-24 sm:w-48 shrink-0 h-full flex flex-col">
+            <h2 class="text-xl px-2 bg-slate-100">Filters</h2>
+            <div class="overflow-auto grow px-2 pb-2">
+                {% for f in filters %}
+                    {% set field = filters[f]['meta']['field'] %}
+                    <h3 class="text-lg">{{ f }}</h3>
+                    {% for v in filters[f]["buckets"] %}
+                        <label class="border p-1 sm:p-px rounded-lg sm:border-none has-[:checked]:bg-blue-400 flex mb-1 sm:mb-0 items-center leading-tight hyphens-auto break-normal text-ellipsis overflow-hidden">
+                            <input
+                                class="peer hidden sm:block mr-1" hx-get="/dig" hx-target="#results" hx-swap="morph"
+                                hx-sync="#results:replace" hx-include="#search, #filters, #pagination" type="checkbox"
+                                hx-vals='{"page": "1"}' name="{{ field }}" value='{{ v["key"] }}' hx-push-url="true" {% if v["key"] in
+                                request.args.getlist(field) %}checked{% endif %} />
+                                {{ v["key"] }}
+                            </label>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+            <div id="results"
+                 class="flex flex-col min-w-0 grow items-center"
+                 hx-get="/dig"
+                 hx-trigger="load"
+                 hx-swap="outerHTML"
+                 hx-include="#search, #filters, #pagination">
+                {% include 'components/loader.jinja' %}
+                {% include 'dig/pagination.jinja' %}
+            </div>
+        </div>
+    {% endblock %}

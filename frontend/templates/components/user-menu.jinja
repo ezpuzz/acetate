@@ -1,17 +1,20 @@
-<a href="#menu" class="relative cursor-pointer flex px-2 self-stretch items-center gap-2 hover:bg-gray-200">
-    <div class="rounded-full size-8 flex-none bg-gray-300 flex items-center justify-center">
-    </div>
+<a href="#menu"
+   class="relative cursor-pointer flex px-2 self-stretch items-center gap-2 hover:bg-gray-200">
+    <div class="rounded-full size-8 flex-none bg-gray-300 flex items-center justify-center"></div>
     <div class="hidden md:block">
-        <div class="font-bold">{{session.user.username}}</div>
+        <div class="font-bold">{{ session.user.username }}</div>
         {# <div>ezPuzzle</div> #}
     </div>
-
-    <div id="menu" class="hidden target:z-10 target:block absolute top-full right-0 bg-white shadow-lg p-4 min-w-32">
-        <button class="flex items-center border rounded my-2 px-2 hover:bg-slate-300 shadow" hx-post="/wants"
-            hx-swap="none">
+    <div id="menu"
+         class="hidden target:z-10 target:block absolute top-full right-0 bg-white shadow-lg p-4 min-w-32">
+        <button class="flex items-center border rounded my-2 px-2 hover:bg-slate-300 shadow"
+                hx-post="/wants"
+                hx-swap="none">
             Refresh Wantlist
             {# spinner #}
-            <svg class="ml-2 htmx-indicator size-4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg class="ml-2 htmx-indicator size-4"
+                 viewBox="0 0 24 24"
+                 xmlns="http://www.w3.org/2000/svg">
                 <style>
                     .spinner_Wezc {
                         transform-origin: center;
@@ -69,20 +72,23 @@
                     }
                 </style>
                 <g class="spinner_Wezc">
-                    <circle cx="12" cy="2.5" r="1.5" opacity=".14" />
-                    <circle cx="16.75" cy="3.77" r="1.5" opacity=".29" />
-                    <circle cx="20.23" cy="7.25" r="1.5" opacity=".43" />
-                    <circle cx="21.50" cy="12.00" r="1.5" opacity=".57" />
-                    <circle cx="20.23" cy="16.75" r="1.5" opacity=".71" />
-                    <circle cx="16.75" cy="20.23" r="1.5" opacity=".86" />
-                    <circle cx="12" cy="21.5" r="1.5" />
+                <circle cx="12" cy="2.5" r="1.5" opacity=".14" />
+                <circle cx="16.75" cy="3.77" r="1.5" opacity=".29" />
+                <circle cx="20.23" cy="7.25" r="1.5" opacity=".43" />
+                <circle cx="21.50" cy="12.00" r="1.5" opacity=".57" />
+                <circle cx="20.23" cy="16.75" r="1.5" opacity=".71" />
+                <circle cx="16.75" cy="20.23" r="1.5" opacity=".86" />
+                <circle cx="12" cy="21.5" r="1.5" />
                 </g>
             </svg>
         </button>
     </div>
-
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-        class="size-4">
+    <svg xmlns="http://www.w3.org/2000/svg"
+         fill="none"
+         viewBox="0 0 24 24"
+         stroke-width="1.5"
+         stroke="currentColor"
+         class="size-4">
         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
     </svg>
 </a>

@@ -1,27 +1,34 @@
-<div id="filters" {% if swapoob is defined %} hx-swap-oob="morph" {% endif %}
-    class="absolute z-20 inset-0 h-full w-full bg-white -translate-x-full target:translate-x-0 shrink-0 flex flex-col">
-    <div class="flex items-center justify-between text-xl px-2 bg-slate-100">Filters
+<div id="filters"
+     {% if swapoob is defined %}hx-swap-oob="morph"{% endif %}
+     class="absolute z-20 inset-0 h-full w-full bg-white -translate-x-full target:translate-x-0 shrink-0 flex flex-col">
+    <div class="flex items-center justify-between text-xl px-2 bg-slate-100">
+        Filters
         <a class="border rounded p-2 my-2 text-sm" href="#">See Results</a>
     </div>
     <div class="overflow-auto grow p-2 space-y-2">
         {% for f in filters %}
-        {% set field = filters[f]['meta']['field']%}
-
-        <h3 class="text-lg">{{f}}</h3>
-        <div class="grid grid-cols-3 md:grid-cols-4 gap-1 md:gap-x-4">
-            {% for v in filters[f]["buckets"] %}
-            <label class="border p-1 sm:p-px rounded-lg sm:border-none has-[:checked]:bg-blue-400 flex
-                     items-center leading-tight hyphens-auto break-normal text-ellipsis overflow-hidden"><input
-                    class="peer hidden sm:block mr-1" hx-get="/discover#filters" hx-target="#results"
-                    hx-sync="#filters:replace" hx-swap="morph" hx-include="#search, #filters, #pagination"
-                    type="checkbox" hx-vals='{"page": "1"}' name="{{field}}" value='{{v["key"]|e}}' hx-push-url="true"
-                    {% if v["key"] in params.getlist(field) %}checked{% endif %} />
-                {{v["key"]}} <div class="hidden sm:inline text-xs text-slate-700 leading-none ml-auto">
-                    ({{v["doc_count"]}})
-                </div>
-            </label>
-            {% endfor %}
-        </div>
+            {% set field = filters[f]['meta']['field'] %}
+            <h3 class="text-lg">{{ f }}</h3>
+            <div class="grid grid-cols-3 md:grid-cols-4 gap-1 md:gap-x-4">
+                {% for v in filters[f]["buckets"] %}
+                    <label class="border p-1 sm:p-px rounded-lg sm:border-none has-[:checked]:bg-blue-400 flex items-center leading-tight hyphens-auto break-normal text-ellipsis overflow-hidden">
+                        <input class="peer hidden sm:block mr-1"
+                               hx-get="/discover#filters"
+                               hx-target="#results"
+                               hx-sync="#filters:replace"
+                               hx-swap="morph"
+                               hx-include="#search, #filters, #pagination"
+                               type="checkbox"
+                               hx-vals='{"page": "1"}'
+                               name="{{ field }}"
+                               value='{{ v["key"]|e }}'
+                               hx-push-url="true"
+                               {% if v["key"] in params.getlist(field) %}checked{% endif %} />
+                        {{ v["key"] }}
+                        <div class="hidden sm:inline text-xs text-slate-700 leading-none ml-auto">({{ v["doc_count"] }})</div>
+                    </label>
+                {% endfor %}
+            </div>
         {% endfor %}
     </div>
 </div>

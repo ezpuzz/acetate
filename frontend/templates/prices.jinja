@@ -1,11 +1,14 @@
 <dt class="text-xs text-slate-700 w-full">Prices</dt>
 <div class="flex flex-wrap gap-2">
     {% for p in prices %}
-    <dd class="rounded p-1 border"><span class="text-xs">{{p}}</span> {{"$%.2f"|format(prices[p]['value'])}}</dd>
+        <dd class="rounded p-1 border">
+            <span class="text-xs">{{ p }}</span> {{ "$%.2f"|format(prices[p]['value']) }}
+        </dd>
     {% else %}
-    {% for condition in ['M', 'NM or M-', 'VG+', 'VG', 'G+', 'G', 'F', 'P'] %}
-    <dd class="rounded p-1 border"><span class="text-xs">{{condition}}</span>
-    </dd>
-    {% endfor %}
+        {% for condition in ['M', 'NM or M-', 'VG+', 'VG', 'G+', 'G', 'F', 'P'] %}
+            <dd class="rounded p-1 border">
+                <span class="text-xs">{{ condition }}</span>
+            </dd>
+        {% endfor %}
     {% endfor %}
 </div>

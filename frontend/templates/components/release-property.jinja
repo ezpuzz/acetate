@@ -1,32 +1,24 @@
-{% macro property(title, values, expandable)%}
-
-{% set expandable = expandable|d(false) %}
-
-{% if values is defined %}
-<div>
-    {% if not expandable %}
-
-    <dt class="text-xs text-slate-700">{{title}}</dt>
-    <div class="flex flex-wrap gap-2">
-
-        {% for v in values|d([]) %}
-        <dd class="leading-none">{{ caller(v) }}</dd>
-        {% endfor %}
-    </div>
-
-    {% else %}
-
-    <details>
-        <summary class="cursor-pointer text-xs text-slate-700">{{title}}</summary>
-        <ul>
-            {% for v in values|d([]) %}
-            <li>{{ caller(v) }}</li>
-            {% endfor %}
-        </ul>
-    </details>
-
+{% macro property(title, values, expandable) %}
+    {% set expandable = expandable|d(false) %}
+    {% if values is defined %}
+        <div>
+            {% if not expandable %}
+                <dt class="text-xs text-slate-700">{{ title }}</dt>
+                <div class="flex flex-wrap gap-2">
+                    {% for v in values|d([]) %}
+                        <dd class="leading-none">
+                            {{ caller(v) }}
+                        </dd>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <details>
+                    <summary class="cursor-pointer text-xs text-slate-700">{{ title }}</summary>
+                    <ul>
+                        {% for v in values|d([]) %}<li>{{ caller(v) }}</li>{% endfor %}
+                    </ul>
+                </details>
+            {% endif %}
+        </div>
     {% endif %}
-</div>
-{% endif %}
-
 {% endmacro %}

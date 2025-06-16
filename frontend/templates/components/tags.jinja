@@ -1,11 +1,10 @@
 {% macro tags(values) %}
-{% if values is defined%}
-<div class="flex flex-wrap gap-1 md:gap-2 text-xs">
-    {% for v in values %}
-    <div class="rounded-full px-2 py-1 leading-none" style="background-color: {{v|colorhash}}">
-        {{v}}
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
+    {% if values is defined %}
+        <div class="flex flex-wrap gap-1 md:gap-2 text-xs">
+            {% for v in values %}
+                <div class="rounded-full px-2 py-1 leading-none"
+                     style="background-color: {{ v|colorhash }}">{{ v }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
 {% endmacro %}
