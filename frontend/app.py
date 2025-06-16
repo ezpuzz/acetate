@@ -93,7 +93,7 @@ oauth = OAuth(app)
 def get_token():
     user = db.session.scalar(
         db.select(User).where(
-            User.discogs_user_id == session.get("user").get("id")
+            User.discogs_user_id == session.get("user").get("id"),
         ),
     )
     return {
@@ -120,12 +120,12 @@ def add_header(response):
 
 
 @app.route("/healthz")
-def healthz():
+def healthz() -> str:
     return "ok"
 
 
 @app.errorhandler(404)
-def page_not_found(error):
+def page_not_found(_):
     return flask.redirect(url_for("discover"))
 
 
@@ -133,12 +133,6 @@ def page_not_found(error):
 @app.route("/discover")
 async def discover():
     extra_args = {"pageSize": 10}
-
-    print(request.args)
-    # if htmx:
-    #     q = str(urlparse(htmx.current_url).query)
-    #     orig_args = request.parameter_storage_class(parse_qsl(q))
-    #     extra_args.update(orig_args)
 
     if "videos_only" not in request.args:
         extra_args["videos_only"] = "on"
@@ -150,8 +144,6 @@ async def discover():
         async with asyncio.TaskGroup() as tg:
             releases = tg.create_task(get_releases(args))
 
-        # print(args)
-        # print(releases)
         return render_template(
             "discover/results.jinja",
             **{
@@ -179,7 +171,7 @@ async def dig():
     if htmx and not htmx.boosted:
         async with asyncio.TaskGroup() as tg:
             releases = tg.create_task(
-                get_releases(request.args, omit_hidden=False)
+                get_releases(request.args, omit_hidden=False),
             )
 
         return render_template(
@@ -194,8 +186,8 @@ async def dig():
     page_size = int(request.args.get("pageSize", 5))
     offset = int(
         request.args.get(
-            "offset", (int(request.args.get("page", 1)) - 1) * page_size
-        )
+            "offset", (int(request.args.get("page", 1)) - 1) * page_size,
+        ),
     )
     page = 1 + offset // page_size
 
@@ -245,9 +237,9 @@ async def filter_view():
                                                 "artists.name^5",
                                                 "artists.anv^2",
                                             ],
-                                        }
+                                        },
                                     },
-                                }
+                                },
                             },
                             {
                                 "nested": {
@@ -259,9 +251,9 @@ async def filter_view():
                                                 "extraartists.name",
                                                 "extraartists.anv",
                                             ],
-                                        }
+                                        },
                                     },
-                                }
+                                },
                             },
                             {
                                 "nested": {
@@ -273,9 +265,9 @@ async def filter_view():
                                                 "labels.name",
                                                 "labels.catno^5",
                                             ],
-                                        }
+                                        },
                                     },
-                                }
+                                },
                             },
                             {
                                 "nested": {
@@ -286,9 +278,9 @@ async def filter_view():
                                             "fields": [
                                                 "identifiers.value",
                                             ],
-                                        }
+                                        },
                                     },
-                                }
+                                },
                             },
                             {
                                 "nested": {
@@ -299,9 +291,9 @@ async def filter_view():
                                             "fields": [
                                                 "tracklist.title",
                                             ],
-                                        }
+                                        },
                                     },
-                                }
+                                },
                             },
                             {
                                 "multi_match": {
@@ -310,7 +302,7 @@ async def filter_view():
                                         "released.keyword^30",
                                         "styles",
                                     ],
-                                }
+                                },
                             },
                             {
                                 "match_phrase_prefix": {
@@ -318,10 +310,10 @@ async def filter_view():
                                         "query": query,
                                         "boost": 5,
                                     },
-                                }
+                                },
                             },
-                        ]
-                    }
+                        ],
+                    },
                 },
                 "size": 100,
             },
@@ -349,8 +341,8 @@ def load_wantlist():
     if "user" in session:
         bitmap = db.session.scalar(
             db.select(User.wantlist).where(
-                User.discogs_user_id == session.get("user").get("id")
-            )
+                User.discogs_user_id == session.get("user").get("id"),
+            ),
         )
         if bitmap:
             return BitMap.deserialize(bitmap)
@@ -396,12 +388,12 @@ def by_label():
                                             "fields": [
                                                 "labels.name",
                                             ],
-                                        }
+                                        },
                                     },
-                                }
+                                },
                             },
                         ],
-                    }
+                    },
                 },
                 "aggs": {
                     "labels": {
@@ -424,9 +416,9 @@ def by_label():
                                         },
                                     },
                                 },
-                            }
+                            },
                         },
-                    }
+                    },
                 },
                 "size": 100,
             },
@@ -484,7 +476,7 @@ def label(label_id):
                             },
                         },
                     ],
-                }
+                },
             },
             "sort": [{"released": {"order": "asc"}}],
         },
@@ -523,10 +515,10 @@ def by_artist():
                                         "realname.folded",
                                     ],
                                     "query": query,
-                                }
-                            }
+                                },
+                            },
                         ],
-                    }
+                    },
                 },
                 "size": 100,
             },
@@ -641,11 +633,11 @@ def get_filters():
 
 
 async def get_releases(
-    params: werkzeug.datastructures.MultiDict, *, omit_hidden=True
+    params: werkzeug.datastructures.MultiDict, *, omit_hidden=True,
 ):
     page_size = int(params.get("pageSize", 5))
     offset = int(
-        params.get("offset", (int(params.get("page", 1)) - 1) * page_size)
+        params.get("offset", (int(params.get("page", 1)) - 1) * page_size),
     )
     page = 1 + offset // page_size
 
@@ -668,7 +660,7 @@ async def get_releases(
                 (
                     "hide",
                     base64.urlsafe_b64encode(
-                        BitMap.serialize(BitMap(actions))
+                        BitMap.serialize(BitMap(actions)),
                     ).decode(
                         "UTF-8",
                     ),
@@ -750,7 +742,7 @@ async def get_releases(
             ],
         ]
         if p
-    ]  # type: ignore
+    ]
 
     async with httpx.AsyncClient() as client:
         releases = await client.get(
@@ -834,7 +826,7 @@ def artist_releases(artist_id):
                                 "query": {
                                     "terms": {
                                         "artists.id": all_possible_ids,
-                                    }
+                                    },
                                 },
                             },
                         },
@@ -843,8 +835,8 @@ def artist_releases(artist_id):
                                 "path": "extraartists",
                                 "query": {
                                     "terms": {
-                                        "extraartists.id": all_possible_ids
-                                    }
+                                        "extraartists.id": all_possible_ids,
+                                    },
                                 },
                             },
                         },
@@ -856,10 +848,10 @@ def artist_releases(artist_id):
                                         "path": "tracklist.artists",
                                         "query": {
                                             "terms": {
-                                                "tracklist.artists.id": all_possible_ids
-                                            }
+                                                "tracklist.artists.id": all_possible_ids,
+                                            },
                                         },
-                                    }
+                                    },
                                 },
                             },
                         },
@@ -871,10 +863,10 @@ def artist_releases(artist_id):
                                         "path": "tracklist.extraartists",
                                         "query": {
                                             "terms": {
-                                                "tracklist.extraartists.id": all_possible_ids
-                                            }
+                                                "tracklist.extraartists.id": all_possible_ids,
+                                            },
                                         },
-                                    }
+                                    },
                                 },
                             },
                         },
@@ -892,13 +884,13 @@ def artist_releases(artist_id):
                                     "formats.descriptions": [
                                         "Compilation",
                                         "Mixed",
-                                    ]
-                                }
+                                    ],
+                                },
                             },
                         ]
                         if c is not None
                     ],
-                }
+                },
             },
             "sort": [{"released": {"order": "asc"}}],
         },
@@ -955,7 +947,7 @@ def thumb(release_id):
 
 @app.route("/prices/<release_id>")
 def get_price(release_id):
-    if "user" not in session:
+    if "user" not in session or oauth.discogs is None:
         raise LoggedOutError
 
     prices = oauth.discogs.get(
@@ -966,7 +958,7 @@ def get_price(release_id):
     if prices == {}:
         # look up price of master release
         release = httpx.get(
-            f"{AXUM_API}release?id={release_id}", timeout=5
+            f"{AXUM_API}release?id={release_id}", timeout=5,
         ).json()["_source"]
         if (
             "master_id" in release
@@ -999,13 +991,12 @@ def get_price(release_id):
 
 
 @app.post("/wants")
-def wantlist():
+def wantlist() -> str:
     username = session["user"]["username"]
     bitmap = BitMap()
     url = f"https://api.discogs.com/users/{username}/wants?per_page=100&page=1"
 
     while url:
-        # print("Requesting", url)
         wants = oauth.discogs.get(
             url,
             timeout=60,
@@ -1013,14 +1004,11 @@ def wantlist():
         try:
             wants.raise_for_status()
         except Exception:
-            # print("Timeout, retrying", e)
             sleep(5)
             continue
         wants = wants.json()
         bitmap.update(w["id"] for w in wants["wants"])
         url = wants["pagination"]["urls"].get("next", None)
-
-    # print(bitmap)
 
     stmt = (
         update(User)
@@ -1049,7 +1037,7 @@ def logout():
 def auth():
     token = oauth.discogs.authorize_access_token()
     resp = oauth.discogs.get(
-        "https://api.discogs.com/oauth/identity", timeout=5
+        "https://api.discogs.com/oauth/identity", timeout=5,
     )
     user = resp.json()
 
