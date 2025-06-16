@@ -2,7 +2,7 @@
 {% from "components/active-search.jinja" import activesearch as activesearch %}
 {% block content %}
     <form id="search"
-          action="/dig"
+          action="{{ url_for('dig') }}"
           method="get"
           hx-push-url="true"
           hx-vals='{"page": "1"}'

@@ -2,7 +2,7 @@
 {% from "components/active-search.jinja" import activesearch as activesearch %}
 {% block content %}
     <form id="search"
-          action="/discover"
+          action="{{ url_for('discover') }}"
           method="get"
           hx-push-url="true"
           hx-vals='{"page": "1"}'
@@ -45,6 +45,7 @@
          hx-get="/discover"
          hx-trigger="load"
          hx-swap="outerHTML"
-         hx-include="#search, #filters, #pagination">{% include 'components/loader.jinja' %}</div>
-    <div id="filters"></div>
-{% endblock %}
+         hx-include="#search, #filters, #pagination">{% include "components/loader.jinja" %}</div>
+    {% include "discover/filters.jinja" %}
+    {% include "discover/active_filters.jinja" %}
+{% endblock content %}

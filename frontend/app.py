@@ -1,11 +1,8 @@
 import asyncio
 import base64
-import json
 import os
-import pprint
 import re
 from time import sleep
-from urllib.parse import parse_qsl, urlparse
 
 import flask
 import flask_htmx
@@ -18,6 +15,7 @@ from dotenv import load_dotenv
 from elasticapm.contrib.flask import ElasticAPM
 from elasticsearch import Elasticsearch
 from flask import Flask, redirect, render_template, request, session, url_for
+from flask_caching import Cache
 from flask_htmx import HTMX, make_response
 from flask_sqlalchemy import SQLAlchemy
 from jinja2 import StrictUndefined
@@ -27,12 +25,22 @@ from sqlalchemy.dialects.postgresql import insert
 
 from exeptions import LoggedOutError
 
+config = {
+    "DEBUG": True,  # some Flask specific configs
+    "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
+    "CACHE_DEFAULT_TIMEOUT": 300,
+}
+
 load_dotenv()
 
 db = SQLAlchemy()
 
 app = Flask(__name__, static_url_path="/public")
+app.config.from_mapping(config)
+
 app.jinja_env.undefined = StrictUndefined
+
+cache = Cache(app)
 
 
 # set up colorhash filter
@@ -121,20 +129,16 @@ def page_not_found(error):
     return flask.redirect(url_for("discover"))
 
 
-@app.route("/releases")
-def old_releases_endpoint():
-    return flask.redirect(url_for("discover", **request.args))
-
-
 @app.route("/")
 @app.route("/discover")
 async def discover():
     extra_args = {"pageSize": 10}
 
-    if htmx:
-        q = str(urlparse(htmx.current_url).query)
-        orig_args = request.parameter_storage_class(parse_qsl(q))
-        extra_args.update(orig_args)
+    print(request.args)
+    # if htmx:
+    #     q = str(urlparse(htmx.current_url).query)
+    #     orig_args = request.parameter_storage_class(parse_qsl(q))
+    #     extra_args.update(orig_args)
 
     if "videos_only" not in request.args:
         extra_args["videos_only"] = "on"
@@ -144,16 +148,15 @@ async def discover():
 
     if htmx and not htmx.boosted:
         async with asyncio.TaskGroup() as tg:
-            filters = tg.create_task(get_filters())
             releases = tg.create_task(get_releases(args))
 
-        # print(filters)
+        # print(args)
         # print(releases)
         return render_template(
             "discover/results.jinja",
             **{
                 **releases.result(),
-                "filters": filters.result(),
+                "filters": get_filters(),
                 "htmx": htmx,
                 "params": args,
                 **args,
@@ -165,6 +168,7 @@ async def discover():
         **{
             "htmx": htmx,
             "params": args,
+            "filters": get_filters(),
             **args,
         },
     )
@@ -174,26 +178,19 @@ async def discover():
 async def dig():
     if htmx and not htmx.boosted:
         async with asyncio.TaskGroup() as tg:
-            filters = tg.create_task(get_filters())
             releases = tg.create_task(
                 get_releases(request.args, omit_hidden=False)
             )
-
-        filters = filters.result()
 
         return render_template(
             "dig/results.jinja",
             **{
                 **releases.result(),
-                "filters": filters,
+                "filters": get_filters(),
                 **request.args,
             },
         )
 
-    async with asyncio.TaskGroup() as tg:
-        filters = tg.create_task(get_filters())
-
-    filters = filters.result()
     page_size = int(request.args.get("pageSize", 5))
     offset = int(
         request.args.get(
@@ -208,7 +205,7 @@ async def dig():
             "pageSize": page_size,
             "page": page,
             "from": offset,
-            "filters": filters,
+            "filters": get_filters(),
             "hits": 0,
             **request.args,
         },
@@ -631,9 +628,10 @@ def unwant():
     )
 
 
-async def get_filters():
-    async with httpx.AsyncClient() as client:
-        filters = await client.get(f"{AXUM_API}filters", timeout=20)
+@cache.cached(timeout=9000, key_prefix="filters")
+def get_filters():
+    with httpx.Client() as client:
+        filters = client.get(f"{AXUM_API}filters", timeout=20)
         filters.raise_for_status()
         filters = filters.json().get("aggregations")
         keys = sorted(filters, key=lambda f: len(filters[f]["buckets"]))
@@ -1066,7 +1064,7 @@ def wantlist():
         )
         try:
             wants.raise_for_status()
-        except Exception as e:
+        except Exception:
             # print("Timeout, retrying", e)
             sleep(5)
             continue

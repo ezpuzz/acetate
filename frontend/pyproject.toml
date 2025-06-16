@@ -21,6 +21,7 @@ dependencies = [
     "elasticsearch[async]>=8.15.0,<9",
     "roaringbitmap",
     "psycopg2>=2.9.10",
+    "flask-caching>=2.3.1",
 ]
 
 [dependency-groups]

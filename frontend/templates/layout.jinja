@@ -19,31 +19,31 @@
             <nav class="h-full flex-grow">
                 <ul class="h-full flex items-stretch gap-4">
                     <li class="cursor-pointer flex items-center hover:bg-gray-200 {% if not url_for(request.endpoint) == '/discover' %}underline text-blue-500{% endif %}">
-                        <a href="/discover"
+                        <a href="{{ url_for('discover') }}"
                            class="border-b-4 {% if url_for(request.endpoint) == '/discover' %}border-b-orange-500{% else %}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">Discover
                         Latest</a>
                     </li>
                     <li class="cursor-pointer flex items-center hover:bg-gray-200 {% if not url_for(request.endpoint) == '/dig' %}underline text-blue-500{% endif %}">
-                        <a href="/dig"
+                        <a href="{{ url_for('dig') }}"
                            class="border-b-4 {% if url_for(request.endpoint) == '/dig' %}border-b-orange-500{% else %}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">Dig</a>
                     </li>
                     {# <li class="cursor-pointer flex items-center hover:bg-gray-200">
                     <a href="/playlist" class="border-b-4 {% if url_for(request.endpoint) == '/playlist' %}border-b-orange-500{%else%}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">Playlist</a>
                 </li> #}
                     <li class="cursor-pointer flex items-center hover:bg-gray-200 {% if not url_for(request.endpoint) == '/filter' %}underline text-blue-500{% endif %}">
-                        <a href="/filter"
+                        <a href="{{ url_for('filter_view') }}"
                            class="border-b-4 {% if url_for(request.endpoint) == '/filter' %}border-b-orange-500{% else %}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">
                             Rapid Search
                         </a>
                     </li>
                     <li class="cursor-pointer flex items-center hover:bg-gray-200 {% if not url_for(request.endpoint) == '/by_artist' %}underline text-blue-500{% endif %}">
-                        <a href="/by_artist"
+                        <a href="{{ url_for('by_artist') }}"
                            class="border-b-4 {% if url_for(request.endpoint) == '/by_artist' %}border-b-orange-500{% else %}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">
                             By Artist
                         </a>
                     </li>
                     <li class="cursor-pointer flex items-center hover:bg-gray-200 {% if not url_for(request.endpoint) == '/by_label' %}underline text-blue-500{% endif %}">
-                        <a href="/by_label"
+                        <a href="{{ url_for('by_label') }}"
                            class="border-b-4 {% if url_for(request.endpoint) == '/by_label' %}border-b-orange-500{% else %}border-transparent{% endif %} cursor-pointer px-2 flex items-center h-full w-full">
                             By Label
                         </a>
