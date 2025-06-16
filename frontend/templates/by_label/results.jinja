@@ -5,6 +5,7 @@
            class="block hover:bg-slate-200 rounded p-2 cursor-pointer target:bg-slate-300"
            hx-get="/label/{{ label.id }}"
            hx-target="#details"
+           hx-sync="closest div:replace"
            hx-include="this, #search">
             <input name="selected" value="{{ label.id }}" type="hidden" />
             <div class="text-xl">{{ label.key }}</div>

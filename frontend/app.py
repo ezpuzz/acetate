@@ -358,13 +358,14 @@ def load_wantlist():
 
 
 def enrich_releases(releases):
+    wantlist = load_wantlist()
     return (
         [
             {
                 **r["_source"],
                 "id": r["_id"],
                 "sort": r.get("sort"),
-                "wanted": int(r["_id"]) in load_wantlist(),
+                "wanted": int(r["_id"]) in wantlist,
             }
             for r in releases["hits"]["hits"]
         ]
@@ -391,6 +392,7 @@ def by_label():
                                     "query": {
                                         "multi_match": {
                                             "query": query,
+                                            "type": "bool_prefix",
                                             "fields": [
                                                 "labels.name",
                                             ],
