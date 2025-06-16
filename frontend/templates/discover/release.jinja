@@ -8,7 +8,7 @@
     <div class="flex space-x-2 p-2">
         <div class="flex-grow sm:w-2/3 *:mb-2 last:mb-0">
             {# Thumbnail #}
-            <div class="float-right ml-2">{{ thumb(release.id) }}</div>
+            <div class="hidden sm:block float-right ml-2">{{ thumb(release.id) }}</div>
             {# Title and Year #}
             <div class="">
                 <div class="rounded bg-slate-200 float-right p-1 leading-none">{{ release.released|d() }}</div>
@@ -44,12 +44,12 @@
                     {% endfor %}
                 </div>
             </dl>
-            <details class="text-sm text-slate-500 cursor-pointer mb-2">
+            <details class="hidden sm:block text-sm text-slate-500 cursor-pointer mb-2">
                 <summary class="text-sm text-slate-500 cursor-pointer">JSON</summary>
                 {{ release|tojson(indent=4) |e }}
             </details>
         </div>
-        <div class="shrink-0 sm:w-1/3 space-y-2">
+        <div class="max-w-24 sm:max-w-48 shrink-0 sm:w-1/3 space-y-2">
             <div class="text-xs sm:text-sm space-y-2">
                 <div class="col-span-2 flex items-center gap-2">
                     <a target="_blank"
@@ -106,7 +106,7 @@
                 </div>
             {% endif %}
             {% if release.formats is defined %}
-                <div>
+                <div class="hidden sm:block">
                     <dt class="text-xs text-slate-700">Format</dt>
                     {% for f in release.formats %}
                         <dd class="text-xs">
