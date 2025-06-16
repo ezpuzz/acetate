@@ -1,37 +1,45 @@
-{% if search_after is not defined %}
-<div id="results-wrapper" class="grow overflow-auto [overflow-anchor:none]">
-
-    <div id="results" class="relative px-2 pb-2 space-y-2 lg:space-y-0 gap-2 lg:grid grid-cols-2 2xl:grid-cols-3">
-        {% endif %}
-
-        {% for release in releases %}
-
-        {% include 'discover/release.jinja' %}
-
-        {% if loop.last and search_after is not defined %}
-        <form id="sentinel" class="absolute size-2 border border-red-600 bottom-[400px]" hx-trigger="intersect"
-            hx-include="#search_after, #search, #filters, #pagination" hx-get="/discover" hx-swap="beforebegin">
-        </form>
-        <div id="loader" class="flex items-center justify-center">{% include 'components/loader.jinja' %}</div>
-        {% endif %}
-
-        {% endfor %}
-
-        {% if search_after is not defined %}
+{% if releases|length > 0 %}
+    {% if search_after is not defined %}
+        <div id="results-wrapper"
+             class="grow overflow-auto [overflow-anchor:none]">
+            <div id="results"
+                 class="relative px-2 pb-2 space-y-2 lg:space-y-0 gap-2 lg:grid grid-cols-2 2xl:grid-cols-3">
+            {% endif %}
+            {% for release in releases %}
+                {% include 'discover/release.jinja' %}
+                {% if loop.last and search_after is not defined and releases|length > 0 %}
+                    <form id="sentinel"
+                          class="absolute size-2 border border-red-600 bottom-[400px]"
+                          hx-trigger="intersect"
+                          hx-include="#search_after, #search, #filters, #pagination"
+                          hx-get="/discover"
+                          hx-swap="beforebegin">
+                    </form>
+                    <div id="loader" class="flex items-center justify-center">{% include 'components/loader.jinja' %}</div>
+                {% endif %}
+            {% endfor %}
+            {% if search_after is not defined %}
+            </div>
+        </div>
+    {% endif %}
+    <!-- sets where to start next page -->
+    <input type="hidden"
+           id="search_after"
+           {% if search_after is defined %}hx-swap-oob="true"{% endif %}
+           name="search_after"
+           value="{{ releases[-1].sort }}" />
+    {# {% include 'discover/pagination.jinja' %} #}
+    {% if htmx %}
+        {% set swapoob = true %}
+        {% include 'discover/filters.jinja' %}
+        {% include 'discover/active_filters.jinja' %}
+    {% endif %}
+{% else %}
+    <div class="flex flex-col items-center justify-center">
+        <h1 class="text-2xl font-bold">No results found</h1>
+        <p class="text-gray-500 text-sm">Try searching for something else</p>
     </div>
-
-
-</div>
-{% endif %}
-
-<!-- sets where to start next page -->
-<input type="hidden" id="search_after" {% if search_after is defined %} hx-swap-oob="true" {% endif %}
-    name="search_after" value="{{releases[-1].sort}}" />
-
-
-{# {% include 'discover/pagination.jinja' %} #}
-{% if htmx %}
-{% set swapoob = true %}
-{% include 'discover/filters.jinja' %}
-{% include 'discover/active_filters.jinja' %}
+    <div hx-swap-oob="delete" id="loader"></div>
+    <div hx-swap-oob="delete" id="sentinel"></div>
+    <div hx-swap-oob="delete" id="search_after"></div>
 {% endif %}

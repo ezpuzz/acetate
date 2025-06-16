@@ -31,25 +31,7 @@
 
             {# Data #}
             <dl class="space-y-2">
-                <div class="hidden sm:block">
-                    <dt class="text-xs text-slate-700">Label</dt>
-                    {% for label in release.labels %}
-                    <dd>
-                        <a href="https://discogs.com/label/{{label.id}}"
-                            class="hover:underline block -mb-1">{{label.name|e}}</a>
-                        <span class="text-slate-400 text-xs leading-none">{{label.catno|e}}</span>
-                    </dd>
-                    {% endfor %}
-                </div>
-                <div>
-                    <dt class="text-xs text-slate-700">Format</dt>{% if release.formats is defined %}
-                    {% for f in release.formats %}
-                    <dd>
-                        {{f.text|d()|e}}
-                        {{f.descriptions|d()|join(' ')|e}} {{f.name|d()|e}}
-                    </dd>{% endfor %} {% endif %}
-                </div>
-                <div class="w-full hidden sm:block">
+                <div class="w-full hidden sm:block max-h-96 overflow-auto">
                     <dt class="text-xs text-slate-700">Tracks</dt>
                     {% for track in release.tracklist %}
                     <dd class="text-xs flex gap-2">
@@ -108,13 +90,41 @@
                     {% include 'discover/hide.jinja' %}
                 </div>
             </div>
+
+            {% if release.labels is defined %}
             <div class="hidden sm:block">
+                <dt class="text-xs text-slate-700">Label</dt>
+                {% for label in release.labels %}
+                <dd>
+                    <a href="https://discogs.com/label/{{label.id}}"
+                        class="hover:underline block -mb-1">{{label.name|e}}</a>
+                    <span class="text-slate-400 text-xs leading-none">{{label.catno|e}}</span>
+                </dd>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if release.formats is defined %}
+            <div>
+                <dt class="text-xs text-slate-700">Format</dt>
+                {% for f in release.formats %}
+                <dd class="text-xs">
+                    {{f.text|d()|e}}
+                    {{f.descriptions|d()|join(' ')|e}} {{f.name|d()|e}}
+                </dd>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if release.notes is defined %}
+            <div class="hidden sm:block overflow-auto">
                 <dt class="text-xs text-slate-700">Notes</dt>
                 <dd>
                     <pre
-                        class="text-[10px] leading-tight text-wrap overflow-ellipsis overflow-hidden">{{release.notes|d('')|e}}</pre>
+                        class="text-[10px] leading-tight text-wrap break-words overflow-auto max-h-96">{{release.notes|d('')|e}}</pre>
                 </dd>
             </div>
+            {% endif %}
         </div>
     </div>
 

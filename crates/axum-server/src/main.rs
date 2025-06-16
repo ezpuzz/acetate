@@ -4,7 +4,7 @@ use roaring::RoaringBitmap;
 mod config;
 mod error;
 
-use serde_json::{json, Value, to_string_pretty};
+use serde_json::{json, to_string_pretty, Value};
 
 use axum::{
     body::Body, debug_handler, extract::Extension, response::Response, routing::get, Router,
@@ -13,18 +13,21 @@ use dotenv::dotenv;
 use serde::{self, Deserialize, Deserializer, Serialize};
 use std::net::SocketAddr;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
+use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv().ok();
+
     let config = config::Config::new();
 
     let credentials = Credentials::Basic("elastic".into(), config.es_password.clone());
     let transport = Transport::cloud(&config.es_cloud_id.clone(), credentials)?;
     let client = Elasticsearch::new(transport);
 
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+    tracing_subscriber::registry()
+        .with(fmt::layer())
+        .with(EnvFilter::from_default_env())
         .init();
 
     let app = Router::new()
@@ -37,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
         .layer(Extension(client));
     // run it
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    println!("listening on {}", addr);
+    // println!("listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
     axum::serve(listener, app.into_make_service())
         .await
@@ -161,7 +164,7 @@ async fn releases(
         params.0.value.unwrap_or_default(),
     )
     .for_each(|f| {
-        if f.0.contains("nested:artists") {
+        if f.0.contains("nested:artists") { // searches on artist or extraartist
             should.push(json!({
             "nested": {
                 "path": "artists",
@@ -197,7 +200,7 @@ async fn releases(
                     }
                 }
             }));
-        } else if f.0.contains("nested:") {
+        } else if f.0.contains("nested:") { // searches on other nested fields
             must.push(json!({"nested": {
                 "path": f.0[7..f.0.chars().position(|c| c == '.').unwrap()],
                 "query": {
@@ -244,7 +247,7 @@ async fn releases(
                 },
                 "score_mode": "max"
             }}))
-        } else if f.0 == "title" {
+        } else if f.0 == "title" { // searches on title
             must.push(json!({
                 "match_bool_prefix": { f.0: {
                     "query": f.1,
@@ -252,7 +255,7 @@ async fn releases(
                     "boost": "10.0"
                 } }
             }));
-        } else {
+        } else { // searches on any other field
             filter.push(json!({ "term": { f.0: f.1 }}));
         }
     });
@@ -268,7 +271,7 @@ async fn releases(
         // Workaround: allow hiding all of a particular release with some kind of confirmation?
         must_not.append(&mut vec![json!({
             "term": {
-                "master_id.is_main_release": "false"
+                "master_id.is_main_release": false
             }
         })]);
     }
@@ -308,11 +311,7 @@ async fn releases(
             }
         },
         "sort": [
-            {
-                "_score": {
-                    "order": "desc"
-                }
-            },
+            // _score sorting is prepended when needed later
             {
                 "released": {
                     "order": "desc"
@@ -348,12 +347,23 @@ async fn releases(
         // },
     });
 
+    if !should.is_empty() || !must.is_empty() {
+        json["sort"].as_array_mut().unwrap().insert(
+            0,
+            json!({
+                "_score": {
+                    "order": "desc"
+                }
+            }),
+        );
+    }
+
     // println!("{:?}", params.0.search_after);
     if params.0.search_after.is_some() {
         json["search_after"] = serde_json::from_str(&params.0.search_after.unwrap()).unwrap();
     }
 
-    // println!("{}", to_string_pretty(&json).unwrap());
+    tracing::debug!("{}", to_string_pretty(&json).unwrap());
 
     let search = client
         .search(elasticsearch::SearchParts::Index(&["releases"]))

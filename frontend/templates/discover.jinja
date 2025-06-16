@@ -1,40 +1,50 @@
 {% extends "layout.jinja" %}
 {% from "components/active-search.jinja" import activesearch as activesearch %}
-
 {% block content %}
-<form id="search" action="/discover" method="get" hx-push-url="true" hx-vals='{"page": "1"}'
-    class="m-2 flex-none grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
-
-    {{ activesearch("/discover", "label", "Label", label, "Defected") }}
-    {{ activesearch("/discover", "artist", "Artist", artist, "Acen") }}
-    {{ activesearch("/discover", "song", "Song Name", song, "Don't Cry Tonight") }}
-
-    <div class="col-span-2">
-        <div class="flex items-start gap-2">
-            <input type="checkbox" id="videos_only" name="videos_only" checked hx-trigger="click" hx-get="/discover"
-                hx-target="#results" hx-swap="morph" hx-include="#search, #filters, #pagination" />
-            <input type="hidden" name="videos_only" value="off" />
-            <label class="text-xs text-slate-700" for="videos_only">Videos Only</label>
+    <form id="search"
+          action="/discover"
+          method="get"
+          hx-push-url="true"
+          hx-vals='{"page": "1"}'
+          class="m-2 flex-none grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+        {{ activesearch("/discover", "label", "Label", label, "Defected") }}
+        {{ activesearch("/discover", "artist", "Artist", artist, "Acen") }}
+        {{ activesearch("/discover", "song", "Song Name", song, "Don't Cry Tonight") }}
+        <div class="col-span-2">
+            <div class="flex items-start gap-2">
+                <input type="checkbox"
+                       id="videos_only"
+                       name="videos_only"
+                       checked
+                       hx-trigger="click"
+                       hx-get="/discover"
+                       hx-target="#results"
+                       hx-swap="morph"
+                       hx-include="#search, #filters, #pagination" />
+                <input type="hidden" name="videos_only" value="off" />
+                <label class="text-xs text-slate-700" for="videos_only">Videos Only</label>
+            </div>
+            <div class="flex items-start gap-2">
+                <input type="checkbox"
+                       id="masters_only"
+                       name="masters_only"
+                       checked
+                       hx-trigger="click"
+                       hx-get="/discover"
+                       hx-target="#results"
+                       hx-swap="morph"
+                       hx-include="#search, #filters, #pagination" />
+                <input type="hidden" name="masters_only" value="off" />
+                <label class="text-xs text-slate-700" for="masters_only">Masters Only (may hide remixes)</label>
+            </div>
         </div>
-        <div class="flex items-start gap-2">
-            <input type="checkbox" id="masters_only" name="masters_only" checked hx-trigger="click" hx-get="/discover"
-                hx-target="#results" hx-swap="morph" hx-include="#search, #filters, #pagination" />
-            <input type="hidden" name="masters_only" value="off" />
-            <label class="text-xs text-slate-700" for="masters_only">Masters Only (may hide remixes)</label>
-        </div>
-    </div>
-
-
-    <div id="active_filters"></div>
-
-</form>
-
-
-<div id="results" class="flex flex-col min-w-0 flex-grow items-center" hx-get="/discover" hx-trigger="load"
-    hx-swap="outerHTML" hx-include="#search, #filters, #pagination">
-    {% include 'components/loader.jinja' %}
-</div>
-
-
-<div id="filters"></div>
+        <div id="active_filters"></div>
+    </form>
+    <div id="results"
+         class="flex flex-col min-w-0 flex-grow items-center"
+         hx-get="/discover"
+         hx-trigger="load"
+         hx-swap="outerHTML"
+         hx-include="#search, #filters, #pagination">{% include 'components/loader.jinja' %}</div>
+    <div id="filters"></div>
 {% endblock %}
