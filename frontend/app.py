@@ -186,7 +186,8 @@ async def dig():
     page_size = int(request.args.get("pageSize", 5))
     offset = int(
         request.args.get(
-            "offset", (int(request.args.get("page", 1)) - 1) * page_size,
+            "offset",
+            (int(request.args.get("page", 1)) - 1) * page_size,
         ),
     )
     page = 1 + offset // page_size
@@ -528,10 +529,7 @@ def by_artist():
         return render_template(
             "by_artist/results.jinja",
             **{
-                "artists": [
-                    {"id": r["_id"], **r["_source"]}
-                    for r in artists["hits"]["hits"]
-                ],
+                "artists": [{"id": r["_id"], **r["_source"]} for r in artists["hits"]["hits"]],
                 **request.args,
             },
         )
@@ -539,10 +537,7 @@ def by_artist():
     return render_template(
         "by_artist.jinja",
         **{
-            "artists": [
-                {"id": r["_id"], **r["_source"]}
-                for r in artists["hits"]["hits"]
-            ]
+            "artists": [{"id": r["_id"], **r["_source"]} for r in artists["hits"]["hits"]]
             if artists
             else [],
             **request.args,
@@ -633,7 +628,9 @@ def get_filters():
 
 
 async def get_releases(
-    params: werkzeug.datastructures.MultiDict, *, omit_hidden=True,
+    params: werkzeug.datastructures.MultiDict,
+    *,
+    omit_hidden=True,
 ):
     page_size = int(params.get("pageSize", 5))
     offset = int(
@@ -685,12 +682,8 @@ async def get_releases(
                 if params.get("catno")
                 else None
             ),
-            ("field", "nested:identifiers.value")
-            if params.get("identifier")
-            else None,
-            ("value", params.get("identifier"))
-            if params.get("identifier")
-            else None,
+            ("field", "nested:identifiers.value") if params.get("identifier") else None,
+            ("value", params.get("identifier")) if params.get("identifier") else None,
             ("search_after", params.get("search_after")),
             ("from", offset),
             ("size", page_size),
@@ -726,18 +719,12 @@ async def get_releases(
             ],
             *[
                 x
-                for y in [
-                    [("field", "styles"), ("value", v)]
-                    for v in params.getlist("styles")
-                ]
+                for y in [[("field", "styles"), ("value", v)] for v in params.getlist("styles")]
                 for x in y
             ],
             *[
                 x
-                for y in [
-                    [("field", "country"), ("value", v)]
-                    for v in params.getlist("country")
-                ]
+                for y in [[("field", "country"), ("value", v)] for v in params.getlist("country")]
                 for x in y
             ],
         ]
@@ -774,9 +761,7 @@ async def hide():
     params = request.form.copy()
     params["pageSize"] = "1"
     params["offset"] = str(
-        int(request.form.get("from", 0))
-        + int(request.form.get("pageSize", 5))
-        - 1,
+        int(request.form.get("from", 0)) + int(request.form.get("pageSize", 5)) - 1,
     )
 
     action = Action(
@@ -803,6 +788,19 @@ def artist(artist_id):
     )
 
 
+def es_helper_nested_terms(path, field, values):
+    return {
+        "nested": {
+            "path": path,
+            "query": {
+                "terms": {
+                    field: values,
+                },
+            },
+        },
+    }
+
+
 @app.route("/artist/<artist_id>/releases")
 def artist_releases(artist_id):
     artist = es_client.get(index="artists", id=artist_id)
@@ -820,26 +818,8 @@ def artist_releases(artist_id):
             "query": {
                 "bool": {
                     "should": [
-                        {
-                            "nested": {
-                                "path": "artists",
-                                "query": {
-                                    "terms": {
-                                        "artists.id": all_possible_ids,
-                                    },
-                                },
-                            },
-                        },
-                        {
-                            "nested": {
-                                "path": "extraartists",
-                                "query": {
-                                    "terms": {
-                                        "extraartists.id": all_possible_ids,
-                                    },
-                                },
-                            },
-                        },
+                        es_helper_nested_terms("artists", "artists.id", all_possible_ids),
+                        es_helper_nested_terms("extraartists", "extraartists.id", all_possible_ids),
                         {
                             "nested": {
                                 "path": "tracklist",
@@ -958,12 +938,10 @@ def get_price(release_id):
     if prices == {}:
         # look up price of master release
         release = httpx.get(
-            f"{AXUM_API}release?id={release_id}", timeout=5,
+            f"{AXUM_API}release?id={release_id}",
+            timeout=5,
         ).json()["_source"]
-        if (
-            "master_id" in release
-            and release["master_id"]["is_main_release"] == "false"
-        ):
+        if "master_id" in release and release["master_id"]["is_main_release"] == "false":
             prices = oauth.discogs.get(
                 f"https://api.discogs.com/marketplace/price_suggestions/{release['master_id']['#text']}",
                 timeout=5,
@@ -1037,7 +1015,8 @@ def logout():
 def auth():
     token = oauth.discogs.authorize_access_token()
     resp = oauth.discogs.get(
-        "https://api.discogs.com/oauth/identity", timeout=5,
+        "https://api.discogs.com/oauth/identity",
+        timeout=5,
     )
     user = resp.json()
 
