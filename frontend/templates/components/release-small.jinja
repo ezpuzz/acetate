@@ -1,6 +1,6 @@
 {% from "components/tags.jinja" import tags %}
 {% macro release_small(release, swapoob=false) %}
-    <a id="release-small-{{ release.id }}"
+    <div id="release-small-{{ release.id }}"
        {% if swapoob %}hx-swap-oob="morph"{% endif %}
        class="block hover:bg-slate-200 rounded p-2 cursor-pointer"
        hx-get="/release/{{ release['id'] }}"
@@ -30,5 +30,5 @@
                 </svg>
             </div>
         {% endif %}
-    </a>
+    </div>
 {% endmacro %}

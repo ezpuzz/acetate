@@ -18,7 +18,7 @@ dependencies = [
     "httpx[http2]",
     "requests",
     "colorhash",
-    "elasticsearch[async]",
+    "elasticsearch[async]<9",
     "roaringbitmap",
     "psycopg2",
     "flask-caching",

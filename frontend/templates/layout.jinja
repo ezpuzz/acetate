@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+        <script src="https://unpkg.com/htmx.org@2.0.6"></script>
         <script src="https://unpkg.com/idiomorph@0.7.3"></script>
         <script src="https://unpkg.com/idiomorph@0.7.3/dist/idiomorph-ext.min.js"></script>
         <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
@@ -67,7 +67,7 @@
                             </svg>
                         </a>
                         <div id="help"
-                             class="hidden z-10 absolute top-full right-0 bg-white shadow-lg p-2 min-w-32">
+                             class="hidden z-20 absolute top-full right-0 bg-white shadow-lg p-2 min-w-32">
                             <p class="p-2">Would love to hear from you:</p>
                             <div class="space-y-2">
                                 <a class="flex items-center underline text-blue-600"
@@ -108,10 +108,9 @@
                     <div class="rounded-full size-8 flex-none bg-gray-300 flex items-center justify-center"></div>
                     <div class="hidden md:block">
                         <div class="font-bold">{{ session.user.username }}</div>
-                        {# <div>ezPuzzle</div> #}
                     </div>
                     <div id="menu"
-                         class="hidden absolute top-full right-0 bg-white shadow-lg p-4 min-w-32">
+                         class="hidden absolute top-full right-0 bg-white shadow-lg p-4 min-w-32 z-20">
                         <button class="flex items-center border rounded my-2 px-2 hover:bg-slate-300 shadow"
                                 hx-post="/wants"
                                 hx-swap="none">
