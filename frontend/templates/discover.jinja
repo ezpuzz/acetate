@@ -10,6 +10,7 @@
         {{ activesearch("/discover", "label", "Label", label, "Defected") }}
         {{ activesearch("/discover", "artist", "Artist", artist, "Acen") }}
         {{ activesearch("/discover", "song", "Song Name", song, "Don't Cry Tonight") }}
+        {{ activesearch("/discover", "released", "Year", released, "1977") }}
         <div class="col-span-2">
             <div class="flex items-start gap-2">
                 <input type="checkbox"
@@ -38,7 +39,6 @@
                 <label class="text-xs text-slate-700" for="masters_only">Masters Only (may hide remixes)</label>
             </div>
         </div>
-        <div id="active_filters"></div>
     </form>
     <div id="results"
          class="flex flex-col min-w-0 flex-grow items-center"

@@ -2,8 +2,16 @@
     {% if values is defined %}
         <div class="flex flex-wrap gap-1 md:gap-2 text-xs">
             {% for v in values %}
-                <div class="rounded-full px-2 py-1 leading-none"
-                     style="background-color: {{ v|colorhash }}">{{ v }}</div>
+                <a class="rounded-full px-2 py-1 leading-none"
+                    hx-get="/discover"
+                    style="background-color: {{ v|colorhash }}"
+                    hx-target="#results-wrapper"
+                    hx-swap="morph"
+                    hx-include="#search, #filters, #pagination"
+                    hx-vals='{"page": "1", "styles": "{{v}}"}'
+                    hx-push-url="true"
+
+                     >{{ v }}</a>
             {% endfor %}
         </div>
     {% endif %}

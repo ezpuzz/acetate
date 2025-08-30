@@ -673,6 +673,8 @@ async def get_releases(
             params.get("artist") and ("value", params["artist"]),
             params.get("title") and ("field", "title"),
             params.get("title") and ("value", params.get("title")),
+            params.get("released") and ("field", "released"),
+            params.get("released") and ("value", params.get("released")),
             ("field", "nested:labels.catno") if params.get("catno") else None,
             (
                 (
