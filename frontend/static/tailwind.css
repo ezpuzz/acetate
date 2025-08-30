@@ -797,6 +797,14 @@ video {
   width: 1px;
 }
 
+.w-1\/2 {
+  width: 50%;
+}
+
+.w-32 {
+  width: 8rem;
+}
+
 .min-w-0 {
   min-width: 0px;
 }
