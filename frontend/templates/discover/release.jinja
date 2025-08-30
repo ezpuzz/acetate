@@ -39,7 +39,7 @@
                             <div class="text-slate-400">{{ track.position|d() }}</div>
                             {{ track.title|d("Untitled") |e }}
                             <div class="grow"></div>
-                            {{ track.duration|d("") }}
+                            <span class="font-mono">{{ track.duration|d("") }}</span>
                         </dd>
                     {% endfor %}
                 </div>
