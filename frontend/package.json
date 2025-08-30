@@ -10,6 +10,7 @@
   "license": "UNLICENSED",
   "devDependencies": {
     "browser-sync": "^3",
+    "caniuse-lite": "^1.0.30001737",
     "tailwindcss": "^3.4"
   }
 }
