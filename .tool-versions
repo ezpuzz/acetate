@@ -1,4 +1,4 @@
 rust nightly
 sqlite 3.45
 node lts
-python 3.11
+python 3.13.7
