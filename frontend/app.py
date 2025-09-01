@@ -61,15 +61,15 @@ def color_hash_hex(value):
 
 app.jinja_env.filters["colorhash"] = color_hash_hex
 
-if os.environ.get("ELASTIC_APM_ENABLED") != "false":
-    app.config["ELASTIC_APM"] = {
-        "SERVICE_NAME": "acetate-frontend",
-        "SECRET_TOKEN": os.environ.get("APM_SECRET_TOKEN"),
-        "SERVER_URL": os.environ.get("APM_SERVER_URL"),
-        "ENVIRONMENT": os.environ.get("RENDER_EXTERNAL_HOSTNAME"),
-    }
+app.config["ELASTIC_APM"] = {
+    "SERVICE_NAME": "acetate-frontend",
+    "SECRET_TOKEN": os.environ.get("APM_SECRET_TOKEN"),
+    "SERVER_URL": os.environ.get("APM_SERVER_URL"),
+    "ENVIRONMENT": os.environ.get("RENDER_EXTERNAL_HOSTNAME"),
+    "DEBUG": os.environ.get("ELASTIC_APM_DEBUG", "false") == "true",
+}
 
-    apm = ElasticAPM(app)
+apm = ElasticAPM(app)
 
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
