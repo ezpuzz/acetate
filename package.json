@@ -1,6 +1,6 @@
 {
   "name": "acetate",
-  "packageManager": "yarn@4.8.1",
+  "packageManager": "yarn@4.9.4",
   "devDependencies": {
     "dbmate": "^2.26.0",
     "tailwindcss": "^3"
