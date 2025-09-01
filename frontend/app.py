@@ -19,11 +19,18 @@ from flask_caching import Cache
 from flask_htmx import HTMX, make_response
 from flask_sqlalchemy import SQLAlchemy
 from jinja2 import StrictUndefined
+from posthog import Posthog
 from pyroaring import BitMap
 from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert
 
 from exeptions import LoggedOutError
+
+posthog = Posthog(
+    project_api_key=os.environ.get("POSTHOG_API_KEY"),
+    host="https://us.i.posthog.com",
+    enable_exception_autocapture=True,
+)
 
 config = {
     "DEBUG": True,  # some Flask specific configs
