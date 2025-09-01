@@ -14,7 +14,7 @@ from colorhash import ColorHash
 from dotenv import load_dotenv
 from elasticapm.contrib.flask import ElasticAPM
 from elasticsearch import Elasticsearch
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from flask_caching import Cache
 from flask_htmx import HTMX, make_response
 from flask_sqlalchemy import SQLAlchemy
@@ -134,6 +134,18 @@ def healthz() -> str:
 @app.errorhandler(404)
 def page_not_found(_):
     return flask.redirect(url_for("discover"))
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # Capture methods, including capture_exception, return the UUID of the captured event,
+    # which you can use to find specific errors users encountered
+    event_id = posthog.capture_exception(e)
+
+    # You can show the event ID to your user, and ask them to include it in bug reports
+    response = jsonify({"message": str(e), "error_id": event_id})
+    response.status_code = 500
+    return response
 
 
 @app.route("/")
